@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      target: builder
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://flowra:flowra@postgres:5432/flowra
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: flowra
+      POSTGRES_PASSWORD: flowra
+      POSTGRES_DB: flowra
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Optional: pgAdmin for local DB inspection
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@flowra.app
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    profiles:
+      - debug
+
+volumes:
+  postgres_data:

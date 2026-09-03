@@ -4,14 +4,27 @@ import 'package:flutter/foundation.dart';
 class AuthGate {
   AuthGate._();
 
-  /// Bumped when the API clears a token after 401 — router refreshListenable.
+  /// True when access or refresh tokens are present in secure storage.
+  static final ValueNotifier<bool> isAuthenticated = ValueNotifier(false);
+
+  /// Bumped when the API clears tokens after a failed refresh — router refresh.
   static final ValueNotifier<int> unauthorizedTick = ValueNotifier(0);
 
   /// Optional: user profile loaded; used by splash/redirect for onboarding.
   static final ValueNotifier<bool?> onboardingComplete = ValueNotifier(null);
 
+  static void setAuthenticated(bool value) {
+    if (isAuthenticated.value != value) {
+      isAuthenticated.value = value;
+    }
+    if (!value) {
+      onboardingComplete.value = null;
+    }
+  }
+
   static void notifyUnauthorized() {
     onboardingComplete.value = null;
+    isAuthenticated.value = false;
     unauthorizedTick.value++;
   }
 

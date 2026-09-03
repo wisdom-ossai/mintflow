@@ -13,9 +13,9 @@ TAGS_METADATA = [
     {
         "name": "auth",
         "description": (
-            "Authentication via Supabase JWTs. All protected endpoints require "
-            "a `Bearer <token>` header. Tokens are issued by Supabase Auth on "
-            "signup/login and must be included in every subsequent request."
+            "Authentication via Flowra-issued JWTs. "
+            "`POST /v1/auth/signup`, `/login`, `/google`, and `/refresh` mint tokens. "
+            "Send `Authorization: Bearer <access_token>` on protected routes."
         ),
     },
     {
@@ -93,9 +93,8 @@ SECURITY_SCHEMES = {
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": (
-            "JWT issued by Supabase Auth. Obtain a token by calling "
-            "`POST /auth/v1/token` on your Supabase project URL with "
-            "`grant_type=password`. Include it as `Authorization: Bearer <token>`."
+            "JWT access token from `POST /v1/auth/login` (or signup / google / refresh). "
+            "Short-lived; use refresh_token to obtain a new pair."
         ),
     }
 }
@@ -139,14 +138,18 @@ Web clients.
 
 ## Authentication
 
-All endpoints except `/health` and `/` require a valid **Supabase JWT**.
+Public: `/`, `/health`, `POST /v1/auth/*` (except `/auth/me` and `/auth/logout`),
+Plaid and RevenueCat webhooks.
+
+Everything else requires:
 
 ```
-Authorization: Bearer <your-supabase-jwt>
+Authorization: Bearer <access_token>
 ```
 
-Tokens are obtained via Supabase Auth (`/auth/v1/token`). They expire after
-**1 hour** and must be refreshed using the Supabase client SDK.
+Obtain tokens via `POST /v1/auth/signup`, `/login`, or `/google`.
+Access tokens expire in **15 minutes**. Call `POST /v1/auth/refresh` with the
+opaque `refresh_token` (rotation + reuse detection).
 
 ---
 

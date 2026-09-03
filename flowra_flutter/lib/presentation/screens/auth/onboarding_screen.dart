@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plaid_flutter/plaid_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
@@ -34,13 +33,46 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _nameCtrl = TextEditingController();
   final _incomeCtrl = TextEditingController();
   final _targetCtrl = TextEditingController();
+  String _email = '';
 
   @override
   void initState() {
     super.initState();
-    final user = Supabase.instance.client.auth.currentUser;
-    final name = user?.userMetadata?['full_name'] as String? ?? '';
-    _nameCtrl.text = name;
+    _prefillFromUser();
+  }
+
+  Future<void> _prefillFromUser() async {
+    final cubit = context.read<UserCubit>();
+    var state = cubit.state;
+    if (state is! UserLoaded) {
+      await cubit.load(forceRefresh: true);
+      if (!mounted) return;
+      state = cubit.state;
+    }
+    if (state is UserLoaded) {
+      final user = state.user;
+      setState(() {
+        if (_nameCtrl.text.isEmpty &&
+            user.fullName != null &&
+            user.fullName!.trim().isNotEmpty) {
+          _nameCtrl.text = user.fullName!.trim();
+        }
+        _email = user.email;
+      });
+    } else {
+      try {
+        final me = await ServiceLocator.instance.api.getAuthMe();
+        if (!mounted) return;
+        setState(() {
+          if (_nameCtrl.text.isEmpty &&
+              me.fullName != null &&
+              me.fullName!.trim().isNotEmpty) {
+            _nameCtrl.text = me.fullName!.trim();
+          }
+          _email = me.email;
+        });
+      } catch (_) {}
+    }
   }
 
   @override
@@ -90,13 +122,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _finishManual() async {
     setState(() => _loading = true);
     try {
-      final user = await _submitOnboarding();
-      if (user != null) {
-        AuthGate.setOnboardingComplete(user.hasCompletedOnboarding);
-      } else {
-        // Soft-fail: still proceed if API errored but name was entered
-        AuthGate.setOnboardingComplete(_nameCtrl.text.trim().isNotEmpty);
-      }
+      await _submitOnboarding();
+      // User explicitly chose manual setup on step 3; complete onboarding flow.
+      AuthGate.setOnboardingComplete(true);
       if (mounted) context.go(FlowraRoutes.dashboard);
     } catch (e) {
       if (mounted) {
@@ -127,6 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         AuthGate.setOnboardingComplete(
             current?.hasCompletedOnboarding ??
                 _nameCtrl.text.trim().isNotEmpty);
+        if (mounted) setState(() => _loading = false);
         context.go('${FlowraRoutes.paywall}?feature=bank_sync');
         return;
       }
@@ -210,6 +239,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               _Step1Welcome(
                 nameCtrl: _nameCtrl,
+                email: _email,
                 onNext: _next,
               ),
               _Step2Target(
@@ -355,8 +385,13 @@ class _NextButton extends StatelessWidget {
 
 class _Step1Welcome extends StatelessWidget {
   final TextEditingController nameCtrl;
+  final String email;
   final VoidCallback onNext;
-  const _Step1Welcome({required this.nameCtrl, required this.onNext});
+  const _Step1Welcome({
+    required this.nameCtrl,
+    required this.email,
+    required this.onNext,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -365,7 +400,7 @@ class _Step1Welcome extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 8),
         const _StepHeader(
-          title: 'Welcome to\nFlowra',
+          title: 'Welcome to\nMintflow',
           subtitle: '7 days free — no card needed.',
         ),
         const SizedBox(height: 28),
@@ -427,7 +462,7 @@ class _Step1Welcome extends StatelessWidget {
             Icon(Icons.lock_outline, size: 16, color: FlowraColors.ink60),
             const SizedBox(width: 8),
             Text(
-              Supabase.instance.client.auth.currentUser?.email ?? '',
+              email.isNotEmpty ? email : 'Loading…',
               style: FlowraTextStyles.bodyMedium
                   .copyWith(color: FlowraColors.ink60),
             ),
@@ -503,7 +538,7 @@ class _Step2Target extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
                 child: Text(
-              'Flowra suggests 70% of income as a starting target.',
+              'Mintflow suggests 70% of income as a starting target.',
               style: FlowraTextStyles.bodySmall
                   .copyWith(color: FlowraColors.green600),
             )),
@@ -600,7 +635,7 @@ class _Step3Connect extends StatelessWidget {
               ]),
               const SizedBox(height: 12),
               Text(
-                'Your credentials never touch Flowra. '
+                'Your credentials never touch Mintflow. '
                 '10,000+ US banks supported.',
                 style: FlowraTextStyles.bodySmall
                     .copyWith(color: FlowraColors.ink60),
@@ -665,7 +700,7 @@ class _Step3Connect extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
                 child: Text(
-              'Read-only access. Flowra cannot move money or '
+              'Read-only access. Mintflow cannot move money or '
               'modify your accounts.',
               style: FlowraTextStyles.overline.copyWith(
                   color: FlowraColors.ink60,

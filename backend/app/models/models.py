@@ -1,6 +1,6 @@
 """
 SQLAlchemy ORM models for Flowra.
-All tables use UUID primary keys and enforce row-level security via Supabase.
+UUID primary keys; API is the only DB client (no Supabase RLS).
 """
 import uuid
 from datetime import datetime
@@ -86,6 +86,9 @@ class User(Base):
 
     id               = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
     email            = Column(String(255), unique=True, nullable=False, index=True)
+    password_hash    = Column(Text, nullable=True)  # null for Google-only accounts
+    google_sub       = Column(String(255), unique=True, nullable=True, index=True)
+    email_verified_at = Column(DateTime(timezone=True), nullable=True)
     full_name        = Column(String(255), nullable=True)
     avatar_url       = Column(String(512), nullable=True)
     subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.seed, nullable=False)
@@ -104,6 +107,10 @@ class User(Base):
     budgets           = relationship("Budget", back_populates="user", cascade="all, delete-orphan")
     insights          = relationship("Insight", back_populates="user", cascade="all, delete-orphan")
     notification_prefs = relationship("NotificationPreference", back_populates="user", cascade="all, delete-orphan")
+    auth_sessions     = relationship("AuthSession", back_populates="user", cascade="all, delete-orphan")
+    password_reset_tokens = relationship(
+        "PasswordResetToken", back_populates="user", cascade="all, delete-orphan"
+    )
 
     @property
     def is_trial_active(self) -> bool:
@@ -349,3 +356,39 @@ class NotificationPreference(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "notification_type", name="uq_notif_user_type"),
     )
+
+# ─── Auth sessions (refresh tokens) ────────────────────────────────────────
+
+class AuthSession(Base):
+    """
+    Refresh-token rotation family. Raw tokens are never stored — only SHA-256 hashes.
+    Reuse of a rotated token revokes the entire family.
+    """
+    __tablename__ = "auth_sessions"
+
+    id            = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id       = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    family_id     = Column(UUID(as_uuid=False), nullable=False, index=True, default=gen_uuid)
+    token_hash    = Column(String(64), nullable=False, unique=True)
+    expires_at    = Column(DateTime(timezone=True), nullable=False)
+    revoked_at    = Column(DateTime(timezone=True), nullable=True)
+    replaced_by   = Column(UUID(as_uuid=False), nullable=True)
+    user_agent    = Column(String(512), nullable=True)
+    ip_address    = Column(String(64), nullable=True)
+    created_at    = Column(DateTime(timezone=True), server_default=func.now())
+    last_used_at  = Column(DateTime(timezone=True), nullable=True)
+
+    user = relationship("User", back_populates="auth_sessions")
+
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id         = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id    = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String(64), nullable=False, unique=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at    = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="password_reset_tokens")

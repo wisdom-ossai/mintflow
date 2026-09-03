@@ -254,20 +254,13 @@ async def delete_account(
 
     Required for GDPR/CCPA compliance (right to erasure).
     """
-    from app.db.session import supabase_admin
     from app.services.plaid_service import revoke_user_plaid_items
+    from app.services.auth_service import logout_all
 
     user_id = str(current_user.id)
 
     await revoke_user_plaid_items(db, user_id)
-
-    try:
-        supabase_admin().auth.admin.delete_user(user_id)
-    except Exception as e:
-        # Log but still delete local data — Auth may already be gone
-        import logging
-        logging.getLogger(__name__).warning("Supabase Auth delete failed: %s", e)
-
+    await logout_all(db, user_id)
     await db.delete(current_user)
     return OKResponse(message="Account deleted. All data has been removed.")
 

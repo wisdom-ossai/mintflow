@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/auth_errors.dart';
+import '../../../core/utils/revenuecat.dart';
+import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
 import '../../widgets/label.dart';
-import '../../widgets/mini_logo_painter.dart';
+import '../../widgets/brand_logo.dart';
 import '../../widgets/error_banner.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -32,6 +36,23 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _afterAuth(String userId) async {
+    await identifyRevenueCat(userId);
+    if (!mounted) return;
+    try {
+      await context.read<UserCubit>().load(forceRefresh: true);
+      final state = context.read<UserCubit>().state;
+      if (state is UserLoaded) {
+        AuthGate.setOnboardingComplete(state.user.hasCompletedOnboarding);
+        context.go(state.user.hasCompletedOnboarding
+            ? FlowraRoutes.dashboard
+            : FlowraRoutes.onboarding);
+        return;
+      }
+    } catch (_) {}
+    if (mounted) context.go(FlowraRoutes.dashboard);
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() {
@@ -39,28 +60,12 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      await Supabase.instance.client.auth.signInWithPassword(
+      final result = await ServiceLocator.instance.api.login(
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
       );
       if (!mounted) return;
-      try {
-        await context.read<UserCubit>().load(forceRefresh: true);
-        final state = context.read<UserCubit>().state;
-        if (state is UserLoaded) {
-          AuthGate.setOnboardingComplete(state.user.hasCompletedOnboarding);
-          context.go(state.user.hasCompletedOnboarding
-              ? FlowraRoutes.dashboard
-              : FlowraRoutes.onboarding);
-          return;
-        }
-      } catch (_) {}
-      context.go(FlowraRoutes.dashboard);
-    } on AuthException catch (e) {
-      setState(() {
-        _error = friendlyAuthError(e);
-        _loading = false;
-      });
+      await _afterAuth(result.user.id);
     } catch (e) {
       setState(() {
         _error = friendlyAuthError(e);
@@ -75,8 +80,26 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      await Supabase.instance.client.auth
-          .signInWithOAuth(OAuthProvider.google, redirectTo: 'flowra://oauth');
+      final serverClientId = (dotenv.env['GOOGLE_CLIENT_ID'] ?? '').trim();
+      final googleSignIn = GoogleSignIn(
+        serverClientId: serverClientId.isEmpty ? null : serverClientId,
+        scopes: const ['email', 'profile'],
+      );
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        setState(() => _loading = false);
+        return;
+      }
+      final auth = await googleUser.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Google Sign-In did not return an ID token. '
+            'Set GOOGLE_CLIENT_ID (Web client) in .env.');
+      }
+      final result =
+          await ServiceLocator.instance.api.google(idToken: idToken);
+      if (!mounted) return;
+      await _afterAuth(result.user.id);
     } catch (e) {
       setState(() {
         _error = friendlyAuthError(e);
@@ -98,25 +121,11 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-                // Logo
-                Row(children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: FlowraColors.green400,
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child: CustomPaint(
-                        size: const Size(40, 40), painter: MiniLogoPainter()),
-                  ),
-                  const SizedBox(width: 10),
-                  Text('flowra',
-                      style: FlowraTextStyles.displaySmall.copyWith(
-                        fontFamily: 'DMSerifDisplay',
-                        color: FlowraColors.green900,
-                      )),
-                ]),
+                const BrandLogo(
+                  size: 40,
+                  showWordmark: true,
+                  wordmarkColor: FlowraColors.green900,
+                ),
                 const SizedBox(height: 40),
                 Text('Welcome back', style: FlowraTextStyles.displayMedium),
                 const SizedBox(height: 6),
@@ -248,7 +257,6 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class _GoogleIcon extends StatelessWidget {
-  // export _GoogleIcon
   const _GoogleIcon();
   @override
   Widget build(BuildContext context) => SizedBox(

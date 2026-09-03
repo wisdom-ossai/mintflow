@@ -169,6 +169,7 @@ def upgrade() -> None:
         sa.Column("rollover", sa.Boolean(), server_default=sa.text("false")),
         sa.Column("is_active", sa.Boolean(), server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("user_id", "category_id", "period", name="uq_budget_user_cat_period"),
     )
     op.create_index("ix_budgets_user_id", "budgets", ["user_id"])
@@ -193,6 +194,7 @@ def upgrade() -> None:
         sa.Column("notification_type", notificationtype, nullable=False),
         sa.Column("enabled", sa.Boolean(), server_default=sa.text("true")),
         sa.Column("time_of_day", sa.String(5), nullable=True),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("user_id", "notification_type", name="uq_notif_user_type"),
     )
     op.create_index("ix_notification_preferences_user_id", "notification_preferences", ["user_id"])

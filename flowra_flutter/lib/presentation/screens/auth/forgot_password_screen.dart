@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/auth_errors.dart';
+import '../../../data/datasources/service_locator.dart';
 import '../../widgets/label.dart';
 import '../../widgets/error_banner.dart';
 
@@ -33,10 +33,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
 
     try {
-      final resetPassword = FlowraRoutes.resetPassword;
-      await Supabase.instance.client.auth.resetPasswordForEmail(
-        _emailCtrl.text.trim(),
-        redirectTo: 'flowra:/$resetPassword',
+      await ServiceLocator.instance.api.forgotPassword(
+        email: _emailCtrl.text.trim(),
       );
       if (mounted) {
         context.push(
@@ -44,11 +42,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           extra: _emailCtrl.text.trim(),
         );
       }
-    } on AuthException catch (e) {
-      setState(() {
-        _error = friendlyAuthError(e);
-        _loading = false;
-      });
     } catch (e) {
       setState(() {
         _error = friendlyAuthError(e);

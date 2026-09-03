@@ -241,17 +241,24 @@ class _DashHeader extends StatelessWidget {
               ),
             ],
           ),
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: FlowraColors.green600,
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
               borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.notifications_none_rounded,
-              color: Colors.white,
-              size: 20,
+              onTap: () => context.push(FlowraRoutes.notifications),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: FlowraColors.green600,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
             ),
           ),
         ],

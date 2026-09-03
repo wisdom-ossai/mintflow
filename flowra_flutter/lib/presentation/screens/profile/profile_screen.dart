@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/auth/auth_gate.dart';
+import '../../../core/utils/auth_errors.dart';
+import '../../../data/datasources/service_locator.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Profile + Settings Screen
@@ -334,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                           // App version
                           Center(
                             child: Text(
-                              'Flowra v1.0.0 · Made with 🌿',
+                              'Mintflow v1.0.0',
                               style: FlowraTextStyles.overline.copyWith(
                                 color: FlowraColors.ink30,
                               ),
@@ -413,30 +414,25 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   Future<void> _logout() async {
     try {
-      await Supabase.instance.client.auth.signOut();
+      await ServiceLocator.instance.api.logout();
       AuthGate.onboardingComplete.value = null;
       if (mounted) context.go(FlowraRoutes.login);
-    } on AuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message),
-          backgroundColor: FlowraColors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: FlowraRadius.md_),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              const Text('An unexpected error occurred. Please try again.'),
-          backgroundColor: FlowraColors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: FlowraRadius.md_),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
+    } catch (e) {
+      // Still clear local session if revoke fails
+      await ServiceLocator.instance.tokens.clear();
+      AuthGate.onboardingComplete.value = null;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(friendlyAuthError(e)),
+            backgroundColor: FlowraColors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: FlowraRadius.md_),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+        context.go(FlowraRoutes.login);
+      }
     }
   }
 
@@ -457,8 +453,10 @@ class _ProfileScreenState extends State<ProfileScreen>
       return;
     }
     try {
-      await Supabase.instance.client.auth.signOut();
-    } catch (_) {}
+      await ServiceLocator.instance.api.logout();
+    } catch (_) {
+      await ServiceLocator.instance.tokens.clear();
+    }
     AuthGate.onboardingComplete.value = null;
     if (mounted) context.go(FlowraRoutes.login);
   }

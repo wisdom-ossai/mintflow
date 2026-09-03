@@ -5,19 +5,19 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:go_router/go_router.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/auth/auth_gate.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/utils/revenuecat.dart';
 import 'data/datasources/local_cache.dart';
 import 'data/datasources/service_locator.dart';
 import 'presentation/cubits/cubits.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Flowra — main.dart
-// Entry point. Initializes Supabase, Firebase, RevenueCat, and Cubits.
+// Entry point. Initializes dotenv, Firebase, RevenueCat, and Cubits.
+// Auth session = tokens in FlutterSecureStorage (FastAPI JWT).
 // ─────────────────────────────────────────────────────────────────────────────
 
 void main() async {
@@ -41,18 +41,6 @@ void main() async {
     debugPrint('⚠️ Failed to load .env file: $e');
   }
 
-  final supabaseUrl = (dotenv.env['SUPABASE_URL'] ?? '').trim();
-  final supabaseAnon = (dotenv.env['SUPABASE_ANON_KEY'] ?? '').trim();
-  if (supabaseUrl.isEmpty || supabaseAnon.isEmpty) {
-    debugPrint(
-      '❌ SUPABASE_URL / SUPABASE_ANON_KEY missing. '
-      'Copy them from Supabase → Settings → API into flowra_flutter/.env, '
-      'then fully stop and re-run (hot reload does not reload .env assets).',
-    );
-  } else {
-    debugPrint('Supabase URL: $supabaseUrl');
-  }
-
   await FlowraCache.init();
 
   try {
@@ -61,34 +49,10 @@ void main() async {
     // Firebase config may not be present in dev — non-fatal
   }
 
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnon,
-  );
-
   await ServiceLocator.init();
-  await _configureRevenueCat();
+  await configureRevenueCat();
 
   runApp(const FlowraApp());
-}
-
-Future<void> _configureRevenueCat() async {
-  const fromDefine = String.fromEnvironment('REVENUECAT_API_KEY');
-  final apiKey = fromDefine.isNotEmpty
-      ? fromDefine
-      : (dotenv.env['REVENUECAT_API_KEY'] ?? '');
-  if (apiKey.isEmpty) {
-    debugPrint('⚠️ RevenueCat API key missing — paywall purchases disabled');
-    return;
-  }
-  try {
-    final config = PurchasesConfiguration(apiKey);
-    final uid = Supabase.instance.client.auth.currentUser?.id;
-    if (uid != null) config.appUserID = uid;
-    await Purchases.configure(config);
-  } catch (e) {
-    debugPrint('⚠️ RevenueCat configure failed: $e');
-  }
 }
 
 class FlowraApp extends StatefulWidget {
@@ -118,30 +82,19 @@ class _FlowraAppState extends State<FlowraApp> {
     _billCubit = BillCubit();
     _router = buildRouter();
 
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
-      if (data.event == AuthChangeEvent.passwordRecovery) {
-        _router.go(FlowraRoutes.resetPassword);
-      }
-      if (data.event == AuthChangeEvent.signedIn) {
-        final uid = data.session?.user.id;
-        if (uid != null) {
-          try {
-            await Purchases.logIn(uid);
-          } catch (_) {}
-        }
-        _registerFcmToken();
-      }
-      if (data.event == AuthChangeEvent.signedOut) {
-        AuthGate.setOnboardingComplete(false);
-        AuthGate.onboardingComplete.value = null;
-      }
-    });
-
-    // 401 from API → login
+    // 401 from API (failed refresh) → login
     AuthGate.unauthorizedTick.addListener(() {
       if (_router.routerDelegate.currentConfiguration.uri.path !=
           FlowraRoutes.login) {
         _router.go(FlowraRoutes.login);
+      }
+    });
+
+    // After splash loads user, identify RevenueCat + FCM
+    _userCubit.stream.listen((state) {
+      if (state is UserLoaded) {
+        identifyRevenueCat(state.user.id);
+        _registerFcmToken();
       }
     });
 
@@ -153,8 +106,7 @@ class _FlowraAppState extends State<FlowraApp> {
       final messaging = FirebaseMessaging.instance;
       await messaging.requestPermission(alert: true, badge: true, sound: true);
       final token = await messaging.getToken();
-      if (token != null &&
-          Supabase.instance.client.auth.currentSession != null) {
+      if (token != null && AuthGate.isAuthenticated.value) {
         await _userCubit.updateFirebaseToken(token);
       }
     } catch (_) {
@@ -186,7 +138,7 @@ class _FlowraAppState extends State<FlowraApp> {
         BlocProvider.value(value: _billCubit),
       ],
       child: MaterialApp.router(
-        title: 'Flowra',
+        title: 'Mintflow',
         debugShowCheckedModeBanner: false,
         theme: FlowraTheme.light,
         darkTheme: FlowraTheme.dark,

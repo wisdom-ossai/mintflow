@@ -25,16 +25,10 @@ class OKResponse(BaseModel):
 
 # ─── Auth ──────────────────────────────────────────────────────────────────
 
-class TokenPayload(BaseModel):
-    sub: str          # user_id
-    email: str
-    exp: int
-
-
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=8, max_length=128)
 
 
 class UserLogin(BaseModel):
@@ -42,8 +36,30 @@ class UserLogin(BaseModel):
     password: str
 
 
-class AuthResponse(BaseModel):
+class GoogleAuthRequest(BaseModel):
+    id_token: str = Field(min_length=20)
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(min_length=20)
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: Optional[str] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=20)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class AuthTokensResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user: "UserRead"
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/format.dart';
 import '../../cubits/cubits.dart';
@@ -26,8 +28,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
-  void _load() =>
-      context.read<InsightCubit>().load(year: _period.year, month: _period.month);
+  void _load() {
+    final userState = context.read<UserCubit>().state;
+    if (userState is UserLoaded && !userState.user.hasFeature('ai_insights')) {
+      context.read<InsightCubit>().requireUpgrade();
+      return;
+    }
+    context.read<InsightCubit>().load(year: _period.year, month: _period.month);
+  }
 
   void _prevMonth() {
     setState(() => _period = DateTime(_period.year, _period.month - 1));
@@ -164,6 +172,47 @@ class _InsightsScreenState extends State<InsightsScreen> {
               const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
               )
+            else if (state is InsightUpgradeRequired)
+              SliverFillRemaining(
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: FlowraColors.green50,
+                          borderRadius: FlowraRadius.xl_,
+                        ),
+                        child: const Icon(Icons.auto_awesome,
+                            color: FlowraColors.green500, size: 28),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Monthly AI insights',
+                        style: FlowraTextStyles.labelLarge
+                            .copyWith(color: FlowraColors.ink),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Unlock Growth to get a plain-English review of your spending each month.',
+                        style: FlowraTextStyles.bodySmall
+                            .copyWith(color: FlowraColors.ink60, height: 1.5),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () => context.push(
+                            '${FlowraRoutes.paywall}?feature=ai_insights'),
+                        child: const Text('See Growth plans'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             else if (state is InsightError)
               SliverFillRemaining(
                 child: Center(
@@ -228,7 +277,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     const SizedBox(height: 12),
                     GestureDetector(
                       onTap: () => Share.share(
-                        'My ${_monthLabel} Flowra summary:\n'
+                        'My ${_monthLabel} Mintflow summary:\n'
                         '${state.insight.summary}\n\n'
                         'Track yours at flowra.app',
                       ),

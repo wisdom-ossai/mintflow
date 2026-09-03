@@ -3,15 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flowra_flutter/core/theme/app_theme.dart';
 
 void main() {
-  testWidgets('Flowra theme smoke — MaterialApp builds', (tester) async {
+  testWidgets('Mintflow theme smoke — MaterialApp builds', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: FlowraTheme.light,
         home: const Scaffold(
-          body: Center(child: Text('flowra')),
+          body: Center(child: Text('Mintflow')),
         ),
       ),
     );
-    expect(find.text('flowra'), findsOneWidget);
+    expect(find.text('Mintflow'), findsOneWidget);
   });
 }

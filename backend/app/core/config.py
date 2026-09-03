@@ -8,6 +8,7 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     # App
@@ -16,17 +17,29 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     SECRET_KEY: str
     ALLOWED_ORIGINS: str = "http://localhost:4444"
-    # In-process APScheduler — enable on exactly one process (workers=1 or a job service).
     SCHEDULER_ENABLED: bool = True
     TRIAL_DAYS: int = 7
+    APP_PUBLIC_URL: str = "https://flowra.app"
+    # Deep link base for mobile password reset (Flutter scheme)
+    APP_DEEP_LINK_RESET: str = "flowra://reset-password"
 
-    # Supabase
-    SUPABASE_URL: str
-    SUPABASE_ANON_KEY: str
-    SUPABASE_SERVICE_ROLE_KEY: str
-    # JWT secret from Supabase Dashboard → Settings → API → JWT Secret (not the anon key).
-    SUPABASE_JWT_SECRET: str = ""
+    # Database (Railway Postgres in prod; local docker-compose for dev)
     DATABASE_URL: str
+
+    # JWT / sessions
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_MINUTES: int = 15
+    REFRESH_TOKEN_DAYS: int = 30
+    PASSWORD_RESET_MINUTES: int = 60
+
+    # Google Sign-In — Web client ID used as audience for ID token verify
+    GOOGLE_CLIENT_ID: str = ""
+    # Optional extra audiences (iOS/Android client IDs)
+    GOOGLE_CLIENT_IDS: str = ""
+
+    # Resend transactional email
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "Flowra <noreply@flowra.app>"
 
     # Plaid
     PLAID_CLIENT_ID: str
@@ -41,9 +54,8 @@ class Settings(BaseSettings):
     # Firebase
     FIREBASE_CREDENTIALS_PATH: str = "./firebase-credentials.json"
 
-    # RevenueCat — Authorization header value configured in the RC dashboard webhook.
+    # RevenueCat
     REVENUECAT_WEBHOOK_SECRET: str = ""
-    # Entitlement identifiers in RevenueCat (map → subscription_tier).
     REVENUECAT_ENTITLEMENT_GROWTH: str = "growth"
     REVENUECAT_ENTITLEMENT_PRO: str = "pro"
 
@@ -54,7 +66,6 @@ class Settings(BaseSettings):
     # Sentry
     SENTRY_DSN: str = ""
 
-    # Rate limiting
     RATE_LIMIT_PER_MINUTE: int = 60
 
     @property
@@ -70,16 +81,13 @@ class Settings(BaseSettings):
         return self.APP_ENV == "development"
 
     @property
-    def jwt_secret(self) -> str:
-        """Prefer dedicated JWT secret; fall back to anon key only in local dev."""
-        if self.SUPABASE_JWT_SECRET:
-            return self.SUPABASE_JWT_SECRET
-        if self.is_production:
-            raise RuntimeError(
-                "SUPABASE_JWT_SECRET is required in production "
-                "(Supabase Dashboard → Settings → API → JWT Secret)."
-            )
-        return self.SUPABASE_ANON_KEY
+    def google_audiences(self) -> List[str]:
+        ids = [self.GOOGLE_CLIENT_ID.strip()] if self.GOOGLE_CLIENT_ID.strip() else []
+        for part in self.GOOGLE_CLIENT_IDS.split(","):
+            p = part.strip()
+            if p and p not in ids:
+                ids.append(p)
+        return ids
 
 
 @lru_cache

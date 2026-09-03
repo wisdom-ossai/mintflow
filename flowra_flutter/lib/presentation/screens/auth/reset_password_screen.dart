@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/auth_errors.dart';
+import '../../../data/datasources/service_locator.dart';
 import '../../widgets/label.dart';
 import '../../widgets/error_banner.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({super.key});
+  final String? token;
+  const ResetPasswordScreen({super.key, this.token});
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
@@ -48,6 +49,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return FlowraColors.green400;
   }
 
+  String? get _resetToken {
+    final fromWidget = widget.token?.trim();
+    if (fromWidget != null && fromWidget.isNotEmpty) return fromWidget;
+    final uri = GoRouterState.of(context).uri;
+    final q = uri.queryParameters['token']?.trim();
+    if (q != null && q.isNotEmpty) return q;
+    return null;
+  }
+
   @override
   void dispose() {
     _passwordCtrl.dispose();
@@ -57,24 +67,26 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
+    final token = _resetToken;
+    if (token == null) {
+      setState(() {
+        _error =
+            'This reset link is missing a token. Open the link from your email again.';
+      });
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
     });
 
     try {
-      // Supabase handles the session from the deep-link token automatically.
-      // updateUser() is called once the user is in a password-recovery session.
-      await Supabase.instance.client.auth.updateUser(
-        UserAttributes(password: _passwordCtrl.text),
+      await ServiceLocator.instance.api.resetPassword(
+        token: token,
+        password: _passwordCtrl.text,
       );
       setState(() {
         _success = true;
-        _loading = false;
-      });
-    } on AuthException catch (e) {
-      setState(() {
-        _error = friendlyAuthError(e);
         _loading = false;
       });
     } catch (e) {
@@ -244,7 +256,7 @@ class _ResetTopPanel extends StatelessWidget {
                         color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 8),
-                  Text('flowra',
+                  Text('Mintflow',
                       style: FlowraTextStyles.displaySmall.copyWith(
                         color: FlowraColors.cream,
                         fontFamily: 'DMSerifDisplay',

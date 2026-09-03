@@ -7,7 +7,7 @@
   <string>$(DEVELOPMENT_LANGUAGE)</string>
 
   <key>CFBundleDisplayName</key>
-  <string>Flowra</string>
+  <string>Mintflow</string>
 
   <key>CFBundleExecutable</key>
   <string>$(EXECUTABLE_NAME)</string>
@@ -49,10 +49,10 @@
 
   <!-- ── Permissions ────────────────────────────────────────────── -->
   <key>NSCameraUsageDescription</key>
-  <string>Flowra uses the camera to scan receipts for automatic transaction entry.</string>
+  <string>Mintflow uses the camera to scan receipts for automatic transaction entry.</string>
 
   <key>NSFaceIDUsageDescription</key>
-  <string>Use Face ID to securely access your Flowra account.</string>
+  <string>Use Face ID to securely access your Mintflow account.</string>
 
   <key>NSPhotoLibraryUsageDescription</key>
   <string>Choose a photo to upload as a receipt for a transaction.</string>

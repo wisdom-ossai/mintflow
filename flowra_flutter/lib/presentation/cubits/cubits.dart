@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/repositories/repositories.dart';
@@ -489,11 +490,20 @@ class InsightError extends InsightState {
   List get props => [message];
 }
 
+class InsightUpgradeRequired extends InsightState {
+  const InsightUpgradeRequired();
+  @override
+  List get props => [];
+}
+
 class InsightCubit extends Cubit<InsightState> {
   final InsightRepository _repo;
   InsightCubit()
       : _repo = ServiceLocator.instance.insights,
         super(const InsightInitial());
+
+  /// Skip the API when the client already knows this tier cannot fetch insights.
+  void requireUpgrade() => emit(const InsightUpgradeRequired());
 
   Future<void> load({int? year, int? month}) async {
     final now = DateTime.now();
@@ -504,6 +514,12 @@ class InsightCubit extends Cubit<InsightState> {
         month: month ?? now.month,
       );
       emit(InsightLoaded(insight));
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        emit(const InsightUpgradeRequired());
+        return;
+      }
+      emit(InsightError(_friendlyInsightError(e)));
     } catch (e) {
       emit(InsightError(_msg(e)));
     }
@@ -618,13 +634,30 @@ class UserCubit extends Cubit<UserState> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 String _msg(Object e) {
+  if (e is DioException) return _friendlyInsightError(e);
   if (e is Exception) {
     final s = e.toString();
-    // Strip DioException boilerplate
+    if (s.contains('DioException')) {
+      return 'Something went wrong. Please try again.';
+    }
     if (s.contains('message:')) {
       return s.split('message:').last.trim();
     }
     return s.replaceFirst('Exception: ', '');
   }
   return e.toString();
+}
+
+String _friendlyInsightError(DioException e) {
+  final status = e.response?.statusCode;
+  if (status != null && status >= 500) {
+    return 'Could not load insights right now. Please try again.';
+  }
+  if (e.type == DioExceptionType.connectionTimeout ||
+      e.type == DioExceptionType.sendTimeout ||
+      e.type == DioExceptionType.receiveTimeout ||
+      e.type == DioExceptionType.connectionError) {
+    return 'Check your connection and try again.';
+  }
+  return 'Could not load insights. Please try again.';
 }

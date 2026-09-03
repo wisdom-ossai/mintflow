@@ -15,6 +15,7 @@ from app.core.openapi import build_openapi_schema, TAGS_METADATA
 from app.api.v1.endpoints.transactions import router as transactions_router
 from app.api.v1.endpoints.accounts import router as accounts_router
 from app.api.v1.endpoints.subscriptions import router as subscriptions_router
+from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.misc import (
     users_router, dashboard_router, insights_router,
     budgets_router, notifications_router,
@@ -243,6 +244,7 @@ async def redoc_ui():
 
 API_PREFIX = "/v1"
 
+app.include_router(auth_router,           prefix=API_PREFIX)
 app.include_router(users_router,          prefix=API_PREFIX)
 app.include_router(dashboard_router,      prefix=API_PREFIX)
 app.include_router(insights_router,       prefix=API_PREFIX)

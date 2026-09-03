@@ -6,7 +6,6 @@ import 'package:flowra_flutter/presentation/screens/profile/profile_screen.dart'
 import 'package:flutter/material.dart';
 import 'package:flowra_flutter/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/auth_gate.dart';
 import '../../presentation/screens/auth/splash_screen.dart';
@@ -14,6 +13,8 @@ import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/signup_screen.dart';
 import '../../presentation/screens/auth/onboarding_screen.dart';
 import '../../presentation/screens/dashboard/dashboard_screen.dart';
+import '../../presentation/screens/notifications/in_app_notifications_screen.dart';
+import '../../presentation/screens/notifications/notifications_screen.dart';
 import '../../presentation/screens/transactions/transaction_list_screen.dart';
 import '../../presentation/screens/transactions/add_transaction_screen.dart';
 import '../../presentation/screens/goals/goals_screen.dart';
@@ -42,6 +43,8 @@ class FlowraRoutes {
   static const addBill = '/bills/add';
   static const insights = '/insights';
   static const settings = '/settings';
+  static const notifications = '/notifications';
+  static const notificationSettings = '/notifications/settings';
   static const paywall = '/paywall';
   static const profile = '/profile';
   static const forgotPassword = '/forgot-password';
@@ -52,10 +55,10 @@ class FlowraRoutes {
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-/// Combines Supabase auth + 401 + onboarding flag for go_router refresh.
+/// Combines token session + 401 + onboarding flag for go_router refresh.
 class _RouterRefresh extends ChangeNotifier {
   _RouterRefresh() {
-    Supabase.instance.client.auth.onAuthStateChange.listen((_) => notifyListeners());
+    AuthGate.isAuthenticated.addListener(notifyListeners);
     AuthGate.unauthorizedTick.addListener(notifyListeners);
     AuthGate.onboardingComplete.addListener(notifyListeners);
   }
@@ -68,8 +71,7 @@ GoRouter buildRouter() {
     initialLocation: FlowraRoutes.splash,
     refreshListenable: refresh,
     redirect: (context, state) {
-      final session = Supabase.instance.client.auth.currentSession;
-      final isLoggedIn = session != null;
+      final isLoggedIn = AuthGate.isAuthenticated.value;
       final loc = state.matchedLocation;
 
       // Splash owns first navigation after animation
@@ -124,7 +126,10 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: FlowraRoutes.resetPassword,
-        builder: (_, __) => const ResetPasswordScreen(),
+        builder: (_, state) => ResetPasswordScreen(
+          token: state.uri.queryParameters['token'] ??
+              (state.extra is String ? state.extra as String : null),
+        ),
       ),
 
       // ── Main shell ────────────────────────────────────────────────────────
@@ -187,6 +192,14 @@ GoRouter buildRouter() {
           feature: state.uri.queryParameters['feature'],
         ),
       ),
+      GoRoute(
+        path: FlowraRoutes.notifications,
+        builder: (_, __) => const InAppNotificationsScreen(),
+      ),
+      GoRoute(
+        path: FlowraRoutes.notificationSettings,
+        builder: (_, __) => const NotificationSettingsScreen(),
+      ),
     ],
   );
 }
@@ -210,7 +223,7 @@ class FlowraShell extends StatelessWidget {
     final currentIndex = _tabs.indexWhere((t) => location.startsWith(t));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAF7),
+      backgroundColor: const Color(0xFFF4F7FB),
       body: child,
       // bottomNavigationBar: _BottomNav(
       //   currentIndex: currentIndex < 0 ? 0 : currentIndex,

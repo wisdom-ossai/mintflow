@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/revenuecat.dart';
+import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/brand_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,17 +37,22 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _navigate() async {
     await Future.delayed(const Duration(milliseconds: 1600));
     if (!mounted) return;
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session == null) {
+
+    final hasTokens = await ServiceLocator.instance.tokens.hasTokens();
+    if (!hasTokens) {
+      AuthGate.setAuthenticated(false);
       context.go(FlowraRoutes.login);
       return;
     }
+
+    AuthGate.setAuthenticated(true);
 
     try {
       await context.read<UserCubit>().load(forceRefresh: true);
       if (!mounted) return;
       final state = context.read<UserCubit>().state;
       if (state is UserLoaded) {
+        await identifyRevenueCat(state.user.id);
         final complete = state.user.hasCompletedOnboarding;
         AuthGate.setOnboardingComplete(complete);
         context.go(
@@ -53,7 +61,6 @@ class _SplashScreenState extends State<SplashScreen>
       }
     } catch (_) {}
 
-    // Soft-fail: allow dashboard; redirect may still send to onboarding later
     AuthGate.setOnboardingComplete(true);
     if (mounted) context.go(FlowraRoutes.dashboard);
   }
@@ -75,46 +82,30 @@ class _SplashScreenState extends State<SplashScreen>
             bottom: 80,
             right: 20,
             child:
-                _Ring(size: 160, opacity: 0.05, color: FlowraColors.gold400)),
+                _Ring(size: 160, opacity: 0.05, color: FlowraColors.green400)),
         Positioned(
             top: 110,
             right: 70,
-            child: _Dot(color: FlowraColors.gold400, size: 8, opacity: 0.6)),
+            child: _Dot(color: FlowraColors.green400, size: 8, opacity: 0.6)),
         Positioned(
             bottom: 160,
             left: 50,
-            child: _Dot(color: FlowraColors.green400, size: 5, opacity: 0.5)),
+            child: _Dot(color: FlowraColors.green100, size: 5, opacity: 0.4)),
         Center(
           child: FadeTransition(
             opacity: _fade,
             child: ScaleTransition(
               scale: _scale,
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: FlowraColors.green400,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: CustomPaint(painter: _LogoPainter()),
-                ),
+                const BrandLogo(size: 88),
                 const SizedBox(height: 20),
                 Text(
-                  'flowra',
+                  'Mintflow',
                   style: FlowraTextStyles.displayLarge.copyWith(
                     color: FlowraColors.cream,
-                    fontFamily: 'DMSerifDisplay',
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w500,
                     letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'your money, flowing forward',
-                  style: FlowraTextStyles.bodySmall.copyWith(
-                    color: FlowraColors.cream.withOpacity(0.45),
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 0.04,
                   ),
                 ),
               ]),
@@ -178,41 +169,4 @@ class _Dot extends StatelessWidget {
           color: color.withOpacity(opacity),
         ),
       );
-}
-
-class _LogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-    final cx = size.width / 2, cy = size.height / 2;
-    final path = Path()
-      ..moveTo(cx, cy + 12)
-      ..cubicTo(cx - 10, cy + 4, cx - 12, cy - 6, cx, cy - 12)
-      ..cubicTo(cx + 12, cy - 6, cx + 10, cy + 4, cx, cy + 12);
-    canvas.drawPath(
-        path,
-        paint
-          ..color = Colors.white.withOpacity(0.35)
-          ..style = PaintingStyle.fill);
-    canvas.drawPath(
-        path,
-        paint
-          ..style = PaintingStyle.stroke
-          ..color = Colors.white.withOpacity(0.7));
-    canvas.drawLine(
-        Offset(cx, cy + 8),
-        Offset(cx, cy - 8),
-        paint
-          ..color = Colors.white
-          ..strokeWidth = 1.8);
-    canvas.drawLine(Offset(cx, cy - 8), Offset(cx - 5, cy - 3), paint);
-    canvas.drawLine(Offset(cx, cy - 8), Offset(cx + 5, cy - 3), paint);
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }

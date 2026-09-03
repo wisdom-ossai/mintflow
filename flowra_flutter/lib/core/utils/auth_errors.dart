@@ -1,57 +1,82 @@
 import 'dart:io';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dio/dio.dart';
 
-/// Maps Supabase / network failures to calm, user-facing copy.
-/// Never surface raw [ClientException] / [SocketException] strings in the UI.
+/// Maps Dio / network failures to calm, user-facing copy.
+/// Never surface raw [SocketException] / Dio dump strings in the UI.
 String friendlyAuthError(Object error) {
-  if (error is AuthException) {
-    return _fromAuthException(error);
+  if (error is DioException) {
+    return _fromDio(error);
   }
   return _fromNetworkOrUnknown(error);
 }
 
-String _fromAuthException(AuthException e) {
-  final raw = '${e.message} ${e.statusCode ?? ''} ${e.runtimeType}'.toLowerCase();
-
-  if (_looksLikeNetwork(raw) || _looksLikeNetwork(e.message)) {
+String _fromDio(DioException e) {
+  if (e.type == DioExceptionType.connectionTimeout ||
+      e.type == DioExceptionType.sendTimeout ||
+      e.type == DioExceptionType.receiveTimeout ||
+      e.type == DioExceptionType.connectionError) {
     return _networkMessage;
   }
 
-  final message = e.message.trim();
-  if (message.isEmpty) {
-    return 'Something went wrong. Please try again.';
-  }
+  final status = e.response?.statusCode;
+  final detail = _extractDetail(e.response?.data);
 
-  // Common Auth API messages — keep specific when safe for the user.
-  final lower = message.toLowerCase();
-  if (lower.contains('invalid login credentials') ||
-      lower.contains('invalid email or password')) {
+  if (status == 401) {
+    if (detail != null && detail.toLowerCase().contains('password')) {
+      return 'Email or password is incorrect.';
+    }
     return 'Email or password is incorrect.';
   }
-  if (lower.contains('user already registered') ||
-      lower.contains('already been registered')) {
+  if (status == 409) {
     return 'An account with this email already exists. Try signing in.';
   }
-  if (lower.contains('email not confirmed')) {
-    return 'Please confirm your email before signing in.';
+  if (status == 400) {
+    if (detail != null && detail.isNotEmpty && detail.length <= 160) {
+      return detail;
+    }
+    return 'Please check your details and try again.';
   }
-  if (lower.contains('password') && lower.contains('least')) {
-    return message; // usually already clear
+  if (status == 422) {
+    if (detail != null && detail.isNotEmpty && detail.length <= 160) {
+      return detail;
+    }
+    return 'Please check your details and try again.';
   }
-  if (lower.contains('rate limit') || lower.contains('too many')) {
+  if (status == 429) {
     return 'Too many attempts. Please wait a moment and try again.';
   }
-
-  // Avoid dumping nested exception dumps that Auth sometimes wraps.
-  if (message.contains('ClientException') ||
-      message.contains('SocketException') ||
-      message.contains('Failed host lookup') ||
-      message.length > 160) {
-    return _networkMessage;
+  if (status != null && status >= 500) {
+    return 'Something went wrong on our side. Please try again shortly.';
   }
 
-  return message;
+  if (detail != null &&
+      detail.isNotEmpty &&
+      detail.length <= 160 &&
+      !_looksLikeNetwork(detail.toLowerCase())) {
+    return detail;
+  }
+
+  return _fromNetworkOrUnknown(e);
+}
+
+String? _extractDetail(dynamic data) {
+  if (data == null) return null;
+  if (data is String) return data.trim();
+  if (data is Map) {
+    final detail = data['detail'];
+    if (detail is String) return detail.trim();
+    if (detail is List && detail.isNotEmpty) {
+      final first = detail.first;
+      if (first is Map && first['msg'] != null) {
+        return first['msg'].toString();
+      }
+      return first.toString();
+    }
+    final message = data['message'];
+    if (message is String) return message.trim();
+  }
+  return null;
 }
 
 String _fromNetworkOrUnknown(Object error) {
@@ -79,5 +104,5 @@ bool _looksLikeNetwork(String text) {
 }
 
 const _networkMessage =
-    'We couldn’t reach Flowra’s servers. Check your internet connection, '
+    'We couldn’t reach Mintflow’s servers. Check your internet connection, '
     'or try again in a moment.';

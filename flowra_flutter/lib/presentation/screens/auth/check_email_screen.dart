@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/datasources/service_locator.dart';
 
 class CheckEmailScreen extends StatefulWidget {
   final String email;
@@ -42,10 +42,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
       _resent = false;
     });
     try {
-      await Supabase.instance.client.auth.resetPasswordForEmail(
-        widget.email,
-        redirectTo: 'flowra://reset-password',
-      );
+      await ServiceLocator.instance.api.forgotPassword(email: widget.email);
       setState(() {
         _resending = false;
         _resent = true;
@@ -54,7 +51,6 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
       _bounceCtrl
         ..reset()
         ..forward();
-      // Countdown timer
       _startCountdown();
     } catch (_) {
       setState(() => _resending = false);
@@ -84,10 +80,10 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
       backgroundColor: FlowraColors.cream,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 12),
 
               // Animated envelope icon
               ScaleTransition(
@@ -105,7 +101,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                       size: 44, color: FlowraColors.green500),
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 12),
 
               // Title
               Text('Check your email',
@@ -135,12 +131,12 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 18),
 
               // Steps card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: FlowraRadius.xl_,
@@ -155,7 +151,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                   _StepDivider(),
                   _Step(
                     number: '2',
-                    text: 'Find the email from Flowra',
+                    text: 'Find the email from Mintflow',
                     active: true,
                   ),
                   _StepDivider(),
@@ -172,7 +168,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                   ),
                 ]),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 14),
 
               // Resent success banner
               if (_resent)

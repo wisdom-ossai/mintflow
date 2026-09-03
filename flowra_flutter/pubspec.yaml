@@ -1,5 +1,5 @@
 name: flowra_flutter
-description: "A new Flutter project."
+description: "Mintflow — personal finance that keeps your money in motion."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.0+1
@@ -26,8 +26,8 @@ dependencies:
   # retrofit: ^4.9.2
   pretty_dio_logger: ^1.4.0
 
-  # ── Auth (Supabase) ───────────────────────────────────────────────────
-  supabase_flutter: ^2.12.2
+  # ── Auth (Flowra FastAPI + Google) ────────────────────────────────────
+  google_sign_in: ^6.2.2
 
   # ── Local storage ─────────────────────────────────────────────────────
   flutter_secure_storage: ^10.0.0
@@ -82,6 +82,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
   # ── Code generation ───────────────────────────────────────────────────────
   # These three share the same build ^4.0.0 dependency — fully compatible.
   build_runner: ^2.4.9
@@ -95,6 +96,14 @@ dev_dependencies:
   mockito: ^5.4.4
   bloc_test: ^10.0.0
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/app_icon.png
+  adaptive_icon_background: "#05122B"
+  adaptive_icon_foreground: assets/branding/app_icon.png
+  remove_alpha_ios: true
+
 flutter:
   uses-material-design: true
 
@@ -102,6 +111,7 @@ flutter:
     - .env
     - assets/images/
     - assets/icons/
+    - assets/branding/
 
   fonts:
     - family: Poppins

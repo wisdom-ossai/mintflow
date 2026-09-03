@@ -1,11 +1,13 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../datasources/api_client.dart';
+import '../datasources/token_store.dart';
 import '../repositories/repositories.dart';
+import '../../core/auth/auth_gate.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Service Locator — single instance of every dependency.
-// Call ServiceLocator.init() once in main() after Supabase is ready.
+// Call ServiceLocator.init() once in main() after dotenv is loaded.
 // Access anywhere via ServiceLocator.instance.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -17,6 +19,8 @@ class ServiceLocator {
     return _instance!;
   }
 
+  late final FlutterSecureStorage storage;
+  late final TokenStore tokens;
   late final FlowraApiClient api;
   late final UserRepository users;
   late final DashboardRepository dashboard;
@@ -28,29 +32,13 @@ class ServiceLocator {
   static Future<void> init() async {
     final sl = ServiceLocator._();
 
-    // Storage — reads Supabase JWT automatically after login
     const storage = FlutterSecureStorage();
+    sl.storage = storage;
+    sl.tokens = TokenStore(storage: storage);
 
-    // Seed the JWT from the current Supabase session on startup
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session != null) {
-      await storage.write(
-        key: 'access_token',
-        value: session.accessToken,
-      );
-    }
+    AuthGate.setAuthenticated(await sl.tokens.hasTokens());
 
-    // Listen for future session changes and keep the token in sync
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
-      final token = data.session?.accessToken;
-      if (token != null) {
-        await storage.write(key: 'access_token', value: token);
-      } else {
-        await storage.delete(key: 'access_token');
-      }
-    });
-
-    sl.api = FlowraApiClient(storage: storage);
+    sl.api = FlowraApiClient(tokenStore: sl.tokens);
     sl.users = UserRepository(sl.api);
     sl.dashboard = DashboardRepository(sl.api);
     sl.transactions = TransactionRepository(sl.api);

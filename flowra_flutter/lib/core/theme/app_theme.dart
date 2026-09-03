@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra Design System
-// Brand: forest green + gold + cream. Warm, organic, trustworthy.
+// Mintflow Design System
+// Brand: navy (#05122B) + mint (#2CE683) + white. Calm, modern, trustworthy.
+// Token names kept for compatibility; values remapped to Mintflow palette.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Color palette ─────────────────────────────────────────────────────────────
@@ -10,28 +11,28 @@ import 'package:flutter/material.dart';
 class FlowraColors {
   FlowraColors._();
 
-  // Brand greens
-  static const green900 = Color(0xFF0A2E1C);
-  static const green600 = Color(0xFF157042);
-  static const green500 = Color(0xFF1D9256);
-  static const green400 = Color(0xFF2EAD6A);
-  static const green100 = Color(0xFFC3E6D0);
-  static const green50 = Color(0xFFE8F5EE);
+  // Brand navy / mint (legacy green* names map to Mintflow navy+mint)
+  static const green900 = Color(0xFF05122B); // navy
+  static const green600 = Color(0xFF1EA35D); // deep mint
+  static const green500 = Color(0xFF24C974); // mid mint
+  static const green400 = Color(0xFF2CE683); // primary mint
+  static const green100 = Color(0xFFB8F5D4); // mint soft
+  static const green50 = Color(0xFFE8FBF2); // mint wash
 
-  // Brand gold
-  static const gold500 = Color(0xFFD4A020);
-  static const gold400 = Color(0xFFEDB93A);
-  static const gold300 = Color(0xFFF4C95D);
-  static const gold100 = Color(0xFFFAD991);
-  static const gold50 = Color(0xFFFDF5DC);
+  // Accents (mapped to mint-adjacent neutrals — no gold in Mintflow brand)
+  static const gold500 = Color(0xFF1EA35D);
+  static const gold400 = Color(0xFF2CE683);
+  static const gold300 = Color(0xFF6EF0A8);
+  static const gold100 = Color(0xFFB8F5D4);
+  static const gold50 = Color(0xFFE8FBF2);
 
-  // Neutrals / cream
-  static const cream = Color(0xFFFAFAF7);
-  static const creamDark = Color(0xFFF2F2EC);
-  static const ink = Color(0xFF0F1F14);
-  static const ink60 = Color(0x990F1F14);
-  static const ink30 = Color(0x4D0F1F14);
-  static const ink10 = Color(0x1A0F1F14);
+  // Neutrals / surfaces
+  static const cream = Color(0xFFF4F7FB); // cool off-white
+  static const creamDark = Color(0xFFE8EDF5);
+  static const ink = Color(0xFF05122B);
+  static const ink60 = Color(0x9905122B);
+  static const ink30 = Color(0x4D05122B);
+  static const ink10 = Color(0x1A05122B);
 
   // Semantic
   static const red = Color(0xFFE05A40);
@@ -42,11 +43,11 @@ class FlowraColors {
   static const blueSoft = Color(0xFFF0F4FF);
 
   // Dark mode variants
-  static const darkSurface = Color(0xFF111B14);
-  static const darkCard = Color(0xFF1A2B1E);
-  static const darkBorder = Color(0xFF2A3D2E);
-  static const darkText = Color(0xFFE8F5EE);
-  static const darkTextMuted = Color(0xFF8BAF95);
+  static const darkSurface = Color(0xFF05122B);
+  static const darkCard = Color(0xFF0A1A38);
+  static const darkBorder = Color(0xFF1A2E4A);
+  static const darkText = Color(0xFFFFFFFF);
+  static const darkTextMuted = Color(0xFF8BA3C0);
 }
 
 // ── Typography ────────────────────────────────────────────────────────────────

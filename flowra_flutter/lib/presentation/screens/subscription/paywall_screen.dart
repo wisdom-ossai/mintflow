@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/revenuecat.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Paywall Screen — RevenueCat offerings + purchase / restore
@@ -111,6 +112,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
       _loading = true;
       _error = null;
     });
+    if (!revenueCatConfigured) {
+      setState(() {
+        _rcConfigured = false;
+        _loading = false;
+        _error =
+            'RevenueCat is not configured. Set REVENUECAT_API_KEY to enable purchases.';
+      });
+      return;
+    }
     try {
       final offerings = await Purchases.getOfferings();
       setState(() {
@@ -223,6 +233,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _restore() async {
+    if (!_rcConfigured || !revenueCatConfigured) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_error ?? 'Purchases unavailable'),
+          backgroundColor: FlowraColors.red,
+        ),
+      );
+      return;
+    }
     setState(() => _purchasing = true);
     try {
       await Purchases.restorePurchases();

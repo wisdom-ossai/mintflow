@@ -1,44 +1,164 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import '../../core/auth/auth_gate.dart';
 import '../models/models.dart';
+import 'token_store.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Flowra API Client
 // Wraps all HTTP calls to the FastAPI backend.
-// JWT is injected automatically via AuthInterceptor.
+// JWT is injected automatically via AuthInterceptor; 401 triggers one refresh.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const String _baseUrl = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'https://api.flowra.app',
-);
+String resolveApiBaseUrl() {
+  const fromDefine = String.fromEnvironment('API_BASE_URL');
+  if (fromDefine.isNotEmpty) return fromDefine.replaceAll(RegExp(r'/$'), '');
+  final fromEnv = (dotenv.env['API_BASE_URL'] ?? '').trim();
+  if (fromEnv.isNotEmpty) return fromEnv.replaceAll(RegExp(r'/$'), '');
+  return 'https://api.flowra.app';
+}
+
+class AuthTokensResult {
+  final String accessToken;
+  final String refreshToken;
+  final String tokenType;
+  final UserModel user;
+
+  const AuthTokensResult({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.tokenType,
+    required this.user,
+  });
+
+  factory AuthTokensResult.fromJson(Map<String, dynamic> json) =>
+      AuthTokensResult(
+        accessToken: json['access_token'] as String,
+        refreshToken: json['refresh_token'] as String,
+        tokenType: (json['token_type'] as String?) ?? 'bearer',
+        user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
+      );
+}
 
 class FlowraApiClient {
   late final Dio _dio;
-  final FlutterSecureStorage _storage;
+  final TokenStore _tokens;
 
-  FlowraApiClient({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage() {
-    _dio = Dio(BaseOptions(
-      baseUrl: '$_baseUrl/v1',
+  /// Separate client for refresh — avoids interceptor recursion.
+  late final Dio _refreshDio;
+
+  FlowraApiClient({required TokenStore tokenStore}) : _tokens = tokenStore {
+    final base = '${resolveApiBaseUrl()}/v1';
+    final options = BaseOptions(
+      baseUrl: base,
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 30),
       headers: {'Content-Type': 'application/json'},
-    ));
+    );
+    _dio = Dio(options);
+    _refreshDio = Dio(options);
     _dio.interceptors.addAll([
-      _AuthInterceptor(_storage),
+      _AuthInterceptor(_tokens, _refreshDio),
       _RetryInterceptor(_dio),
       LogInterceptor(requestBody: false, responseBody: false),
     ]);
   }
 
-  // ── Auth helpers ─────────────────────────────────────────────────────────
+  TokenStore get tokens => _tokens;
 
-  Future<void> setToken(String token) =>
-      _storage.write(key: 'access_token', value: token);
+  // ── Auth ──────────────────────────────────────────────────────────────────
 
-  Future<void> clearToken() => _storage.delete(key: 'access_token');
+  Future<AuthTokensResult> signup({
+    required String email,
+    required String password,
+    String? fullName,
+  }) async {
+    final res = await _dio.post('/auth/signup', data: {
+      'email': email,
+      'password': password,
+      if (fullName != null && fullName.isNotEmpty) 'full_name': fullName,
+    });
+    final result = AuthTokensResult.fromJson(res.data as Map<String, dynamic>);
+    await _tokens.saveTokens(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    return result;
+  }
+
+  Future<AuthTokensResult> login({
+    required String email,
+    required String password,
+  }) async {
+    final res = await _dio.post('/auth/login', data: {
+      'email': email,
+      'password': password,
+    });
+    final result = AuthTokensResult.fromJson(res.data as Map<String, dynamic>);
+    await _tokens.saveTokens(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    return result;
+  }
+
+  Future<AuthTokensResult> google({required String idToken}) async {
+    final res = await _dio.post('/auth/google', data: {
+      'id_token': idToken,
+    });
+    final result = AuthTokensResult.fromJson(res.data as Map<String, dynamic>);
+    await _tokens.saveTokens(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    return result;
+  }
+
+  Future<AuthTokensResult> refresh({required String refreshToken}) async {
+    final res = await _refreshDio.post('/auth/refresh', data: {
+      'refresh_token': refreshToken,
+    });
+    final result = AuthTokensResult.fromJson(res.data as Map<String, dynamic>);
+    await _tokens.saveTokens(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    return result;
+  }
+
+  Future<void> logout() async {
+    final refresh = await _tokens.readRefreshToken();
+    try {
+      await _dio.post('/auth/logout', data: {
+        if (refresh != null) 'refresh_token': refresh,
+      });
+    } catch (_) {
+      // Always clear local session even if revoke fails
+    }
+    await _tokens.clear();
+  }
+
+  Future<void> forgotPassword({required String email}) async {
+    await _dio.post('/auth/forgot-password', data: {'email': email});
+  }
+
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+  }) async {
+    await _dio.post('/auth/reset-password', data: {
+      'token': token,
+      'password': password,
+    });
+  }
+
+  Future<UserModel> getAuthMe() async {
+    final res = await _dio.get('/auth/me');
+    return UserModel.fromJson(res.data as Map<String, dynamic>);
+  }
 
   // ── Users ─────────────────────────────────────────────────────────────────
 
@@ -287,29 +407,113 @@ class FlowraApiClient {
 // ── Auth interceptor ──────────────────────────────────────────────────────────
 
 class _AuthInterceptor extends Interceptor {
-  final FlutterSecureStorage _storage;
-  _AuthInterceptor(this._storage);
+  final TokenStore _tokens;
+  final Dio _refreshDio;
+
+  /// Shared lock so concurrent 401s only trigger one refresh.
+  static Completer<bool>? _refreshLock;
+
+  _AuthInterceptor(this._tokens, this._refreshDio);
+
+  static const _skipAuthPaths = {
+    '/auth/signup',
+    '/auth/login',
+    '/auth/google',
+    '/auth/refresh',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+  };
+
+  bool _isPublicAuth(String path) =>
+      _skipAuthPaths.any((p) => path.endsWith(p) || path.contains(p));
 
   @override
   Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _storage.read(key: 'access_token');
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
+    if (!_isPublicAuth(options.path)) {
+      final token = await _tokens.readAccessToken();
+      if (token != null && token.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
     }
     handler.next(options);
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.response?.statusCode == 401) {
-      // Token expired — clear and signal re-auth needed
-      _storage.delete(key: 'access_token');
-      AuthGate.notifyUnauthorized();
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    if (err.response?.statusCode != 401) {
+      return handler.next(err);
     }
-    handler.next(err);
+
+    final path = err.requestOptions.path;
+    // Public auth endpoints return 401 for bad credentials — do not clear session.
+    if (_isPublicAuth(path)) {
+      return handler.next(err);
+    }
+    if (err.requestOptions.extra['auth_retried'] == true) {
+      await _forceLogout();
+      return handler.next(err);
+    }
+
+    final refreshed = await _refreshOnce();
+    if (!refreshed) {
+      await _forceLogout();
+      return handler.next(err);
+    }
+
+    try {
+      final opts = err.requestOptions;
+      opts.extra['auth_retried'] = true;
+      final token = await _tokens.readAccessToken();
+      if (token != null) {
+        opts.headers['Authorization'] = 'Bearer $token';
+      }
+      final response = await _refreshDio.fetch(opts);
+      return handler.resolve(response);
+    } catch (_) {
+      await _forceLogout();
+      return handler.next(err);
+    }
+  }
+
+  Future<bool> _refreshOnce() async {
+    if (_refreshLock != null) {
+      return _refreshLock!.future;
+    }
+    final lock = Completer<bool>();
+    _refreshLock = lock;
+    try {
+      final refresh = await _tokens.readRefreshToken();
+      if (refresh == null || refresh.isEmpty) {
+        lock.complete(false);
+        return false;
+      }
+      final res = await _refreshDio.post('/auth/refresh', data: {
+        'refresh_token': refresh,
+      });
+      final data = res.data as Map<String, dynamic>;
+      await _tokens.saveTokens(
+        accessToken: data['access_token'] as String,
+        refreshToken: data['refresh_token'] as String,
+      );
+      lock.complete(true);
+      return true;
+    } catch (_) {
+      lock.complete(false);
+      return false;
+    } finally {
+      _refreshLock = null;
+    }
+  }
+
+  Future<void> _forceLogout() async {
+    await _tokens.clear();
+    AuthGate.notifyUnauthorized();
   }
 }
 

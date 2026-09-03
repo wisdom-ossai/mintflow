@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/auth_errors.dart';
+import '../../../core/utils/revenuecat.dart';
+import '../../../data/datasources/service_locator.dart';
 import '../../widgets/label.dart';
-import '../../widgets/mini_logo_painter.dart';
+import '../../widgets/brand_logo.dart';
 import '../../widgets/error_banner.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -39,18 +41,14 @@ class _SignupScreenState extends State<SignupScreen> {
       _error = null;
     });
     try {
-      await Supabase.instance.client.auth.signUp(
+      final result = await ServiceLocator.instance.api.signup(
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
-        data: {'full_name': _nameCtrl.text.trim()},
+        fullName: _nameCtrl.text.trim(),
       );
+      await identifyRevenueCat(result.user.id);
       AuthGate.setOnboardingComplete(false);
       if (mounted) context.go(FlowraRoutes.onboarding);
-    } on AuthException catch (e) {
-      setState(() {
-        _error = friendlyAuthError(e);
-        _loading = false;
-      });
     } catch (e) {
       setState(() {
         _error = friendlyAuthError(e);
@@ -72,23 +70,11 @@ class _SignupScreenState extends State<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-                Row(children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                        color: FlowraColors.green400,
-                        borderRadius: BorderRadius.circular(13)),
-                    child: CustomPaint(
-                        size: const Size(40, 40), painter: MiniLogoPainter()),
-                  ),
-                  const SizedBox(width: 10),
-                  Text('flowra',
-                      style: FlowraTextStyles.displaySmall.copyWith(
-                        fontFamily: 'DMSerifDisplay',
-                        color: FlowraColors.green900,
-                      )),
-                ]),
+                const BrandLogo(
+                  size: 40,
+                  showWordmark: true,
+                  wordmarkColor: FlowraColors.green900,
+                ),
                 const SizedBox(height: 40),
 
                 // 7-day trial badge

@@ -1,6 +1,26 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
+from urllib.parse import urlparse
+
+
+def usable_sentry_dsn(raw: str | None) -> str | None:
+    """Return a DSN only when it is a real Sentry URL (https://<key>@host/project).
+
+    Placeholders like ``https://your-sentry-dsn`` have no public key and must
+    not be passed to sentry_sdk — that raises BadDsn and kills the process.
+    """
+    dsn = (raw or "").strip()
+    if not dsn:
+        return None
+    parsed = urlparse(dsn)
+    if parsed.scheme not in ("http", "https"):
+        return None
+    if not parsed.hostname or not parsed.username:
+        return None
+    if not (parsed.path or "").strip("/"):
+        return None
+    return dsn
 
 
 class Settings(BaseSettings):
@@ -75,8 +95,7 @@ class Settings(BaseSettings):
     @property
     def sentry_dsn(self) -> str | None:
         """Return a usable DSN, or None when Sentry should stay off."""
-        dsn = (self.SENTRY_DSN or "").strip()
-        return dsn or None
+        return usable_sentry_dsn(self.SENTRY_DSN)
 
     @property
     def is_production(self) -> bool:

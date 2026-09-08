@@ -30,19 +30,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Init before FastAPI() so Starlette/FastAPI integrations can attach.
-# No DSN (unset or blank) → SDK stays disabled and is never imported.
+# Missing, blank, or placeholder DSN → skip. A bad DSN must never crash boot.
 if settings.sentry_dsn:
-    import sentry_sdk
+    try:
+        import sentry_sdk
 
-    sentry_sdk.init(
-        dsn=settings.sentry_dsn,
-        environment=settings.APP_ENV,
-        traces_sample_rate=0.1,
-        send_default_pii=False,
-    )
-    logger.info("Sentry enabled")
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            environment=settings.APP_ENV,
+            traces_sample_rate=0.1,
+            send_default_pii=False,
+        )
+        logger.info("Sentry enabled")
+    except Exception:
+        logger.warning(
+            "SENTRY_DSN is invalid or Sentry failed to start; continuing without it",
+            exc_info=True,
+        )
 else:
-    logger.info("Sentry disabled (SENTRY_DSN not set)")
+    logger.info("Sentry disabled (SENTRY_DSN not set or not a valid DSN)")
 
 
 # ─── Lifespan ──────────────────────────────────────────────────────────────

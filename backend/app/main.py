@@ -29,16 +29,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Init before FastAPI() so Starlette/FastAPI integrations can attach.
+# No DSN (unset or blank) → SDK stays disabled and is never imported.
+if settings.sentry_dsn:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.APP_ENV,
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+    )
+    logger.info("Sentry enabled")
+else:
+    logger.info("Sentry disabled (SENTRY_DSN not set)")
+
 
 # ─── Lifespan ──────────────────────────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting Flowra API v{settings.APP_VERSION} [{settings.APP_ENV}]")
-
-    if settings.SENTRY_DSN and settings.is_production:
-        import sentry_sdk
-        sentry_sdk.init(dsn=settings.SENTRY_DSN, traces_sample_rate=0.1)
 
     if settings.SCHEDULER_ENABLED:
         setup_scheduler()

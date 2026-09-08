@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
 
-    # Sentry
+    # Sentry — empty/unset disables the SDK entirely
     SENTRY_DSN: str = ""
 
     RATE_LIMIT_PER_MINUTE: int = 60
@@ -71,6 +71,12 @@ class Settings(BaseSettings):
     @property
     def allowed_origins_list(self) -> List[str]:
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+
+    @property
+    def sentry_dsn(self) -> str | None:
+        """Return a usable DSN, or None when Sentry should stay off."""
+        dsn = (self.SENTRY_DSN or "").strip()
+        return dsn or None
 
     @property
     def is_production(self) -> bool:

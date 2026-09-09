@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- Flowra — Supabase Row Level Security (RLS) Policies
+-- Mintflow — Supabase Row Level Security (RLS) Policies
 -- Run this in the Supabase SQL editor after running Alembic migrations.
 -- ═══════════════════════════════════════════════════════════════════════════
 

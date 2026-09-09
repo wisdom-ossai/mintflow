@@ -48,7 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       await identifyRevenueCat(result.user.id);
       AuthGate.setOnboardingComplete(false);
-      if (mounted) context.go(FlowraRoutes.onboarding);
+      if (mounted) context.go(MintflowRoutes.onboarding);
     } catch (e) {
       setState(() {
         _error = friendlyAuthError(e);
@@ -60,7 +60,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -73,7 +73,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 const BrandLogo(
                   size: 40,
                   showWordmark: true,
-                  wordmarkColor: FlowraColors.green900,
+                  wordmarkColor: MintflowColors.green900,
                 ),
                 const SizedBox(height: 40),
 
@@ -82,34 +82,34 @@ class _SignupScreenState extends State<SignupScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: FlowraColors.green50,
-                    borderRadius: FlowraRadius.md_,
-                    border: Border.all(color: FlowraColors.green100),
+                    color: MintflowColors.green50,
+                    borderRadius: MintflowRadius.md_,
+                    border: Border.all(color: MintflowColors.green100),
                   ),
                   child: Row(children: [
                     Container(
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                          shape: BoxShape.circle, color: FlowraColors.green400),
+                          shape: BoxShape.circle, color: MintflowColors.green400),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                         child: Text(
                       '7-day free trial — all Pro features unlocked. No card needed.',
-                      style: FlowraTextStyles.bodySmall
-                          .copyWith(color: FlowraColors.green600),
+                      style: MintflowTextStyles.bodySmall
+                          .copyWith(color: MintflowColors.green600),
                     )),
                   ]),
                 ),
                 const SizedBox(height: 24),
 
                 Text('Create your account',
-                    style: FlowraTextStyles.displayMedium),
+                    style: MintflowTextStyles.displayMedium),
                 const SizedBox(height: 6),
                 Text('Start tracking in under 2 minutes',
-                    style: FlowraTextStyles.bodyMedium
-                        .copyWith(color: FlowraColors.ink60)),
+                    style: MintflowTextStyles.bodyMedium
+                        .copyWith(color: MintflowColors.ink60)),
                 const SizedBox(height: 28),
 
                 if (_error != null) ErrorBanner(message: _error!),
@@ -154,7 +154,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         _obscure
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: FlowraColors.ink60,
+                        color: MintflowColors.ink60,
                         size: 20,
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
@@ -183,17 +183,17 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 Center(
                   child: GestureDetector(
-                    onTap: () => context.go(FlowraRoutes.login),
+                    onTap: () => context.go(MintflowRoutes.login),
                     child: RichText(
                       text: TextSpan(
-                        style: FlowraTextStyles.bodySmall
-                            .copyWith(color: FlowraColors.ink60),
+                        style: MintflowTextStyles.bodySmall
+                            .copyWith(color: MintflowColors.ink60),
                         children: [
                           const TextSpan(text: 'Already have an account? '),
                           TextSpan(
                               text: 'Sign in',
                               style: TextStyle(
-                                color: FlowraColors.green500,
+                                color: MintflowColors.green500,
                                 fontWeight: FontWeight.w500,
                               )),
                         ],
@@ -206,8 +206,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Text(
                     'By signing up you agree to our Terms & Privacy Policy.',
                     textAlign: TextAlign.center,
-                    style: FlowraTextStyles.overline
-                        .copyWith(color: FlowraColors.ink30),
+                    style: MintflowTextStyles.overline
+                        .copyWith(color: MintflowColors.ink30),
                   ),
                 ),
               ],

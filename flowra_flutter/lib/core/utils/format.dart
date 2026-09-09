@@ -1,11 +1,11 @@
 import 'package:intl/intl.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra formatting utilities
+// Mintflow formatting utilities
 // ─────────────────────────────────────────────────────────────────────────────
 
-class FlowraFormat {
-  FlowraFormat._();
+class MintflowFormat {
+  MintflowFormat._();
 
   // ── Currency ──────────────────────────────────────────────────────────────
 

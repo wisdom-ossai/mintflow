@@ -1,7 +1,7 @@
-import 'package:flowra_flutter/core/router/app_router.dart';
-import 'package:flowra_flutter/core/utils/format.dart';
-import 'package:flowra_flutter/data/models/models.dart';
-import 'package:flowra_flutter/presentation/cubits/cubits.dart';
+import 'package:mintflow_flutter/core/router/app_router.dart';
+import 'package:mintflow_flutter/core/utils/format.dart';
+import 'package:mintflow_flutter/data/models/models.dart';
+import 'package:mintflow_flutter/presentation/cubits/cubits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -102,7 +102,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     final top = MediaQuery.of(context).padding.top;
 
     return Scaffold(
-      backgroundColor: FlowraColors.green900,
+      backgroundColor: MintflowColors.green900,
       body: Column(
         children: [
           // ── Dark header ──────────────────────────────────────────────────
@@ -123,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           Expanded(
             child: Container(
               decoration: const BoxDecoration(
-                color: FlowraColors.cream,
+                color: MintflowColors.cream,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: FadeTransition(
@@ -155,8 +155,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                             children: [
                               _ToggleRow(
                                 icon: Icons.notifications_outlined,
-                                iconColor: FlowraColors.green500,
-                                iconBg: FlowraColors.green50,
+                                iconColor: MintflowColors.green500,
+                                iconBg: MintflowColors.green50,
                                 label: 'Push notifications',
                                 subtitle: 'Alerts, tips & reminders',
                                 value: _notificationsEnabled,
@@ -167,8 +167,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _ToggleRow(
                                 icon: Icons.bar_chart_outlined,
-                                iconColor: FlowraColors.blue,
-                                iconBg: FlowraColors.blueSoft,
+                                iconColor: MintflowColors.blue,
+                                iconBg: MintflowColors.blueSoft,
                                 label: 'Weekly report',
                                 subtitle: 'Summary every Sunday',
                                 value: _weeklyReport,
@@ -178,8 +178,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _ToggleRow(
                                 icon: Icons.warning_amber_rounded,
-                                iconColor: FlowraColors.gold500,
-                                iconBg: FlowraColors.gold50,
+                                iconColor: MintflowColors.gold500,
+                                iconBg: MintflowColors.gold50,
                                 label: 'Budget alerts',
                                 subtitle: 'Notify when near limit',
                                 value: _budgetAlerts,
@@ -198,8 +198,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                             children: [
                               _ToggleRow(
                                 icon: Icons.dark_mode_outlined,
-                                iconColor: FlowraColors.purple,
-                                iconBg: FlowraColors.purpleSoft,
+                                iconColor: MintflowColors.purple,
+                                iconBg: MintflowColors.purpleSoft,
                                 label: 'Dark mode',
                                 subtitle: 'Switch to dark theme',
                                 value: _darkModeEnabled,
@@ -209,8 +209,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _ToggleRow(
                                 icon: Icons.fingerprint_rounded,
-                                iconColor: FlowraColors.green500,
-                                iconBg: FlowraColors.green50,
+                                iconColor: MintflowColors.green500,
+                                iconBg: MintflowColors.green50,
                                 label: 'Biometric lock',
                                 subtitle: 'Face ID / Fingerprint',
                                 value: _biometricEnabled,
@@ -220,8 +220,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _SelectRow(
                                 icon: Icons.language_outlined,
-                                iconColor: FlowraColors.blue,
-                                iconBg: FlowraColors.blueSoft,
+                                iconColor: MintflowColors.blue,
+                                iconBg: MintflowColors.blueSoft,
                                 label: 'Language',
                                 value: _selectedLanguage,
                                 onTap: () => _showLanguagePicker(context),
@@ -229,8 +229,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _SelectRow(
                                 icon: Icons.attach_money_rounded,
-                                iconColor: FlowraColors.gold500,
-                                iconBg: FlowraColors.gold50,
+                                iconColor: MintflowColors.gold500,
+                                iconBg: MintflowColors.gold50,
                                 label: 'Currency',
                                 value: _selectedCurrency,
                                 onTap: () => _showCurrencyPicker(context),
@@ -247,8 +247,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                             children: [
                               _ActionRow(
                                 icon: Icons.account_balance_outlined,
-                                iconColor: FlowraColors.green500,
-                                iconBg: FlowraColors.green50,
+                                iconColor: MintflowColors.green500,
+                                iconBg: MintflowColors.green50,
                                 label: 'Linked accounts',
                                 subtitle: '2 connected',
                                 onTap: () =>
@@ -257,8 +257,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _ActionRow(
                                 icon: Icons.download_outlined,
-                                iconColor: FlowraColors.blue,
-                                iconBg: FlowraColors.blueSoft,
+                                iconColor: MintflowColors.blue,
+                                iconBg: MintflowColors.blueSoft,
                                 label: 'Export data',
                                 subtitle: 'CSV or PDF',
                                 onTap: () => _showStub(context, 'Export data'),
@@ -266,8 +266,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _ActionRow(
                                 icon: Icons.security_outlined,
-                                iconColor: FlowraColors.purple,
-                                iconBg: FlowraColors.purpleSoft,
+                                iconColor: MintflowColors.purple,
+                                iconBg: MintflowColors.purpleSoft,
                                 label: 'Privacy & security',
                                 onTap: () =>
                                     _showStub(context, 'Privacy & security'),
@@ -284,16 +284,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                             children: [
                               _ActionRow(
                                 icon: Icons.help_outline_rounded,
-                                iconColor: FlowraColors.green500,
-                                iconBg: FlowraColors.green50,
+                                iconColor: MintflowColors.green500,
+                                iconBg: MintflowColors.green50,
                                 label: 'Help center',
                                 onTap: () => _showStub(context, 'Help center'),
                               ),
                               _Divider(),
                               _ActionRow(
                                 icon: Icons.chat_bubble_outline_rounded,
-                                iconColor: FlowraColors.blue,
-                                iconBg: FlowraColors.blueSoft,
+                                iconColor: MintflowColors.blue,
+                                iconBg: MintflowColors.blueSoft,
                                 label: 'Send feedback',
                                 onTap: () =>
                                     _showStub(context, 'Send feedback'),
@@ -301,8 +301,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               _Divider(),
                               _ActionRow(
                                 icon: Icons.description_outlined,
-                                iconColor: FlowraColors.ink60,
-                                iconBg: FlowraColors.creamDark,
+                                iconColor: MintflowColors.ink60,
+                                iconBg: MintflowColors.creamDark,
                                 label: 'Terms & Privacy policy',
                                 onTap: () => _showStub(
                                     context, 'Terms & Privacy policy'),
@@ -336,8 +336,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           Center(
                             child: Text(
                               'Mintflow v1.0.0',
-                              style: FlowraTextStyles.overline.copyWith(
-                                color: FlowraColors.ink30,
+                              style: MintflowTextStyles.overline.copyWith(
+                                color: MintflowColors.ink30,
                               ),
                             ),
                           ),
@@ -404,9 +404,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$label — coming soon'),
-        backgroundColor: FlowraColors.green900,
+        backgroundColor: MintflowColors.green900,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: FlowraRadius.md_),
+        shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
         margin: const EdgeInsets.all(16),
       ),
     );
@@ -416,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     try {
       await ServiceLocator.instance.api.logout();
       AuthGate.onboardingComplete.value = null;
-      if (mounted) context.go(FlowraRoutes.login);
+      if (mounted) context.go(MintflowRoutes.login);
     } catch (e) {
       // Still clear local session if revoke fails
       await ServiceLocator.instance.tokens.clear();
@@ -425,13 +425,13 @@ class _ProfileScreenState extends State<ProfileScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(friendlyAuthError(e)),
-            backgroundColor: FlowraColors.red,
+            backgroundColor: MintflowColors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: FlowraRadius.md_),
+            shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
             margin: const EdgeInsets.all(16),
           ),
         );
-        context.go(FlowraRoutes.login);
+        context.go(MintflowRoutes.login);
       }
     }
   }
@@ -447,7 +447,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           content: Text(err is UserError
               ? err.message
               : 'Could not delete account'),
-          backgroundColor: FlowraColors.red,
+          backgroundColor: MintflowColors.red,
         ),
       );
       return;
@@ -458,13 +458,13 @@ class _ProfileScreenState extends State<ProfileScreen>
       await ServiceLocator.instance.tokens.clear();
     }
     AuthGate.onboardingComplete.value = null;
-    if (mounted) context.go(FlowraRoutes.login);
+    if (mounted) context.go(MintflowRoutes.login);
   }
 
   void _showSignOutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => _FlowraDialog(
+      builder: (_) => _MintflowDialog(
         title: 'Sign out?',
         message: 'You\'ll need to log in again to access your account.',
         confirmLabel: 'Sign out',
@@ -477,7 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => _FlowraDialog(
+      builder: (_) => _MintflowDialog(
         title: 'Delete account?',
         message:
             'This will permanently erase all your data. This action cannot be undone.',
@@ -514,10 +514,10 @@ class _ProfileHeader extends StatelessWidget {
     final email = user?.email ?? '';
     final initials = user?.initials ?? '?';
     final memberSince = user != null
-        ? 'Member since ${FlowraFormat.monthShort(user!.createdAt)}'
+        ? 'Member since ${MintflowFormat.monthShort(user!.createdAt)}'
         : 'Loading profile…';
     final incomeLabel = user?.monthlyIncome != null
-        ? FlowraFormat.currencyCompact(user!.monthlyIncome!)
+        ? MintflowFormat.currencyCompact(user!.monthlyIncome!)
         : '—';
     final tierLabel = user != null
         ? user!.effectiveTier.name[0].toUpperCase() +
@@ -525,7 +525,7 @@ class _ProfileHeader extends StatelessWidget {
         : '—';
 
     return Container(
-      color: FlowraColors.green900,
+      color: MintflowColors.green900,
       padding: EdgeInsets.fromLTRB(20, top + 20, 20, 28),
       child: Stack(
         children: [
@@ -537,7 +537,7 @@ class _ProfileHeader extends StatelessWidget {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FlowraColors.green400.withOpacity(0.07),
+                color: MintflowColors.green400.withOpacity(0.07),
               ),
             ),
           ),
@@ -549,7 +549,7 @@ class _ProfileHeader extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FlowraColors.gold400.withOpacity(0.05),
+                color: MintflowColors.gold400.withOpacity(0.05),
               ),
             ),
           ),
@@ -573,19 +573,19 @@ class _ProfileHeader extends StatelessWidget {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                FlowraColors.green400,
-                                FlowraColors.green600,
+                                MintflowColors.green400,
+                                MintflowColors.green600,
                               ],
                             ),
                             border: Border.all(
-                              color: FlowraColors.green600,
+                              color: MintflowColors.green600,
                               width: 3,
                             ),
                           ),
                           child: Center(
                             child: Text(
                               initials,
-                              style: FlowraTextStyles.displaySmall.copyWith(
+                              style: MintflowTextStyles.displaySmall.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -596,10 +596,10 @@ class _ProfileHeader extends StatelessWidget {
                           width: 24,
                           height: 24,
                           decoration: BoxDecoration(
-                            color: FlowraColors.gold400,
+                            color: MintflowColors.gold400,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: FlowraColors.green900,
+                              color: MintflowColors.green900,
                               width: 2,
                             ),
                           ),
@@ -615,22 +615,22 @@ class _ProfileHeader extends StatelessWidget {
                   const SizedBox(height: 14),
                   Text(
                     name,
-                    style: FlowraTextStyles.displaySmall.copyWith(
-                      color: FlowraColors.cream,
+                    style: MintflowTextStyles.displaySmall.copyWith(
+                      color: MintflowColors.cream,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     email,
-                    style: FlowraTextStyles.bodySmall.copyWith(
-                      color: FlowraColors.cream.withOpacity(0.5),
+                    style: MintflowTextStyles.bodySmall.copyWith(
+                      color: MintflowColors.cream.withOpacity(0.5),
                     ),
                   ),
                   const SizedBox(height: 14),
                   _HeaderBadge(
                     icon: Icons.verified_rounded,
                     label: memberSince,
-                    color: FlowraColors.gold400,
+                    color: MintflowColors.gold400,
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -692,7 +692,7 @@ class _HeaderBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: FlowraRadius.pill_,
+        borderRadius: MintflowRadius.pill_,
         border: Border.all(color: color.withOpacity(0.25)),
       ),
       child: Row(
@@ -702,7 +702,7 @@ class _HeaderBadge extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: FlowraTextStyles.overline.copyWith(color: color),
+            style: MintflowTextStyles.overline.copyWith(color: color),
           ),
         ],
       ),
@@ -722,16 +722,16 @@ class _HeaderStat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: FlowraTextStyles.labelLarge.copyWith(
-            color: FlowraColors.cream,
+          style: MintflowTextStyles.labelLarge.copyWith(
+            color: MintflowColors.cream,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           label,
-          style: FlowraTextStyles.overline.copyWith(
-            color: FlowraColors.cream.withOpacity(0.45),
+          style: MintflowTextStyles.overline.copyWith(
+            color: MintflowColors.cream.withOpacity(0.45),
           ),
           textAlign: TextAlign.center,
         ),
@@ -751,8 +751,8 @@ class _FinancialProfileCard extends StatelessWidget {
       children: [
         _InfoRow(
           icon: Icons.wallet_outlined,
-          iconColor: FlowraColors.green500,
-          iconBg: FlowraColors.green50,
+          iconColor: MintflowColors.green500,
+          iconBg: MintflowColors.green50,
           label: 'Monthly budget',
           value: '\$3,500',
           onTap: () {},
@@ -760,8 +760,8 @@ class _FinancialProfileCard extends StatelessWidget {
         _Divider(),
         _InfoRow(
           icon: Icons.savings_outlined,
-          iconColor: FlowraColors.gold500,
-          iconBg: FlowraColors.gold50,
+          iconColor: MintflowColors.gold500,
+          iconBg: MintflowColors.gold50,
           label: 'Savings goal',
           value: '\$500 / mo.',
           onTap: () {},
@@ -769,8 +769,8 @@ class _FinancialProfileCard extends StatelessWidget {
         _Divider(),
         _InfoRow(
           icon: Icons.category_outlined,
-          iconColor: FlowraColors.blue,
-          iconBg: FlowraColors.blueSoft,
+          iconColor: MintflowColors.blue,
+          iconBg: MintflowColors.blueSoft,
           label: 'Budget method',
           value: 'Needs vs Wants',
           onTap: () {},
@@ -794,8 +794,8 @@ class _SettingsCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: FlowraRadius.lg_,
-        border: Border.all(color: FlowraColors.creamDark),
+        borderRadius: MintflowRadius.lg_,
+        border: Border.all(color: MintflowColors.creamDark),
       ),
       child: Column(children: children),
     );
@@ -810,8 +810,8 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label.toUpperCase(),
-      style: FlowraTextStyles.overline.copyWith(
-        color: FlowraColors.ink60,
+      style: MintflowTextStyles.overline.copyWith(
+        color: MintflowColors.ink60,
         letterSpacing: 0.08,
       ),
     );
@@ -823,7 +823,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 56),
-      child: Divider(height: 1, color: FlowraColors.ink10),
+      child: Divider(height: 1, color: MintflowColors.ink10),
     );
   }
 }
@@ -886,22 +886,22 @@ class _ToggleRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: FlowraTextStyles.labelMedium.copyWith(
-                    color: FlowraColors.ink,
+                  style: MintflowTextStyles.labelMedium.copyWith(
+                    color: MintflowColors.ink,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: FlowraTextStyles.overline.copyWith(
-                      color: FlowraColors.ink60,
+                    style: MintflowTextStyles.overline.copyWith(
+                      color: MintflowColors.ink60,
                     ),
                   ),
               ],
             ),
           ),
-          _FlowraSwitch(value: value, onChanged: onChanged),
+          _MintflowSwitch(value: value, onChanged: onChanged),
         ],
       ),
     );
@@ -939,21 +939,21 @@ class _SelectRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: FlowraTextStyles.labelMedium.copyWith(
-                  color: FlowraColors.ink,
+                style: MintflowTextStyles.labelMedium.copyWith(
+                  color: MintflowColors.ink,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             Text(
               value,
-              style: FlowraTextStyles.labelMedium.copyWith(
-                color: FlowraColors.ink60,
+              style: MintflowTextStyles.labelMedium.copyWith(
+                color: MintflowColors.ink60,
               ),
             ),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right_rounded,
-                color: FlowraColors.ink30, size: 18),
+                color: MintflowColors.ink30, size: 18),
           ],
         ),
       ),
@@ -992,21 +992,21 @@ class _InfoRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: FlowraTextStyles.labelMedium.copyWith(
-                  color: FlowraColors.ink,
+                style: MintflowTextStyles.labelMedium.copyWith(
+                  color: MintflowColors.ink,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             Text(
               value,
-              style: FlowraTextStyles.labelMedium.copyWith(
-                color: FlowraColors.green500,
+              style: MintflowTextStyles.labelMedium.copyWith(
+                color: MintflowColors.green500,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.edit_outlined, color: FlowraColors.ink30, size: 15),
+            Icon(Icons.edit_outlined, color: MintflowColors.ink30, size: 15),
           ],
         ),
       ),
@@ -1048,23 +1048,23 @@ class _ActionRow extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: FlowraTextStyles.labelMedium.copyWith(
-                      color: FlowraColors.ink,
+                    style: MintflowTextStyles.labelMedium.copyWith(
+                      color: MintflowColors.ink,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   if (subtitle != null)
                     Text(
                       subtitle!,
-                      style: FlowraTextStyles.overline.copyWith(
-                        color: FlowraColors.ink60,
+                      style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.ink60,
                       ),
                     ),
                 ],
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: FlowraColors.ink30, size: 18),
+                color: MintflowColors.ink30, size: 18),
           ],
         ),
       ),
@@ -1087,7 +1087,7 @@ class _DangerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? FlowraColors.red : FlowraColors.ink60;
+    final color = isDestructive ? MintflowColors.red : MintflowColors.ink60;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -1100,8 +1100,8 @@ class _DangerRow extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: isDestructive
-                    ? FlowraColors.redSoft
-                    : FlowraColors.creamDark,
+                    ? MintflowColors.redSoft
+                    : MintflowColors.creamDark,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: color, size: 18),
@@ -1110,7 +1110,7 @@ class _DangerRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: FlowraTextStyles.labelMedium.copyWith(
+                style: MintflowTextStyles.labelMedium.copyWith(
                   color: color,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1124,20 +1124,20 @@ class _DangerRow extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Custom Flowra Switch
+// Custom Mintflow Switch
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _FlowraSwitch extends StatefulWidget {
+class _MintflowSwitch extends StatefulWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _FlowraSwitch({required this.value, required this.onChanged});
+  const _MintflowSwitch({required this.value, required this.onChanged});
 
   @override
-  State<_FlowraSwitch> createState() => _FlowraSwitchState();
+  State<_MintflowSwitch> createState() => _MintflowSwitchState();
 }
 
-class _FlowraSwitchState extends State<_FlowraSwitch>
+class _MintflowSwitchState extends State<_MintflowSwitch>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _thumbAnim;
@@ -1155,13 +1155,13 @@ class _FlowraSwitchState extends State<_FlowraSwitch>
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _trackAnim = ColorTween(
-      begin: FlowraColors.ink10,
-      end: FlowraColors.green400,
+      begin: MintflowColors.ink10,
+      end: MintflowColors.green400,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
-  void didUpdateWidget(_FlowraSwitch old) {
+  void didUpdateWidget(_MintflowSwitch old) {
     super.didUpdateWidget(old);
     if (widget.value != old.value) {
       widget.value ? _controller.forward() : _controller.reverse();
@@ -1240,7 +1240,7 @@ class _OptionSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: FlowraColors.cream,
+        color: MintflowColors.cream,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -1256,23 +1256,23 @@ class _OptionSheet extends StatelessWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: FlowraColors.ink10,
+              color: MintflowColors.ink10,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 20),
           Text(
             title,
-            style: FlowraTextStyles.displaySmall.copyWith(
-              color: FlowraColors.ink,
+            style: MintflowTextStyles.displaySmall.copyWith(
+              color: MintflowColors.ink,
             ),
           ),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: FlowraRadius.lg_,
-              border: Border.all(color: FlowraColors.creamDark),
+              borderRadius: MintflowRadius.lg_,
+              border: Border.all(color: MintflowColors.creamDark),
             ),
             child: Column(
               children: options.map((opt) {
@@ -1293,10 +1293,10 @@ class _OptionSheet extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 opt,
-                                style: FlowraTextStyles.labelMedium.copyWith(
+                                style: MintflowTextStyles.labelMedium.copyWith(
                                   color: isSelected
-                                      ? FlowraColors.green500
-                                      : FlowraColors.ink,
+                                      ? MintflowColors.green500
+                                      : MintflowColors.ink,
                                   fontWeight: isSelected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
@@ -1306,14 +1306,14 @@ class _OptionSheet extends StatelessWidget {
                             if (isSelected)
                               Icon(
                                 Icons.check_rounded,
-                                color: FlowraColors.green500,
+                                color: MintflowColors.green500,
                                 size: 18,
                               ),
                           ],
                         ),
                       ),
                     ),
-                    if (!isLast) Divider(height: 1, color: FlowraColors.ink10),
+                    if (!isLast) Divider(height: 1, color: MintflowColors.ink10),
                   ],
                 );
               }).toList(),
@@ -1326,17 +1326,17 @@ class _OptionSheet extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra Dialog
+// Mintflow Dialog
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _FlowraDialog extends StatelessWidget {
+class _MintflowDialog extends StatelessWidget {
   final String title;
   final String message;
   final String confirmLabel;
   final bool isDestructive;
   final VoidCallback onConfirm;
 
-  const _FlowraDialog({
+  const _MintflowDialog({
     required this.title,
     required this.message,
     required this.confirmLabel,
@@ -1348,7 +1348,7 @@ class _FlowraDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: FlowraRadius.xl_),
+      shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -1357,15 +1357,15 @@ class _FlowraDialog extends StatelessWidget {
           children: [
             Text(
               title,
-              style: FlowraTextStyles.displaySmall.copyWith(
-                color: FlowraColors.ink,
+              style: MintflowTextStyles.displaySmall.copyWith(
+                color: MintflowColors.ink,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
-              style: FlowraTextStyles.bodyMedium.copyWith(
-                color: FlowraColors.ink60,
+              style: MintflowTextStyles.bodyMedium.copyWith(
+                color: MintflowColors.ink60,
               ),
             ),
             const SizedBox(height: 24),
@@ -1382,8 +1382,8 @@ class _FlowraDialog extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isDestructive
-                          ? FlowraColors.red
-                          : FlowraColors.green400,
+                          ? MintflowColors.red
+                          : MintflowColors.green400,
                     ),
                     onPressed: onConfirm,
                     child: Text(confirmLabel),

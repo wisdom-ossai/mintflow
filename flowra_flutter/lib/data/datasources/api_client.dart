@@ -8,7 +8,7 @@ import '../models/models.dart';
 import 'token_store.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra API Client
+// Mintflow API Client
 // Wraps all HTTP calls to the FastAPI backend.
 // JWT is injected automatically via AuthInterceptor; 401 triggers one refresh.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,7 +18,7 @@ String resolveApiBaseUrl() {
   if (fromDefine.isNotEmpty) return fromDefine.replaceAll(RegExp(r'/$'), '');
   final fromEnv = (dotenv.env['API_BASE_URL'] ?? '').trim();
   if (fromEnv.isNotEmpty) return fromEnv.replaceAll(RegExp(r'/$'), '');
-  return 'https://api.flowra.app';
+  return 'https://api.mintflow.app';
 }
 
 class AuthTokensResult {
@@ -43,14 +43,14 @@ class AuthTokensResult {
       );
 }
 
-class FlowraApiClient {
+class MintflowApiClient {
   late final Dio _dio;
   final TokenStore _tokens;
 
   /// Separate client for refresh — avoids interceptor recursion.
   late final Dio _refreshDio;
 
-  FlowraApiClient({required TokenStore tokenStore}) : _tokens = tokenStore {
+  MintflowApiClient({required TokenStore tokenStore}) : _tokens = tokenStore {
     final base = '${resolveApiBaseUrl()}/v1';
     final options = BaseOptions(
       baseUrl: base,

@@ -44,9 +44,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Color get _strengthColor {
-    if (_strength <= 1) return FlowraColors.red;
-    if (_strength <= 3) return FlowraColors.gold500;
-    return FlowraColors.green400;
+    if (_strength <= 1) return MintflowColors.red;
+    if (_strength <= 3) return MintflowColors.gold500;
+    return MintflowColors.green400;
   }
 
   String? get _resetToken {
@@ -100,12 +100,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: Column(children: [
         _ResetTopPanel(),
         Expanded(
           child: _success
-              ? _SuccessState(onSignIn: () => context.go(FlowraRoutes.login))
+              ? _SuccessState(onSignIn: () => context.go(MintflowRoutes.login))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Form(
@@ -131,7 +131,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 _obscure1
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: FlowraColors.ink60,
+                                color: MintflowColors.ink60,
                                 size: 20,
                               ),
                               onPressed: () =>
@@ -149,18 +149,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           Row(children: [
                             Expanded(
                               child: ClipRRect(
-                                borderRadius: FlowraRadius.pill_,
+                                borderRadius: MintflowRadius.pill_,
                                 child: LinearProgressIndicator(
                                   value: _strength / 5,
                                   minHeight: 4,
-                                  backgroundColor: FlowraColors.creamDark,
+                                  backgroundColor: MintflowColors.creamDark,
                                   color: _strengthColor,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Text(_strengthLabel,
-                                style: FlowraTextStyles.labelSmall.copyWith(
+                                style: MintflowTextStyles.labelSmall.copyWith(
                                     color: _strengthColor,
                                     fontWeight: FontWeight.w500)),
                           ]),
@@ -182,7 +182,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 _obscure2
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: FlowraColors.ink60,
+                                color: MintflowColors.ink60,
                                 size: 20,
                               ),
                               onPressed: () =>
@@ -223,7 +223,7 @@ class _ResetTopPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: FlowraColors.green900,
+      color: MintflowColors.green900,
       child: Stack(children: [
         Positioned(
             top: -30,
@@ -233,7 +233,7 @@ class _ResetTopPanel extends StatelessWidget {
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FlowraColors.green400.withOpacity(0.1),
+                color: MintflowColors.green400.withOpacity(0.1),
               ),
             )),
         SafeArea(
@@ -249,7 +249,7 @@ class _ResetTopPanel extends StatelessWidget {
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: FlowraColors.green400,
+                      color: MintflowColors.green400,
                       borderRadius: BorderRadius.circular(11),
                     ),
                     child: const Icon(Icons.eco_outlined,
@@ -257,8 +257,8 @@ class _ResetTopPanel extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text('Mintflow',
-                      style: FlowraTextStyles.displaySmall.copyWith(
-                        color: FlowraColors.cream,
+                      style: MintflowTextStyles.displaySmall.copyWith(
+                        color: MintflowColors.cream,
                         fontFamily: 'DMSerifDisplay',
                         fontSize: 20,
                       )),
@@ -269,25 +269,25 @@ class _ResetTopPanel extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: FlowraColors.green400.withOpacity(0.2),
-                    borderRadius: FlowraRadius.lg_,
+                    color: MintflowColors.green400.withOpacity(0.2),
+                    borderRadius: MintflowRadius.lg_,
                     border: Border.all(
-                        color: FlowraColors.green400.withOpacity(0.4)),
+                        color: MintflowColors.green400.withOpacity(0.4)),
                   ),
                   child: const Icon(Icons.key_outlined,
-                      color: FlowraColors.green400, size: 24),
+                      color: MintflowColors.green400, size: 24),
                 ),
                 const SizedBox(height: 14),
 
                 Text('Set a new\npassword',
-                    style: FlowraTextStyles.displaySmall.copyWith(
-                        color: FlowraColors.cream,
+                    style: MintflowTextStyles.displaySmall.copyWith(
+                        color: MintflowColors.cream,
                         fontStyle: FontStyle.italic,
                         height: 1.2)),
                 const SizedBox(height: 6),
                 Text('Choose something strong and memorable.',
-                    style: FlowraTextStyles.bodySmall.copyWith(
-                        color: FlowraColors.cream.withOpacity(0.5),
+                    style: MintflowTextStyles.bodySmall.copyWith(
+                        color: MintflowColors.cream.withOpacity(0.5),
                         fontWeight: FontWeight.w300)),
               ],
             ),
@@ -321,13 +321,13 @@ class _PasswordRules extends StatelessWidget {
                   Icon(
                     r.met ? Icons.check_circle : Icons.radio_button_unchecked,
                     size: 13,
-                    color: r.met ? FlowraColors.green400 : FlowraColors.ink30,
+                    color: r.met ? MintflowColors.green400 : MintflowColors.ink30,
                   ),
                   const SizedBox(width: 6),
                   Text(r.label,
-                      style: FlowraTextStyles.overline.copyWith(
+                      style: MintflowTextStyles.overline.copyWith(
                         color:
-                            r.met ? FlowraColors.green600 : FlowraColors.ink60,
+                            r.met ? MintflowColors.green600 : MintflowColors.ink60,
                         fontWeight: r.met ? FontWeight.w500 : FontWeight.w400,
                         fontSize: 11,
                       )),
@@ -361,24 +361,24 @@ class _SuccessState extends StatelessWidget {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              color: FlowraColors.green50,
-              borderRadius: FlowraRadius.xl_,
-              border: Border.all(color: FlowraColors.green100, width: 1.5),
+              color: MintflowColors.green50,
+              borderRadius: MintflowRadius.xl_,
+              border: Border.all(color: MintflowColors.green100, width: 1.5),
             ),
             child: const Icon(Icons.check_circle_outline,
-                size: 46, color: FlowraColors.green500),
+                size: 46, color: MintflowColors.green500),
           ),
           const SizedBox(height: 24),
           Text('Password updated!',
-              style: FlowraTextStyles.displaySmall
+              style: MintflowTextStyles.displaySmall
                   .copyWith(fontStyle: FontStyle.italic)),
           const SizedBox(height: 10),
           Text(
             'Your password has been changed successfully. '
             'Sign in with your new password.',
             textAlign: TextAlign.center,
-            style: FlowraTextStyles.bodyMedium
-                .copyWith(color: FlowraColors.ink60, height: 1.6),
+            style: MintflowTextStyles.bodyMedium
+                .copyWith(color: MintflowColors.ink60, height: 1.6),
           ),
           const Spacer(),
           SizedBox(

@@ -1,9 +1,9 @@
 import 'dart:math' as math;
-import 'package:flowra_flutter/core/router/app_router.dart';
-import 'package:flowra_flutter/core/theme/app_theme.dart';
-import 'package:flowra_flutter/core/utils/format.dart';
-import 'package:flowra_flutter/data/models/models.dart';
-import 'package:flowra_flutter/presentation/cubits/cubits.dart';
+import 'package:mintflow_flutter/core/router/app_router.dart';
+import 'package:mintflow_flutter/core/theme/app_theme.dart';
+import 'package:mintflow_flutter/core/utils/format.dart';
+import 'package:mintflow_flutter/data/models/models.dart';
+import 'package:mintflow_flutter/presentation/cubits/cubits.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -82,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.green900,
+      backgroundColor: MintflowColors.green900,
       body: BlocConsumer<DashboardCubit, DashboardState>(
         listener: (context, state) {
           if (state is DashboardLoaded) _animateFor(state.summary);
@@ -90,7 +90,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         builder: (context, dashState) {
           if (dashState is DashboardLoading || dashState is DashboardInitial) {
             return const Center(
-              child: CircularProgressIndicator(color: FlowraColors.green400),
+              child: CircularProgressIndicator(color: MintflowColors.green400),
             );
           }
           if (dashState is DashboardError) {
@@ -124,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               Expanded(
                 child: Container(
                   decoration: const BoxDecoration(
-                    color: FlowraColors.cream,
+                    color: MintflowColors.cream,
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(28)),
                   ),
@@ -137,7 +137,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           top: Radius.circular(28),
                         ),
                         child: RefreshIndicator(
-                          color: FlowraColors.green500,
+                          color: MintflowColors.green500,
                           onRefresh: () async {
                             await Future.wait([
                               context.read<DashboardCubit>().refresh(),
@@ -195,8 +195,8 @@ class _ErrorBody extends StatelessWidget {
           children: [
             Text(message,
                 textAlign: TextAlign.center,
-                style: FlowraTextStyles.bodyMedium
-                    .copyWith(color: FlowraColors.cream)),
+                style: MintflowTextStyles.bodyMedium
+                    .copyWith(color: MintflowColors.cream)),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],
@@ -217,7 +217,7 @@ class _DashHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
     return Container(
-      color: FlowraColors.green900,
+      color: MintflowColors.green900,
       padding: EdgeInsets.fromLTRB(20, top + 16, 20, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -227,16 +227,16 @@ class _DashHeader extends StatelessWidget {
             children: [
               Text(
                 greeting,
-                style: FlowraTextStyles.bodySmall.copyWith(
-                  color: FlowraColors.cream.withOpacity(0.5),
+                style: MintflowTextStyles.bodySmall.copyWith(
+                  color: MintflowColors.cream.withOpacity(0.5),
                   fontWeight: FontWeight.w300,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 displayName,
-                style: FlowraTextStyles.displaySmall.copyWith(
-                  color: FlowraColors.cream,
+                style: MintflowTextStyles.displaySmall.copyWith(
+                  color: MintflowColors.cream,
                 ),
               ),
             ],
@@ -245,12 +245,12 @@ class _DashHeader extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(14),
-              onTap: () => context.push(FlowraRoutes.notifications),
+              onTap: () => context.push(MintflowRoutes.notifications),
               child: Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: FlowraColors.green600,
+                  color: MintflowColors.green600,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
@@ -289,15 +289,15 @@ class _RingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final budgetLabel = budget != null
-        ? 'of ${FlowraFormat.currency(budget!)} spent'
+        ? 'of ${MintflowFormat.currency(budget!)} spent'
         : 'spent this month';
     final pctLabel = ((targetProgress * 100).round()).clamp(0, 999);
     final remLabel = remaining != null
-        ? 'Remaining ${FlowraFormat.currency(remaining!)}'
+        ? 'Remaining ${MintflowFormat.currency(remaining!)}'
         : 'Remaining';
 
     return Container(
-      color: FlowraColors.green900,
+      color: MintflowColors.green900,
       padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
       child: Column(
         children: [
@@ -315,24 +315,24 @@ class _RingSection extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          FlowraFormat.currency(spent * progressAnim.value),
-                          style: FlowraTextStyles.amountMedium.copyWith(
-                            color: FlowraColors.cream,
+                          MintflowFormat.currency(spent * progressAnim.value),
+                          style: MintflowTextStyles.amountMedium.copyWith(
+                            color: MintflowColors.cream,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           budgetLabel,
-                          style: FlowraTextStyles.labelSmall.copyWith(
-                            color: FlowraColors.cream.withOpacity(0.45),
+                          style: MintflowTextStyles.labelSmall.copyWith(
+                            color: MintflowColors.cream.withOpacity(0.45),
                             fontWeight: FontWeight.w300,
                           ),
                         ),
                         const SizedBox(height: 3),
                         Text(
                           '${(pctLabel * progressAnim.value).round()}% used',
-                          style: FlowraTextStyles.labelMedium.copyWith(
-                            color: FlowraColors.green400,
+                          style: MintflowTextStyles.labelMedium.copyWith(
+                            color: MintflowColors.green400,
                           ),
                         ),
                       ],
@@ -349,7 +349,7 @@ class _RingSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const _RingLegendItem(
-                  color: FlowraColors.green400,
+                  color: MintflowColors.green400,
                   label: 'Spent',
                 ),
                 const SizedBox(width: 20),
@@ -359,7 +359,7 @@ class _RingSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 20),
                 _RingLegendItem(
-                  color: FlowraColors.gold400,
+                  color: MintflowColors.gold400,
                   label: '$daysRemaining days left',
                 ),
               ],
@@ -389,8 +389,8 @@ class _RingLegendItem extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: FlowraTextStyles.labelSmall.copyWith(
-            color: FlowraColors.cream.withOpacity(0.55),
+          style: MintflowTextStyles.labelSmall.copyWith(
+            color: MintflowColors.cream.withOpacity(0.55),
           ),
         ),
       ],
@@ -474,7 +474,7 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             label: 'Income',
-            value: FlowraFormat.currencyCompact(summary.totalIncome),
+            value: MintflowFormat.currencyCompact(summary.totalIncome),
             change: 'this month',
             isNegative: false,
           ),
@@ -483,9 +483,9 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             label: 'Saved',
-            value: FlowraFormat.currencyCompact(summary.totalSaved),
+            value: MintflowFormat.currencyCompact(summary.totalSaved),
             change:
-                '${FlowraFormat.percentage(summary.savingsRatePct)} rate',
+                '${MintflowFormat.percentage(summary.savingsRatePct)} rate',
             isNegative: summary.totalSaved < 0,
           ),
         ),
@@ -493,9 +493,9 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: _SummaryCard(
             label: 'Needs',
-            value: FlowraFormat.percentage(summary.needsPct),
+            value: MintflowFormat.percentage(summary.needsPct),
             change:
-                '${FlowraFormat.percentage(summary.wantsPct)} wants',
+                '${MintflowFormat.percentage(summary.wantsPct)} wants',
             isNegative: summary.needsPct > 70,
           ),
         ),
@@ -520,32 +520,32 @@ class _SummaryCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: FlowraRadius.lg_,
-        border: Border.all(color: FlowraColors.creamDark),
+        borderRadius: MintflowRadius.lg_,
+        border: Border.all(color: MintflowColors.creamDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label.toUpperCase(),
-            style: FlowraTextStyles.overline.copyWith(
-              color: FlowraColors.ink60,
+            style: MintflowTextStyles.overline.copyWith(
+              color: MintflowColors.ink60,
               letterSpacing: 0.06,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: FlowraTextStyles.amountSmall.copyWith(
-              color: FlowraColors.ink,
+            style: MintflowTextStyles.amountSmall.copyWith(
+              color: MintflowColors.ink,
               fontSize: 18,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             change,
-            style: FlowraTextStyles.labelSmall.copyWith(
-              color: isNegative ? FlowraColors.red : FlowraColors.green500,
+            style: MintflowTextStyles.labelSmall.copyWith(
+              color: isNegative ? MintflowColors.red : MintflowColors.green500,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -583,8 +583,8 @@ class _InsightCardState extends State<_InsightCard> {
 
     return Container(
       decoration: BoxDecoration(
-        color: FlowraColors.green900,
-        borderRadius: FlowraRadius.xl_,
+        color: MintflowColors.green900,
+        borderRadius: MintflowRadius.xl_,
       ),
       clipBehavior: Clip.hardEdge,
       child: Padding(
@@ -598,15 +598,15 @@ class _InsightCardState extends State<_InsightCard> {
                   width: 6,
                   height: 6,
                   decoration: const BoxDecoration(
-                    color: FlowraColors.gold400,
+                    color: MintflowColors.gold400,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   'FLOWRA INSIGHT',
-                  style: FlowraTextStyles.overline.copyWith(
-                    color: FlowraColors.gold400,
+                  style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.gold400,
                     letterSpacing: 0.08,
                   ),
                 ),
@@ -615,8 +615,8 @@ class _InsightCardState extends State<_InsightCard> {
             const SizedBox(height: 8),
             Text(
               text,
-              style: FlowraTextStyles.bodySmall.copyWith(
-                color: FlowraColors.cream.withOpacity(0.85),
+              style: MintflowTextStyles.bodySmall.copyWith(
+                color: MintflowColors.cream.withOpacity(0.85),
                 fontWeight: FontWeight.w300,
                 height: 1.6,
               ),
@@ -636,12 +636,12 @@ class _InsightCardState extends State<_InsightCard> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: FlowraColors.green400,
-                      borderRadius: FlowraRadius.sm_,
+                      color: MintflowColors.green400,
+                      borderRadius: MintflowRadius.sm_,
                     ),
                     child: Text(
                       'See breakdown',
-                      style: FlowraTextStyles.labelSmall.copyWith(
+                      style: MintflowTextStyles.labelSmall.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w500,
                       ),
@@ -656,12 +656,12 @@ class _InsightCardState extends State<_InsightCard> {
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
-                      borderRadius: FlowraRadius.sm_,
+                      borderRadius: MintflowRadius.sm_,
                     ),
                     child: Text(
                       'Dismiss',
-                      style: FlowraTextStyles.labelSmall.copyWith(
-                        color: FlowraColors.cream.withOpacity(0.65),
+                      style: MintflowTextStyles.labelSmall.copyWith(
+                        color: MintflowColors.cream.withOpacity(0.65),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -697,16 +697,16 @@ class _RecentTransactions extends StatelessWidget {
               children: [
                 Text(
                   'Recent',
-                  style: FlowraTextStyles.labelLarge.copyWith(
-                    color: FlowraColors.ink,
+                  style: MintflowTextStyles.labelLarge.copyWith(
+                    color: MintflowColors.ink,
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => context.go(FlowraRoutes.transactions),
+                  onTap: () => context.go(MintflowRoutes.transactions),
                   child: Text(
                     'See all',
-                    style: FlowraTextStyles.labelMedium.copyWith(
-                      color: FlowraColors.green500,
+                    style: MintflowTextStyles.labelMedium.copyWith(
+                      color: MintflowColors.green500,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -724,8 +724,8 @@ class _RecentTransactions extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
                   'No transactions yet. Tap + to add one.',
-                  style: FlowraTextStyles.bodySmall
-                      .copyWith(color: FlowraColors.ink60),
+                  style: MintflowTextStyles.bodySmall
+                      .copyWith(color: MintflowColors.ink60),
                 ),
               )
             else
@@ -757,7 +757,7 @@ class _TransactionItem extends StatelessWidget {
         border: isLast
             ? null
             : const Border(
-                bottom: BorderSide(color: FlowraColors.ink10, width: 1),
+                bottom: BorderSide(color: MintflowColors.ink10, width: 1),
               ),
       ),
       child: Row(
@@ -767,8 +767,8 @@ class _TransactionItem extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: tx.isIncome
-                  ? FlowraColors.green50
-                  : FlowraColors.creamDark,
+                  ? MintflowColors.green50
+                  : MintflowColors.creamDark,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -776,8 +776,8 @@ class _TransactionItem extends StatelessWidget {
                   ? Icons.trending_up
                   : Icons.receipt_long_outlined,
               color: tx.isIncome
-                  ? FlowraColors.green500
-                  : FlowraColors.ink60,
+                  ? MintflowColors.green500
+                  : MintflowColors.ink60,
               size: 18,
             ),
           ),
@@ -792,8 +792,8 @@ class _TransactionItem extends StatelessWidget {
                       child: Text(
                         tx.displayName,
                         overflow: TextOverflow.ellipsis,
-                        style: FlowraTextStyles.labelMedium.copyWith(
-                          color: FlowraColors.ink,
+                        style: MintflowTextStyles.labelMedium.copyWith(
+                          color: MintflowColors.ink,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -807,11 +807,11 @@ class _TransactionItem extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   [
-                    FlowraFormat.relativeDate(tx.date),
+                    MintflowFormat.relativeDate(tx.date),
                     if (tx.category?.name != null) tx.category!.name,
                   ].join(' · '),
-                  style: FlowraTextStyles.labelSmall.copyWith(
-                    color: FlowraColors.ink60,
+                  style: MintflowTextStyles.labelSmall.copyWith(
+                    color: MintflowColors.ink60,
                   ),
                 ),
               ],
@@ -819,10 +819,10 @@ class _TransactionItem extends StatelessWidget {
           ),
           Text(
             tx.isIncome
-                ? '+${FlowraFormat.currency(tx.amount)}'
-                : '-${FlowraFormat.currency(tx.amount)}',
-            style: FlowraTextStyles.labelLarge.copyWith(
-              color: tx.isIncome ? FlowraColors.green400 : FlowraColors.ink,
+                ? '+${MintflowFormat.currency(tx.amount)}'
+                : '-${MintflowFormat.currency(tx.amount)}',
+            style: MintflowTextStyles.labelLarge.copyWith(
+              color: tx.isIncome ? MintflowColors.green400 : MintflowColors.ink,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -842,13 +842,13 @@ class _TxTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isNeed ? FlowraColors.green50 : const Color(0xFFFFF5E6),
+        color: isNeed ? MintflowColors.green50 : const Color(0xFFFFF5E6),
         borderRadius: BorderRadius.circular(5),
       ),
       child: Text(
         tag,
-        style: FlowraTextStyles.overline.copyWith(
-          color: isNeed ? FlowraColors.green600 : const Color(0xFF9A6200),
+        style: MintflowTextStyles.overline.copyWith(
+          color: isNeed ? MintflowColors.green600 : const Color(0xFF9A6200),
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -866,7 +866,7 @@ class DashboardBreakdownScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cats = summary?.spendingByCategory ?? [];
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -881,12 +881,12 @@ class DashboardBreakdownScreen extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: FlowraColors.creamDark,
+                        color: MintflowColors.creamDark,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
                         Icons.chevron_left_rounded,
-                        color: FlowraColors.ink60,
+                        color: MintflowColors.ink60,
                         size: 20,
                       ),
                     ),
@@ -894,10 +894,10 @@ class DashboardBreakdownScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Text(
                     summary != null
-                        ? FlowraFormat.monthYear(DateTime.now())
+                        ? MintflowFormat.monthYear(DateTime.now())
                         : 'Breakdown',
-                    style: FlowraTextStyles.displaySmall.copyWith(
-                      color: FlowraColors.ink,
+                    style: MintflowTextStyles.displaySmall.copyWith(
+                      color: MintflowColors.ink,
                     ),
                   ),
                 ],
@@ -916,21 +916,21 @@ class DashboardBreakdownScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: FlowraRadius.xl_,
-                          border: Border.all(color: FlowraColors.ink10),
+                          borderRadius: MintflowRadius.xl_,
+                          border: Border.all(color: MintflowColors.ink10),
                         ),
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                'Needs ${FlowraFormat.percentage(summary!.needsPct)}',
-                                style: FlowraTextStyles.labelLarge,
+                                'Needs ${MintflowFormat.percentage(summary!.needsPct)}',
+                                style: MintflowTextStyles.labelLarge,
                               ),
                             ),
                             Text(
-                              'Wants ${FlowraFormat.percentage(summary!.wantsPct)}',
-                              style: FlowraTextStyles.labelLarge
-                                  .copyWith(color: FlowraColors.ink60),
+                              'Wants ${MintflowFormat.percentage(summary!.wantsPct)}',
+                              style: MintflowTextStyles.labelLarge
+                                  .copyWith(color: MintflowColors.ink60),
                             ),
                           ],
                         ),
@@ -939,15 +939,15 @@ class DashboardBreakdownScreen extends StatelessWidget {
                     ],
                     Text(
                       'Spending by category',
-                      style: FlowraTextStyles.labelLarge
-                          .copyWith(color: FlowraColors.ink),
+                      style: MintflowTextStyles.labelLarge
+                          .copyWith(color: MintflowColors.ink),
                     ),
                     const SizedBox(height: 10),
                     if (cats.isEmpty)
                       Text(
                         'No category spend yet.',
-                        style: FlowraTextStyles.bodySmall
-                            .copyWith(color: FlowraColors.ink60),
+                        style: MintflowTextStyles.bodySmall
+                            .copyWith(color: MintflowColors.ink60),
                       )
                     else
                       ...cats.map((c) => Padding(
@@ -957,12 +957,12 @@ class DashboardBreakdownScreen extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     c.categoryName,
-                                    style: FlowraTextStyles.bodySmall,
+                                    style: MintflowTextStyles.bodySmall,
                                   ),
                                 ),
                                 Text(
-                                  FlowraFormat.currency(c.total),
-                                  style: FlowraTextStyles.labelMedium,
+                                  MintflowFormat.currency(c.total),
+                                  style: MintflowTextStyles.labelMedium,
                                 ),
                               ],
                             ),

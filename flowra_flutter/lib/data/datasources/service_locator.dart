@@ -21,7 +21,7 @@ class ServiceLocator {
 
   late final FlutterSecureStorage storage;
   late final TokenStore tokens;
-  late final FlowraApiClient api;
+  late final MintflowApiClient api;
   late final UserRepository users;
   late final DashboardRepository dashboard;
   late final TransactionRepository transactions;
@@ -38,7 +38,7 @@ class ServiceLocator {
 
     AuthGate.setAuthenticated(await sl.tokens.hasTokens());
 
-    sl.api = FlowraApiClient(tokenStore: sl.tokens);
+    sl.api = MintflowApiClient(tokenStore: sl.tokens);
     sl.users = UserRepository(sl.api);
     sl.dashboard = DashboardRepository(sl.api);
     sl.transactions = TransactionRepository(sl.api);

@@ -181,7 +181,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_error ?? 'Purchases unavailable'),
-          backgroundColor: FlowraColors.red,
+          backgroundColor: MintflowColors.red,
         ),
       );
       return;
@@ -191,7 +191,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No store package found for this plan yet.'),
-          backgroundColor: FlowraColors.gold500,
+          backgroundColor: MintflowColors.gold500,
         ),
       );
       return;
@@ -203,10 +203,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Welcome aboard — subscription active.'),
-            backgroundColor: FlowraColors.green500,
+            backgroundColor: MintflowColors.green500,
           ),
         );
-        context.go(FlowraRoutes.dashboard);
+        context.go(MintflowRoutes.dashboard);
       }
     } on PlatformException catch (e) {
       final code = PurchasesErrorHelper.getErrorCode(e);
@@ -214,7 +214,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.message ?? 'Purchase failed'),
-            backgroundColor: FlowraColors.red,
+            backgroundColor: MintflowColors.red,
           ),
         );
       }
@@ -223,7 +223,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Purchase failed: $e'),
-            backgroundColor: FlowraColors.red,
+            backgroundColor: MintflowColors.red,
           ),
         );
       }
@@ -237,7 +237,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_error ?? 'Purchases unavailable'),
-          backgroundColor: FlowraColors.red,
+          backgroundColor: MintflowColors.red,
         ),
       );
       return;
@@ -249,17 +249,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Purchases restored.'),
-            backgroundColor: FlowraColors.green500,
+            backgroundColor: MintflowColors.green500,
           ),
         );
-        context.go(FlowraRoutes.dashboard);
+        context.go(MintflowRoutes.dashboard);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Restore failed: $e'),
-            backgroundColor: FlowraColors.red,
+            backgroundColor: MintflowColors.red,
           ),
         );
       }
@@ -287,11 +287,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: CustomScrollView(slivers: [
         SliverAppBar(
           pinned: true,
-          backgroundColor: FlowraColors.green900,
+          backgroundColor: MintflowColors.green900,
           leading: IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () => context.pop(),
@@ -305,19 +305,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('UPGRADE FLOWRA',
-                        style: FlowraTextStyles.overline.copyWith(
-                            color: FlowraColors.cream.withOpacity(0.5))),
+                        style: MintflowTextStyles.overline.copyWith(
+                            color: MintflowColors.cream.withOpacity(0.5))),
                     const SizedBox(height: 4),
                     Text(_featureHeadline,
-                        style: FlowraTextStyles.displaySmall
-                            .copyWith(color: FlowraColors.cream)),
+                        style: MintflowTextStyles.displaySmall
+                            .copyWith(color: MintflowColors.cream)),
                     const SizedBox(height: 8),
                     Text(
                       widget.feature != null
                           ? 'Feature: ${widget.feature}'
                           : '7-day Pro trial available — no card required',
-                      style: FlowraTextStyles.bodySmall.copyWith(
-                          color: FlowraColors.cream.withOpacity(0.5),
+                      style: MintflowTextStyles.bodySmall.copyWith(
+                          color: MintflowColors.cream.withOpacity(0.5),
                           fontWeight: FontWeight.w300),
                     ),
                   ],
@@ -343,20 +343,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: FlowraColors.gold50,
-                      borderRadius: FlowraRadius.lg_,
-                      border: Border.all(color: FlowraColors.gold400),
+                      color: MintflowColors.gold50,
+                      borderRadius: MintflowRadius.lg_,
+                      border: Border.all(color: MintflowColors.gold400),
                     ),
                     child: Text(
                       _error!,
-                      style: FlowraTextStyles.bodySmall
-                          .copyWith(color: FlowraColors.ink),
+                      style: MintflowTextStyles.bodySmall
+                          .copyWith(color: MintflowColors.ink),
                     ),
                   ),
                 Container(
                   decoration: BoxDecoration(
-                    color: FlowraColors.creamDark,
-                    borderRadius: FlowraRadius.lg_,
+                    color: MintflowColors.creamDark,
+                    borderRadius: MintflowRadius.lg_,
                   ),
                   padding: const EdgeInsets.all(3),
                   child: Row(children: [
@@ -393,8 +393,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     onPressed: _purchasing ? null : _purchase,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selected == 'growth'
-                          ? FlowraColors.purple
-                          : FlowraColors.green400,
+                          ? MintflowColors.purple
+                          : MintflowColors.green400,
                     ),
                     child: _purchasing
                         ? const SizedBox(
@@ -422,8 +422,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   'Cancel anytime. Billed ${_annual ? "annually" : "monthly"}. '
                   'Apple/Google manage payments. No hidden fees.',
                   textAlign: TextAlign.center,
-                  style: FlowraTextStyles.overline.copyWith(
-                      color: FlowraColors.ink60, fontWeight: FontWeight.w400),
+                  style: MintflowTextStyles.overline.copyWith(
+                      color: MintflowColors.ink60, fontWeight: FontWeight.w400),
                 ),
                 const SizedBox(height: 60),
               ],
@@ -446,23 +446,23 @@ class _BillingTab extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
           color: active ? Colors.white : Colors.transparent,
-          borderRadius: FlowraRadius.md_,
+          borderRadius: MintflowRadius.md_,
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Text(label,
               textAlign: TextAlign.center,
-              style: FlowraTextStyles.labelMedium.copyWith(
-                  color: active ? FlowraColors.ink : FlowraColors.ink60)),
+              style: MintflowTextStyles.labelMedium.copyWith(
+                  color: active ? MintflowColors.ink : MintflowColors.ink60)),
           if (badge != null) ...[
             const SizedBox(width: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: FlowraColors.green400,
-                borderRadius: FlowraRadius.pill_,
+                color: MintflowColors.green400,
+                borderRadius: MintflowRadius.pill_,
               ),
               child: Text(badge!,
-                  style: FlowraTextStyles.overline
+                  style: MintflowTextStyles.overline
                       .copyWith(color: Colors.white, fontSize: 9)),
             ),
           ],
@@ -483,10 +483,10 @@ class _PlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color borderColor = selected
-        ? (plan.highlighted ? FlowraColors.purple : FlowraColors.green400)
-        : FlowraColors.ink10;
+        ? (plan.highlighted ? MintflowColors.purple : MintflowColors.green400)
+        : MintflowColors.ink10;
     final Color bgColor =
-        selected && plan.highlighted ? FlowraColors.purpleSoft : Colors.white;
+        selected && plan.highlighted ? MintflowColors.purpleSoft : Colors.white;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -494,7 +494,7 @@ class _PlanCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: FlowraRadius.xl_,
+        borderRadius: MintflowRadius.xl_,
         border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -505,43 +505,43 @@ class _PlanCard extends StatelessWidget {
             children: [
               Row(children: [
                 Text(plan.name,
-                    style: FlowraTextStyles.labelLarge.copyWith(
+                    style: MintflowTextStyles.labelLarge.copyWith(
                         color: plan.highlighted && selected
-                            ? FlowraColors.purple
-                            : FlowraColors.ink)),
+                            ? MintflowColors.purple
+                            : MintflowColors.ink)),
                 if (plan.highlighted) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: FlowraColors.purple,
-                      borderRadius: FlowraRadius.pill_,
+                      color: MintflowColors.purple,
+                      borderRadius: MintflowRadius.pill_,
                     ),
                     child: Text('Most popular',
-                        style: FlowraTextStyles.overline
+                        style: MintflowTextStyles.overline
                             .copyWith(color: Colors.white)),
                   ),
                 ],
               ]),
               Text(plan.sub,
-                  style: FlowraTextStyles.overline.copyWith(
+                  style: MintflowTextStyles.overline.copyWith(
                       color: plan.highlighted && selected
-                          ? FlowraColors.purple.withOpacity(0.7)
-                          : FlowraColors.ink60)),
+                          ? MintflowColors.purple.withOpacity(0.7)
+                          : MintflowColors.ink60)),
             ],
           )),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(price,
-                style: FlowraTextStyles.amountSmall.copyWith(
+                style: MintflowTextStyles.amountSmall.copyWith(
                     color: plan.highlighted && selected
-                        ? FlowraColors.purple
-                        : FlowraColors.ink,
+                        ? MintflowColors.purple
+                        : MintflowColors.ink,
                     fontSize: 18)),
             if (annual && plan.monthlyPrice > 0)
               Text('(\$${(plan.annualPrice / 12).toStringAsFixed(2)}/mo)',
-                  style: FlowraTextStyles.overline
-                      .copyWith(color: FlowraColors.ink60)),
+                  style: MintflowTextStyles.overline
+                      .copyWith(color: MintflowColors.ink60)),
           ]),
         ]),
         AnimatedSize(
@@ -561,14 +561,14 @@ class _PlanCard extends StatelessWidget {
                                   Icon(Icons.check,
                                       size: 14,
                                       color: plan.highlighted
-                                          ? FlowraColors.purple
-                                          : FlowraColors.green400),
+                                          ? MintflowColors.purple
+                                          : MintflowColors.green400),
                                   const SizedBox(width: 8),
                                   Expanded(
                                       child: Text(f,
-                                          style: FlowraTextStyles.bodySmall
+                                          style: MintflowTextStyles.bodySmall
                                               .copyWith(
-                                                  color: FlowraColors.ink60,
+                                                  color: MintflowColors.ink60,
                                                   height: 1.4))),
                                 ],
                               ),

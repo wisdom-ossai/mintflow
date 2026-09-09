@@ -1,5 +1,5 @@
 """
-SQLAlchemy ORM models for Flowra.
+SQLAlchemy ORM models for Mintflow.
 UUID primary keys; API is the only DB client (no Supabase RLS).
 """
 import uuid

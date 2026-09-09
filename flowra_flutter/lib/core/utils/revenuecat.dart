@@ -29,7 +29,7 @@ Future<void> configureRevenueCat({String? appUserId}) async {
   }
 }
 
-/// Call after login / splash when we know the Flowra user id.
+/// Call after login / splash when we know the Mintflow user id.
 Future<void> identifyRevenueCat(String userId) async {
   if (!revenueCatConfigured) return;
   try {

@@ -26,8 +26,8 @@
 
   <key>provisioningProfiles</key>
   <dict>
-    <key>app.flowra.ios</key>
-    <string>Flowra App Store Distribution</string>
+    <key>app.mintflow.ios</key>
+    <string>Mintflow App Store Distribution</string>
   </dict>
 </dict>
 </plist>

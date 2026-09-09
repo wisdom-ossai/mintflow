@@ -37,23 +37,19 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy application code
 COPY . .
 
-# Non-root user for security
-RUN adduser --disabled-password --gecos "" flowra && \
-    chown -R flowra:flowra /app
-USER flowra
+# Non-root user for security. chmod while still root.
+RUN chmod +x /app/entrypoint.sh && \
+    adduser --disabled-password --gecos "" mintflow && \
+    chown -R mintflow:mintflow /app
+USER mintflow
 
 # Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Health check (Railway uses healthcheckPath; this is for local docker)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD python -c "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"
 
-# Single worker — in-process APScheduler must not duplicate across workers.
-# Horizontally scale web later with SCHEDULER_ENABLED=true on exactly one service.
-CMD ["uvicorn", "app.main:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--workers", "1", \
-     "--loop", "uvloop", \
-     "--access-log"]
+# Migrate then start. Railway startCommand must also use this script
+# (it overrides Dockerfile CMD/ENTRYPOINT).
+ENTRYPOINT ["/app/entrypoint.sh"]

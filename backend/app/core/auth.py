@@ -1,5 +1,5 @@
 """
-JWT authentication dependency — Flowra-issued access tokens.
+JWT authentication dependency — Mintflow-issued access tokens.
 """
 from __future__ import annotations
 

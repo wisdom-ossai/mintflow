@@ -99,7 +99,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Could not update ${_titleFor(pref.type)}: $e'),
-          backgroundColor: FlowraColors.red,
+          backgroundColor: MintflowColors.red,
         ),
       );
     }
@@ -116,12 +116,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       appBar: AppBar(
-        backgroundColor: FlowraColors.green900,
+        backgroundColor: MintflowColors.green900,
         title: Text(
           'Notification settings',
-          style: FlowraTextStyles.displaySmall.copyWith(color: FlowraColors.cream),
+          style: MintflowTextStyles.displaySmall.copyWith(color: MintflowColors.cream),
         ),
       ),
       body: _loading
@@ -132,7 +132,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     padding: const EdgeInsets.all(20),
                     child: Text(
                       _error!,
-                      style: FlowraTextStyles.bodySmall.copyWith(color: FlowraColors.red),
+                      style: MintflowTextStyles.bodySmall.copyWith(color: MintflowColors.red),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -144,8 +144,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: FlowraRadius.xl_,
-                        border: Border.all(color: FlowraColors.ink10),
+                        borderRadius: MintflowRadius.xl_,
+                        border: Border.all(color: MintflowColors.ink10),
                       ),
                       child: Column(
                         children: _prefs
@@ -156,14 +156,14 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                 contentPadding: EdgeInsets.zero,
                                 title: Text(
                                   _titleFor(p.type),
-                                  style: FlowraTextStyles.bodySmall
+                                  style: MintflowTextStyles.bodySmall
                                       .copyWith(fontWeight: FontWeight.w500),
                                 ),
                                 subtitle: p.timeOfDay != null
                                     ? Text(
                                         'Time: ${p.timeOfDay}',
-                                        style: FlowraTextStyles.overline
-                                            .copyWith(color: FlowraColors.ink60),
+                                        style: MintflowTextStyles.overline
+                                            .copyWith(color: MintflowColors.ink60),
                                       )
                                     : null,
                                 secondary: p.saving

@@ -1,5 +1,5 @@
 """
-Flowra AI Service — Claude API integration.
+Mintflow AI Service — Claude API integration.
 
 Three functions:
   1. categorize_transaction()  — merchant → category + is_need
@@ -61,7 +61,7 @@ Example:
 {"category": "Food & Dining", "is_need": false, "confidence": 0.95}"""
 
 
-INSIGHT_SYSTEM = """You are Flowra, a warm and honest personal finance coach. Your tone is:
+INSIGHT_SYSTEM = """You are Mintflow, a warm and honest personal finance coach. Your tone is:
 - Encouraging, not preachy
 - Specific, not vague
 - Honest about problems, but never harsh
@@ -280,6 +280,6 @@ def _notification_fallback(
         "budget_exceeded": "You've gone over your monthly budget. Time to review your spending.",
         "weekly_digest": "Your weekly spending digest is ready to review.",
         "monthly_report": "Your monthly report is ready. See how November went.",
-        "ai_nudge": "Flowra spotted something in your spending. Take a look.",
+        "ai_nudge": "Mintflow spotted something in your spending. Take a look.",
     }
-    return templates.get(notification_type, "Check your Flowra summary.")
+    return templates.get(notification_type, "Check your Mintflow summary.")

@@ -1,5 +1,5 @@
 """
-Flowra first-party auth service.
+Mintflow first-party auth service.
 Argon2id passwords; JWT access + opaque refresh with rotation / reuse detection.
 """
 from __future__ import annotations

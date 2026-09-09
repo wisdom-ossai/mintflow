@@ -1,4 +1,4 @@
-import 'package:flowra_flutter/core/theme/app_theme.dart';
+import 'package:mintflow_flutter/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class Label extends StatelessWidget {
@@ -8,6 +8,6 @@ class Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: FlowraTextStyles.overline.copyWith(color: FlowraColors.ink60),
+        style: MintflowTextStyles.overline.copyWith(color: MintflowColors.ink60),
       );
 }

@@ -1,10 +1,10 @@
 import 'dart:math' as math;
-import 'package:flowra_flutter/presentation/screens/auth/check_email_screen.dart';
-import 'package:flowra_flutter/presentation/screens/auth/forgot_password_screen.dart';
-import 'package:flowra_flutter/presentation/screens/auth/reset_password_screen.dart';
-import 'package:flowra_flutter/presentation/screens/profile/profile_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/auth/check_email_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/auth/forgot_password_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/auth/reset_password_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flowra_flutter/core/theme/app_theme.dart';
+import 'package:mintflow_flutter/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_gate.dart';
@@ -26,10 +26,10 @@ import '../../presentation/screens/settings/settings_screen.dart';
 import '../../presentation/screens/subscription/paywall_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra Router — wired to real screen implementations
+// Mintflow Router — wired to real screen implementations
 // ─────────────────────────────────────────────────────────────────────────────
 
-class FlowraRoutes {
+class MintflowRoutes {
   static const splash = '/';
   static const login = '/login';
   static const signup = '/signup';
@@ -68,14 +68,14 @@ GoRouter buildRouter() {
   final refresh = _RouterRefresh();
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: FlowraRoutes.splash,
+    initialLocation: MintflowRoutes.splash,
     refreshListenable: refresh,
     redirect: (context, state) {
       final isLoggedIn = AuthGate.isAuthenticated.value;
       final loc = state.matchedLocation;
 
       // Splash owns first navigation after animation
-      if (loc == FlowraRoutes.splash) return null;
+      if (loc == MintflowRoutes.splash) return null;
 
       final isAuthRoute = loc.startsWith('/login') ||
           loc.startsWith('/signup') ||
@@ -84,48 +84,48 @@ GoRouter buildRouter() {
           loc.startsWith('/check-email') ||
           loc.startsWith('/reset-password');
 
-      if (!isLoggedIn && !isAuthRoute) return FlowraRoutes.login;
+      if (!isLoggedIn && !isAuthRoute) return MintflowRoutes.login;
 
       // Incomplete onboarding → force wizard (splash sets AuthGate flag)
       final onboarded = AuthGate.onboardingComplete.value;
-      if (isLoggedIn && onboarded == false && loc != FlowraRoutes.onboarding) {
-        return FlowraRoutes.onboarding;
+      if (isLoggedIn && onboarded == false && loc != MintflowRoutes.onboarding) {
+        return MintflowRoutes.onboarding;
       }
 
       if (isLoggedIn &&
           isAuthRoute &&
-          loc != FlowraRoutes.onboarding &&
-          loc != FlowraRoutes.resetPassword &&
+          loc != MintflowRoutes.onboarding &&
+          loc != MintflowRoutes.resetPassword &&
           onboarded != false) {
-        return FlowraRoutes.dashboard;
+        return MintflowRoutes.dashboard;
       }
       return null;
     },
     routes: [
       // ── Pre-auth ──────────────────────────────────────────────────────────
       GoRoute(
-          path: FlowraRoutes.splash, builder: (_, __) => const SplashScreen()),
+          path: MintflowRoutes.splash, builder: (_, __) => const SplashScreen()),
       GoRoute(
-          path: FlowraRoutes.login, builder: (_, __) => const LoginScreen()),
+          path: MintflowRoutes.login, builder: (_, __) => const LoginScreen()),
       GoRoute(
-          path: FlowraRoutes.signup, builder: (_, __) => const SignupScreen()),
+          path: MintflowRoutes.signup, builder: (_, __) => const SignupScreen()),
       GoRoute(
-          path: FlowraRoutes.onboarding,
+          path: MintflowRoutes.onboarding,
           builder: (_, __) => const OnboardingScreen()),
 
       // ── Forgot password flow (no bottom nav) ─────────────────────────────
       GoRoute(
-        path: FlowraRoutes.forgotPassword,
+        path: MintflowRoutes.forgotPassword,
         builder: (_, __) => const ForgotPasswordScreen(),
       ),
       GoRoute(
-        path: FlowraRoutes.checkEmail,
+        path: MintflowRoutes.checkEmail,
         builder: (_, state) => CheckEmailScreen(
           email: (state.extra as String?) ?? '',
         ),
       ),
       GoRoute(
-        path: FlowraRoutes.resetPassword,
+        path: MintflowRoutes.resetPassword,
         builder: (_, state) => ResetPasswordScreen(
           token: state.uri.queryParameters['token'] ??
               (state.extra is String ? state.extra as String : null),
@@ -135,13 +135,13 @@ GoRouter buildRouter() {
       // ── Main shell ────────────────────────────────────────────────────────
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
-        builder: (_, __, child) => FlowraShell(child: child),
+        builder: (_, __, child) => MintflowShell(child: child),
         routes: [
           GoRoute(
-              path: FlowraRoutes.dashboard,
+              path: MintflowRoutes.dashboard,
               builder: (_, __) => const DashboardScreen()),
           GoRoute(
-            path: FlowraRoutes.transactions,
+            path: MintflowRoutes.transactions,
             builder: (_, __) => const TransactionListScreen(),
             routes: [
               GoRoute(
@@ -152,7 +152,7 @@ GoRouter buildRouter() {
             ],
           ),
           GoRoute(
-            path: FlowraRoutes.goals,
+            path: MintflowRoutes.goals,
             builder: (_, __) => const GoalsScreen(),
             routes: [
               GoRoute(
@@ -163,7 +163,7 @@ GoRouter buildRouter() {
             ],
           ),
           GoRoute(
-            path: FlowraRoutes.bills,
+            path: MintflowRoutes.bills,
             builder: (_, __) => const BillsScreen(),
             routes: [
               GoRoute(
@@ -174,30 +174,30 @@ GoRouter buildRouter() {
             ],
           ),
           GoRoute(
-              path: FlowraRoutes.insights,
+              path: MintflowRoutes.insights,
               builder: (_, __) => const InsightsScreen()),
           GoRoute(
-              path: FlowraRoutes.settings,
+              path: MintflowRoutes.settings,
               builder: (_, __) => const SettingsScreen()),
           GoRoute(
-              path: FlowraRoutes.profile,
+              path: MintflowRoutes.profile,
               builder: (_, __) => const ProfileScreen()),
         ],
       ),
 
       // ── Full-screen overlays (no bottom nav) ──────────────────────────────
       GoRoute(
-        path: FlowraRoutes.paywall,
+        path: MintflowRoutes.paywall,
         builder: (_, state) => PaywallScreen(
           feature: state.uri.queryParameters['feature'],
         ),
       ),
       GoRoute(
-        path: FlowraRoutes.notifications,
+        path: MintflowRoutes.notifications,
         builder: (_, __) => const InAppNotificationsScreen(),
       ),
       GoRoute(
-        path: FlowraRoutes.notificationSettings,
+        path: MintflowRoutes.notificationSettings,
         builder: (_, __) => const NotificationSettingsScreen(),
       ),
     ],
@@ -206,15 +206,15 @@ GoRouter buildRouter() {
 
 // ── Shell ─────────────────────────────────────────────────────────────────────
 
-class FlowraShell extends StatelessWidget {
+class MintflowShell extends StatelessWidget {
   final Widget child;
-  const FlowraShell({super.key, required this.child});
+  const MintflowShell({super.key, required this.child});
 
   static const _tabs = [
-    FlowraRoutes.dashboard,
-    FlowraRoutes.transactions,
-    FlowraRoutes.insights,
-    FlowraRoutes.profile,
+    MintflowRoutes.dashboard,
+    MintflowRoutes.transactions,
+    MintflowRoutes.insights,
+    MintflowRoutes.profile,
   ];
 
   @override
@@ -229,13 +229,13 @@ class FlowraShell extends StatelessWidget {
       //   currentIndex: currentIndex < 0 ? 0 : currentIndex,
       //   onTap: (i) => context.go(_tabs[i]),
       // ),
-      bottomNavigationBar: _FlowraNavBar(
+      bottomNavigationBar: _MintflowNavBar(
         currentIndex: currentIndex < 0 ? 0 : currentIndex,
         onTap: (i) => context.go(_tabs[i]),
       ),
       floatingActionButton: _showFab(location)
           ? _Fab(
-              onPressed: () => context.push(FlowraRoutes.addTx),
+              onPressed: () => context.push(MintflowRoutes.addTx),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -243,7 +243,7 @@ class FlowraShell extends StatelessWidget {
   }
 
   bool _showFab(String loc) =>
-      loc == FlowraRoutes.dashboard || loc == FlowraRoutes.transactions;
+      loc == MintflowRoutes.dashboard || loc == MintflowRoutes.transactions;
 }
 
 class _Fab extends StatelessWidget {
@@ -308,11 +308,11 @@ const _navItems = [
   ),
 ];
 
-class _FlowraNavBar extends StatelessWidget {
+class _MintflowNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _FlowraNavBar({
+  const _MintflowNavBar({
     required this.currentIndex,
     required this.onTap,
   });
@@ -324,11 +324,11 @@ class _FlowraNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
-          top: BorderSide(color: FlowraColors.ink10, width: 1),
+          top: BorderSide(color: MintflowColors.ink10, width: 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: FlowraColors.ink.withOpacity(0.05),
+            color: MintflowColors.ink.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -452,17 +452,17 @@ class _NavBarItemState extends State<_NavBarItem>
                     key: ValueKey(widget.isActive),
                     size: 22,
                     color: widget.isActive
-                        ? FlowraColors.green500
-                        : FlowraColors.ink30,
+                        ? MintflowColors.green500
+                        : MintflowColors.ink30,
                   ),
                 ),
                 const SizedBox(height: 3),
                 AnimatedDefaultTextStyle(
                   duration: const Duration(milliseconds: 200),
-                  style: FlowraTextStyles.overline.copyWith(
+                  style: MintflowTextStyles.overline.copyWith(
                     color: widget.isActive
-                        ? FlowraColors.green500
-                        : FlowraColors.ink30,
+                        ? MintflowColors.green500
+                        : MintflowColors.ink30,
                     fontWeight:
                         widget.isActive ? FontWeight.w600 : FontWeight.w400,
                   ),
@@ -475,7 +475,7 @@ class _NavBarItemState extends State<_NavBarItem>
                   width: widget.isActive ? 18 : 0,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: FlowraColors.green400,
+                    color: MintflowColors.green400,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -553,18 +553,18 @@ class _AddButtonState extends State<_AddButton>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [FlowraColors.green400, FlowraColors.green600],
+              colors: [MintflowColors.green400, MintflowColors.green600],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: FlowraColors.green400.withOpacity(0.45),
+                color: MintflowColors.green400.withOpacity(0.45),
                 blurRadius: 16,
                 spreadRadius: 0,
                 offset: const Offset(0, 6),
               ),
               BoxShadow(
-                color: FlowraColors.green400.withOpacity(0.2),
+                color: MintflowColors.green400.withOpacity(0.2),
                 blurRadius: 4,
                 spreadRadius: -2,
                 offset: const Offset(0, 2),
@@ -587,24 +587,24 @@ class _StubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: FlowraColors.ink30),
+            Icon(icon, size: 48, color: MintflowColors.ink30),
             const SizedBox(height: 12),
             Text(
               label,
-              style: FlowraTextStyles.displaySmall.copyWith(
-                color: FlowraColors.ink60,
+              style: MintflowTextStyles.displaySmall.copyWith(
+                color: MintflowColors.ink60,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Coming soon',
-              style: FlowraTextStyles.bodyMedium.copyWith(
-                color: FlowraColors.ink30,
+              style: MintflowTextStyles.bodyMedium.copyWith(
+                color: MintflowColors.ink30,
               ),
             ),
           ],
@@ -621,7 +621,7 @@ class _AddTransactionSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: FlowraColors.cream,
+        color: MintflowColors.cream,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -637,22 +637,22 @@ class _AddTransactionSheet extends StatelessWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: FlowraColors.ink10,
+              color: MintflowColors.ink10,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 20),
           Text(
             'Add Transaction',
-            style: FlowraTextStyles.displaySmall.copyWith(
-              color: FlowraColors.ink,
+            style: MintflowTextStyles.displaySmall.copyWith(
+              color: MintflowColors.ink,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'This screen is coming soon.',
-            style: FlowraTextStyles.bodyMedium.copyWith(
-              color: FlowraColors.ink60,
+            style: MintflowTextStyles.bodyMedium.copyWith(
+              color: MintflowColors.ink60,
             ),
           ),
           const SizedBox(height: 24),

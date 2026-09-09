@@ -125,13 +125,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await _submitOnboarding();
       // User explicitly chose manual setup on step 3; complete onboarding flow.
       AuthGate.setOnboardingComplete(true);
-      if (mounted) context.go(FlowraRoutes.dashboard);
+      if (mounted) context.go(MintflowRoutes.dashboard);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Could not save profile: $e'),
-            backgroundColor: FlowraColors.red,
+            backgroundColor: MintflowColors.red,
           ),
         );
       }
@@ -156,7 +156,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             current?.hasCompletedOnboarding ??
                 _nameCtrl.text.trim().isNotEmpty);
         if (mounted) setState(() => _loading = false);
-        context.go('${FlowraRoutes.paywall}?feature=bank_sync');
+        context.go('${MintflowRoutes.paywall}?feature=bank_sync');
         return;
       }
 
@@ -180,13 +180,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Bank linked but sync failed — try again later.'),
-                backgroundColor: FlowraColors.gold500,
+                backgroundColor: MintflowColors.gold500,
               ),
             );
           }
         }
         AuthGate.setOnboardingComplete(true);
-        if (mounted) context.go(FlowraRoutes.dashboard);
+        if (mounted) context.go(MintflowRoutes.dashboard);
       });
 
       _plaidExitSub = PlaidLink.onExit.listen((exit) {
@@ -196,7 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               exit.error?.message ??
               'Bank connection cancelled';
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(msg), backgroundColor: FlowraColors.ink60),
+            SnackBar(content: Text(msg), backgroundColor: MintflowColors.ink60),
           );
         }
       });
@@ -211,7 +211,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Could not open bank link: $e'),
-            backgroundColor: FlowraColors.red,
+            backgroundColor: MintflowColors.red,
           ),
         );
       }
@@ -229,7 +229,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: Column(children: [
         _OnboardingHeader(step: _step, onBack: _step > 0 ? _back : null),
         Expanded(
@@ -271,7 +271,7 @@ class _OnboardingHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: FlowraColors.green900,
+      color: MintflowColors.green900,
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -300,9 +300,9 @@ class _OnboardingHeader extends StatelessWidget {
                     height: 6,
                     decoration: BoxDecoration(
                       color: active
-                          ? FlowraColors.green400
+                          ? MintflowColors.green400
                           : done
-                              ? FlowraColors.green400.withOpacity(0.5)
+                              ? MintflowColors.green400.withOpacity(0.5)
                               : Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(3),
                     ),
@@ -313,10 +313,10 @@ class _OnboardingHeader extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   AuthGate.setOnboardingComplete(true);
-                  context.go(FlowraRoutes.dashboard);
+                  context.go(MintflowRoutes.dashboard);
                 },
                 child: Text('Skip',
-                    style: FlowraTextStyles.labelSmall
+                    style: MintflowTextStyles.labelSmall
                         .copyWith(color: Colors.white.withOpacity(0.5))),
               ),
             ]),
@@ -337,12 +337,12 @@ class _StepHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: FlowraTextStyles.displaySmall
+              style: MintflowTextStyles.displaySmall
                   .copyWith(fontStyle: FontStyle.italic)),
           const SizedBox(height: 6),
           Text(subtitle,
-              style: FlowraTextStyles.bodyMedium
-                  .copyWith(color: FlowraColors.ink60)),
+              style: MintflowTextStyles.bodyMedium
+                  .copyWith(color: MintflowColors.ink60)),
         ],
       );
 }
@@ -355,7 +355,7 @@ class _FieldLabel extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(text.toUpperCase(),
             style:
-                FlowraTextStyles.overline.copyWith(color: FlowraColors.ink60)),
+                MintflowTextStyles.overline.copyWith(color: MintflowColors.ink60)),
       );
 }
 
@@ -409,9 +409,9 @@ class _Step1Welcome extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: FlowraColors.green50,
-            borderRadius: FlowraRadius.lg_,
-            border: Border.all(color: FlowraColors.green100),
+            color: MintflowColors.green50,
+            borderRadius: MintflowRadius.lg_,
+            border: Border.all(color: MintflowColors.green100),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
@@ -419,14 +419,14 @@ class _Step1Welcome extends StatelessWidget {
               height: 8,
               margin: const EdgeInsets.only(top: 4),
               decoration: const BoxDecoration(
-                  shape: BoxShape.circle, color: FlowraColors.green400),
+                  shape: BoxShape.circle, color: MintflowColors.green400),
             ),
             const SizedBox(width: 10),
             Expanded(
                 child: RichText(
               text: TextSpan(
-                style: FlowraTextStyles.bodySmall
-                    .copyWith(color: FlowraColors.green600, height: 1.5),
+                style: MintflowTextStyles.bodySmall
+                    .copyWith(color: MintflowColors.green600, height: 1.5),
                 children: const [
                   TextSpan(
                       text: '7-day Pro trial active. ',
@@ -454,17 +454,17 @@ class _Step1Welcome extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: FlowraColors.creamDark,
-            borderRadius: FlowraRadius.lg_,
-            border: Border.all(color: FlowraColors.ink10, width: 1.5),
+            color: MintflowColors.creamDark,
+            borderRadius: MintflowRadius.lg_,
+            border: Border.all(color: MintflowColors.ink10, width: 1.5),
           ),
           child: Row(children: [
-            Icon(Icons.lock_outline, size: 16, color: FlowraColors.ink60),
+            Icon(Icons.lock_outline, size: 16, color: MintflowColors.ink60),
             const SizedBox(width: 8),
             Text(
               email.isNotEmpty ? email : 'Loading…',
-              style: FlowraTextStyles.bodyMedium
-                  .copyWith(color: FlowraColors.ink60),
+              style: MintflowTextStyles.bodyMedium
+                  .copyWith(color: MintflowColors.ink60),
             ),
           ]),
         ),
@@ -529,18 +529,18 @@ class _Step2Target extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: FlowraRadius.md_,
-            border: Border.all(color: FlowraColors.green100),
+            borderRadius: MintflowRadius.md_,
+            border: Border.all(color: MintflowColors.green100),
           ),
           child: Row(children: [
             const Icon(Icons.auto_awesome,
-                size: 14, color: FlowraColors.green500),
+                size: 14, color: MintflowColors.green500),
             const SizedBox(width: 8),
             Expanded(
                 child: Text(
               'Mintflow suggests 70% of income as a starting target.',
-              style: FlowraTextStyles.bodySmall
-                  .copyWith(color: FlowraColors.green600),
+              style: MintflowTextStyles.bodySmall
+                  .copyWith(color: MintflowColors.green600),
             )),
           ]),
         ),
@@ -588,8 +588,8 @@ class _Step3Connect extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: FlowraRadius.xl_,
-              border: Border.all(color: FlowraColors.green400, width: 1.5),
+              borderRadius: MintflowRadius.xl_,
+              border: Border.all(color: MintflowColors.green400, width: 1.5),
             ),
             child: Column(children: [
               Row(children: [
@@ -597,8 +597,8 @@ class _Step3Connect extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: FlowraColors.green400,
-                    borderRadius: FlowraRadius.md_,
+                    color: MintflowColors.green400,
+                    borderRadius: MintflowRadius.md_,
                   ),
                   child: const Icon(Icons.account_balance_outlined,
                       color: Colors.white, size: 20),
@@ -624,12 +624,12 @@ class _Step3Connect extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: FlowraColors.green50,
-                    borderRadius: FlowraRadius.pill_,
+                    color: MintflowColors.green50,
+                    borderRadius: MintflowRadius.pill_,
                   ),
                   child: Text('Recommended',
-                      style: FlowraTextStyles.overline.copyWith(
-                          color: FlowraColors.green600,
+                      style: MintflowTextStyles.overline.copyWith(
+                          color: MintflowColors.green600,
                           fontWeight: FontWeight.w500)),
                 ),
               ]),
@@ -637,8 +637,8 @@ class _Step3Connect extends StatelessWidget {
               Text(
                 'Your credentials never touch Mintflow. '
                 '10,000+ US banks supported.',
-                style: FlowraTextStyles.bodySmall
-                    .copyWith(color: FlowraColors.ink60),
+                style: MintflowTextStyles.bodySmall
+                    .copyWith(color: MintflowColors.ink60),
               ),
             ]),
           ),
@@ -652,19 +652,19 @@ class _Step3Connect extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: FlowraRadius.xl_,
-              border: Border.all(color: FlowraColors.ink10),
+              borderRadius: MintflowRadius.xl_,
+              border: Border.all(color: MintflowColors.ink10),
             ),
             child: Row(children: [
               Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: FlowraColors.creamDark,
-                  borderRadius: FlowraRadius.md_,
+                  color: MintflowColors.creamDark,
+                  borderRadius: MintflowRadius.md_,
                 ),
                 child: Icon(Icons.edit_outlined,
-                    color: FlowraColors.ink60, size: 20),
+                    color: MintflowColors.ink60, size: 20),
               ),
               const SizedBox(width: 12),
               const Expanded(
@@ -692,18 +692,18 @@ class _Step3Connect extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: FlowraColors.creamDark,
-            borderRadius: FlowraRadius.md_,
+            color: MintflowColors.creamDark,
+            borderRadius: MintflowRadius.md_,
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(Icons.shield_outlined, size: 14, color: FlowraColors.ink60),
+            Icon(Icons.shield_outlined, size: 14, color: MintflowColors.ink60),
             const SizedBox(width: 8),
             Expanded(
                 child: Text(
               'Read-only access. Mintflow cannot move money or '
               'modify your accounts.',
-              style: FlowraTextStyles.overline.copyWith(
-                  color: FlowraColors.ink60,
+              style: MintflowTextStyles.overline.copyWith(
+                  color: MintflowColors.ink60,
                   fontSize: 11,
                   fontWeight: FontWeight.w400),
             )),

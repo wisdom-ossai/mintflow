@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra domain models
+// Mintflow domain models
 // Pure Dart — no Flutter dependency. Serializable with json_annotation.
 // ─────────────────────────────────────────────────────────────────────────────
 

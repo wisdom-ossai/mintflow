@@ -9,17 +9,17 @@ class InAppNotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       appBar: AppBar(
-        backgroundColor: FlowraColors.green900,
+        backgroundColor: MintflowColors.green900,
         title: Text(
           'Notifications',
-          style: FlowraTextStyles.displaySmall.copyWith(color: FlowraColors.cream),
+          style: MintflowTextStyles.displaySmall.copyWith(color: MintflowColors.cream),
         ),
         actions: [
           IconButton(
             tooltip: 'Notification settings',
-            onPressed: () => context.push(FlowraRoutes.notificationSettings),
+            onPressed: () => context.push(MintflowRoutes.notificationSettings),
             icon: const Icon(Icons.tune_rounded, color: Colors.white),
           ),
         ],
@@ -35,30 +35,30 @@ class InAppNotificationsScreen extends StatelessWidget {
                 height: 68,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: FlowraRadius.xl_,
-                  border: Border.all(color: FlowraColors.ink10),
+                  borderRadius: MintflowRadius.xl_,
+                  border: Border.all(color: MintflowColors.ink10),
                 ),
                 child: const Icon(
                   Icons.notifications_none_rounded,
-                  color: FlowraColors.ink60,
+                  color: MintflowColors.ink60,
                   size: 32,
                 ),
               ),
               const SizedBox(height: 16),
               Text(
                 'No notifications yet',
-                style: FlowraTextStyles.labelLarge.copyWith(color: FlowraColors.ink),
+                style: MintflowTextStyles.labelLarge.copyWith(color: MintflowColors.ink),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 6),
               Text(
                 'New alerts and reminders will show up here.',
-                style: FlowraTextStyles.bodySmall.copyWith(color: FlowraColors.ink60),
+                style: MintflowTextStyles.bodySmall.copyWith(color: MintflowColors.ink60),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 18),
               TextButton.icon(
-                onPressed: () => context.push(FlowraRoutes.notificationSettings),
+                onPressed: () => context.push(MintflowRoutes.notificationSettings),
                 icon: const Icon(Icons.settings_outlined, size: 18),
                 label: const Text('Manage notification settings'),
               ),

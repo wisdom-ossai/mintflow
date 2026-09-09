@@ -11,7 +11,7 @@ plugins {
 }
 
 android {
-    namespace "app.flowra.android"
+    namespace "app.mintflow.android"
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "app.flowra.android"
+        applicationId "app.mintflow.android"
         minSdkVersion 23
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode

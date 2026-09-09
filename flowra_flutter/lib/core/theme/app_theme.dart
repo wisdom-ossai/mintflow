@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 
 // ── Color palette ─────────────────────────────────────────────────────────────
 
-class FlowraColors {
-  FlowraColors._();
+class MintflowColors {
+  MintflowColors._();
 
   // Brand navy / mint (legacy green* names map to Mintflow navy+mint)
   static const green900 = Color(0xFF05122B); // navy
@@ -52,8 +52,8 @@ class FlowraColors {
 
 // ── Typography ────────────────────────────────────────────────────────────────
 
-class FlowraTextStyles {
-  FlowraTextStyles._();
+class MintflowTextStyles {
+  MintflowTextStyles._();
 
   static const String _poppins = 'Poppins';
   static const String _sans = 'DMSans';
@@ -163,8 +163,8 @@ class FlowraTextStyles {
 
 // ── Spacing ───────────────────────────────────────────────────────────────────
 
-class FlowraSpacing {
-  FlowraSpacing._();
+class MintflowSpacing {
+  MintflowSpacing._();
   static const double xs = 4;
   static const double sm = 8;
   static const double md = 12;
@@ -177,8 +177,8 @@ class FlowraSpacing {
 
 // ── Border radius ─────────────────────────────────────────────────────────────
 
-class FlowraRadius {
-  FlowraRadius._();
+class MintflowRadius {
+  MintflowRadius._();
   static const double sm = 8;
   static const double md = 12;
   static const double lg = 16;
@@ -196,148 +196,148 @@ class FlowraRadius {
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 
-class FlowraTheme {
-  FlowraTheme._();
+class MintflowTheme {
+  MintflowTheme._();
 
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        scaffoldBackgroundColor: FlowraColors.cream,
-        primaryColor: FlowraColors.green400,
+        scaffoldBackgroundColor: MintflowColors.cream,
+        primaryColor: MintflowColors.green400,
         colorScheme: ColorScheme.light(
-          primary: FlowraColors.green400,
+          primary: MintflowColors.green400,
           onPrimary: Colors.white,
-          primaryContainer: FlowraColors.green50,
-          secondary: FlowraColors.gold400,
-          onSecondary: FlowraColors.ink,
+          primaryContainer: MintflowColors.green50,
+          secondary: MintflowColors.gold400,
+          onSecondary: MintflowColors.ink,
           surface: Colors.white,
-          onSurface: FlowraColors.ink,
-          error: FlowraColors.red,
-          background: FlowraColors.cream,
-          onBackground: FlowraColors.ink,
-          outline: FlowraColors.ink10,
+          onSurface: MintflowColors.ink,
+          error: MintflowColors.red,
+          background: MintflowColors.cream,
+          onBackground: MintflowColors.ink,
+          outline: MintflowColors.ink10,
         ),
         fontFamily: 'DMSans',
         textTheme: TextTheme(
           displayLarge:
-              FlowraTextStyles.displayLarge.copyWith(color: FlowraColors.ink),
+              MintflowTextStyles.displayLarge.copyWith(color: MintflowColors.ink),
           displayMedium:
-              FlowraTextStyles.displayMedium.copyWith(color: FlowraColors.ink),
+              MintflowTextStyles.displayMedium.copyWith(color: MintflowColors.ink),
           displaySmall:
-              FlowraTextStyles.displaySmall.copyWith(color: FlowraColors.ink),
+              MintflowTextStyles.displaySmall.copyWith(color: MintflowColors.ink),
           bodyLarge:
-              FlowraTextStyles.bodyLarge.copyWith(color: FlowraColors.ink),
+              MintflowTextStyles.bodyLarge.copyWith(color: MintflowColors.ink),
           bodyMedium:
-              FlowraTextStyles.bodyMedium.copyWith(color: FlowraColors.ink),
+              MintflowTextStyles.bodyMedium.copyWith(color: MintflowColors.ink),
           bodySmall:
-              FlowraTextStyles.bodySmall.copyWith(color: FlowraColors.ink60),
+              MintflowTextStyles.bodySmall.copyWith(color: MintflowColors.ink60),
           labelLarge:
-              FlowraTextStyles.labelLarge.copyWith(color: FlowraColors.ink),
+              MintflowTextStyles.labelLarge.copyWith(color: MintflowColors.ink),
           labelMedium:
-              FlowraTextStyles.labelMedium.copyWith(color: FlowraColors.ink60),
+              MintflowTextStyles.labelMedium.copyWith(color: MintflowColors.ink60),
           labelSmall:
-              FlowraTextStyles.labelSmall.copyWith(color: FlowraColors.ink60),
+              MintflowTextStyles.labelSmall.copyWith(color: MintflowColors.ink60),
         ),
         appBarTheme: AppBarTheme(
-          backgroundColor: FlowraColors.green900,
-          foregroundColor: FlowraColors.cream,
+          backgroundColor: MintflowColors.green900,
+          foregroundColor: MintflowColors.cream,
           elevation: 0,
           centerTitle: false,
-          titleTextStyle: FlowraTextStyles.displaySmall.copyWith(
-            color: FlowraColors.cream,
+          titleTextStyle: MintflowTextStyles.displaySmall.copyWith(
+            color: MintflowColors.cream,
           ),
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: Colors.white,
-          selectedItemColor: FlowraColors.green500,
-          unselectedItemColor: FlowraColors.ink30,
+          selectedItemColor: MintflowColors.green500,
+          unselectedItemColor: MintflowColors.ink30,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
-          selectedLabelStyle: FlowraTextStyles.overline,
-          unselectedLabelStyle: FlowraTextStyles.overline,
+          selectedLabelStyle: MintflowTextStyles.overline,
+          unselectedLabelStyle: MintflowTextStyles.overline,
         ),
         cardTheme: CardThemeData(
           color: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: FlowraRadius.lg_,
-            side: BorderSide(color: FlowraColors.ink10, width: 1),
+            borderRadius: MintflowRadius.lg_,
+            side: BorderSide(color: MintflowColors.ink10, width: 1),
           ),
-          margin: const EdgeInsets.only(bottom: FlowraSpacing.md),
+          margin: const EdgeInsets.only(bottom: MintflowSpacing.md),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: FlowraColors.green400,
+            backgroundColor: MintflowColors.green400,
             foregroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(
-              horizontal: FlowraSpacing.xxl,
-              vertical: FlowraSpacing.lg,
+              horizontal: MintflowSpacing.xxl,
+              vertical: MintflowSpacing.lg,
             ),
-            shape: RoundedRectangleBorder(borderRadius: FlowraRadius.lg_),
-            textStyle: FlowraTextStyles.labelLarge,
+            shape: RoundedRectangleBorder(borderRadius: MintflowRadius.lg_),
+            textStyle: MintflowTextStyles.labelLarge,
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: FlowraColors.green400,
-            side: const BorderSide(color: FlowraColors.green400),
+            foregroundColor: MintflowColors.green400,
+            side: const BorderSide(color: MintflowColors.green400),
             padding: const EdgeInsets.symmetric(
-              horizontal: FlowraSpacing.xxl,
-              vertical: FlowraSpacing.lg,
+              horizontal: MintflowSpacing.xxl,
+              vertical: MintflowSpacing.lg,
             ),
-            shape: RoundedRectangleBorder(borderRadius: FlowraRadius.lg_),
-            textStyle: FlowraTextStyles.labelLarge,
+            shape: RoundedRectangleBorder(borderRadius: MintflowRadius.lg_),
+            textStyle: MintflowTextStyles.labelLarge,
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: FlowraColors.green500,
-            textStyle: FlowraTextStyles.labelMedium,
+            foregroundColor: MintflowColors.green500,
+            textStyle: MintflowTextStyles.labelMedium,
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: FlowraSpacing.lg,
+            horizontal: MintflowSpacing.lg,
             vertical: 14,
           ),
           border: OutlineInputBorder(
-            borderRadius: FlowraRadius.lg_,
-            borderSide: BorderSide(color: FlowraColors.ink10),
+            borderRadius: MintflowRadius.lg_,
+            borderSide: BorderSide(color: MintflowColors.ink10),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: FlowraRadius.lg_,
-            borderSide: BorderSide(color: FlowraColors.ink10, width: 1.5),
+            borderRadius: MintflowRadius.lg_,
+            borderSide: BorderSide(color: MintflowColors.ink10, width: 1.5),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: FlowraRadius.lg_,
+            borderRadius: MintflowRadius.lg_,
             borderSide:
-                const BorderSide(color: FlowraColors.green400, width: 1.5),
+                const BorderSide(color: MintflowColors.green400, width: 1.5),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: FlowraRadius.lg_,
-            borderSide: const BorderSide(color: FlowraColors.red, width: 1.5),
+            borderRadius: MintflowRadius.lg_,
+            borderSide: const BorderSide(color: MintflowColors.red, width: 1.5),
           ),
           labelStyle:
-              FlowraTextStyles.labelMedium.copyWith(color: FlowraColors.ink60),
+              MintflowTextStyles.labelMedium.copyWith(color: MintflowColors.ink60),
           hintStyle:
-              FlowraTextStyles.bodyMedium.copyWith(color: FlowraColors.ink30),
+              MintflowTextStyles.bodyMedium.copyWith(color: MintflowColors.ink30),
         ),
         dividerTheme: DividerThemeData(
-          color: FlowraColors.ink10,
+          color: MintflowColors.ink10,
           thickness: 1,
           space: 0,
         ),
         chipTheme: ChipThemeData(
-          backgroundColor: FlowraColors.creamDark,
-          selectedColor: FlowraColors.green900,
-          labelStyle: FlowraTextStyles.labelMedium,
+          backgroundColor: MintflowColors.creamDark,
+          selectedColor: MintflowColors.green900,
+          labelStyle: MintflowTextStyles.labelMedium,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           shape: RoundedRectangleBorder(
-            borderRadius: FlowraRadius.pill_,
-            side: BorderSide(color: FlowraColors.ink10),
+            borderRadius: MintflowRadius.pill_,
+            side: BorderSide(color: MintflowColors.ink10),
           ),
         ),
       );
@@ -345,40 +345,40 @@ class FlowraTheme {
   static ThemeData get dark => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: FlowraColors.darkSurface,
-        primaryColor: FlowraColors.green400,
+        scaffoldBackgroundColor: MintflowColors.darkSurface,
+        primaryColor: MintflowColors.green400,
         colorScheme: ColorScheme.dark(
-          primary: FlowraColors.green400,
+          primary: MintflowColors.green400,
           onPrimary: Colors.white,
-          primaryContainer: FlowraColors.green900,
-          secondary: FlowraColors.gold400,
-          onSecondary: FlowraColors.ink,
-          surface: FlowraColors.darkCard,
-          onSurface: FlowraColors.darkText,
-          error: FlowraColors.red,
-          background: FlowraColors.darkSurface,
-          onBackground: FlowraColors.darkText,
-          outline: FlowraColors.darkBorder,
+          primaryContainer: MintflowColors.green900,
+          secondary: MintflowColors.gold400,
+          onSecondary: MintflowColors.ink,
+          surface: MintflowColors.darkCard,
+          onSurface: MintflowColors.darkText,
+          error: MintflowColors.red,
+          background: MintflowColors.darkSurface,
+          onBackground: MintflowColors.darkText,
+          outline: MintflowColors.darkBorder,
         ),
         fontFamily: 'DMSans',
         appBarTheme: AppBarTheme(
-          backgroundColor: FlowraColors.darkSurface,
-          foregroundColor: FlowraColors.darkText,
+          backgroundColor: MintflowColors.darkSurface,
+          foregroundColor: MintflowColors.darkText,
           elevation: 0,
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: FlowraColors.darkCard,
-          selectedItemColor: FlowraColors.green400,
-          unselectedItemColor: FlowraColors.darkTextMuted,
+          backgroundColor: MintflowColors.darkCard,
+          selectedItemColor: MintflowColors.green400,
+          unselectedItemColor: MintflowColors.darkTextMuted,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
         ),
         cardTheme: CardThemeData(
-          color: FlowraColors.darkCard,
+          color: MintflowColors.darkCard,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: FlowraRadius.lg_,
-            side: BorderSide(color: FlowraColors.darkBorder, width: 1),
+            borderRadius: MintflowRadius.lg_,
+            side: BorderSide(color: MintflowColors.darkBorder, width: 1),
           ),
         ),
       );

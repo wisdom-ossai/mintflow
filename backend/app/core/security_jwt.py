@@ -1,5 +1,5 @@
 """
-Access-token JWT mint/verify for Flowra-issued credentials.
+Access-token JWT mint/verify for Mintflow-issued credentials.
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def create_access_token(*, user_id: str, email: str) -> str:
         "sub": user_id,
         "email": email,
         "type": "access",
-        "iss": "flowra",
+        "iss": "mintflow",
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=settings.ACCESS_TOKEN_MINUTES)).timestamp()),
     }

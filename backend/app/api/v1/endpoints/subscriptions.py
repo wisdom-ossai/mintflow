@@ -38,7 +38,7 @@ _DOWNGRADE_EVENTS = {
 
 def _tier_from_entitlements(entitlements: dict[str, Any] | None) -> SubscriptionTier:
     """
-    Map RevenueCat entitlement identifiers → Flowra tiers.
+    Map RevenueCat entitlement identifiers → Mintflow tiers.
     Pro wins if both present.
     """
     if not entitlements:
@@ -111,7 +111,7 @@ async def revenuecat_webhook(
     result = await db.execute(select(User).where(User.id == str(app_user_id)))
     user = result.scalar_one_or_none()
     if user is None:
-        # Also try email lookup is not available — RC uses Flowra user id as app_user_id
+        # Also try email lookup is not available — RC uses Mintflow user id as app_user_id
         logger.info("RevenueCat webhook for unknown user %s", app_user_id)
         return OKResponse(message="user not found")
 

@@ -47,14 +47,14 @@ async def send_email(*, to: str, subject: str, html: str, text: str | None = Non
 async def send_password_reset_email(*, to: str, raw_token: str) -> bool:
     deep = f"{settings.APP_DEEP_LINK_RESET}?token={raw_token}"
     web = f"{settings.APP_PUBLIC_URL}/reset-password?token={raw_token}"
-    subject = "Reset your Flowra password"
+    subject = "Reset your Mintflow password"
     text = (
-        "Reset your Flowra password using this link (expires soon):\n\n"
+        "Reset your Mintflow password using this link (expires soon):\n\n"
         f"{deep}\n\nOr open:\n{web}\n\n"
         "If you did not request this, you can ignore this email."
     )
     html = f"""
-    <p>Reset your Flowra password using the button below. This link expires soon.</p>
+    <p>Reset your Mintflow password using the button below. This link expires soon.</p>
     <p><a href="{deep}">Reset password in the app</a></p>
     <p>Or use this link: <a href="{web}">{web}</a></p>
     <p>If you did not request this, you can ignore this email.</p>

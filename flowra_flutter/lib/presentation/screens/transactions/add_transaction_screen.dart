@@ -50,7 +50,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(state.message),
-          backgroundColor: FlowraColors.red,
+          backgroundColor: MintflowColors.red,
         ),
       );
       return;
@@ -62,25 +62,25 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       appBar: AppBar(
-        backgroundColor: FlowraColors.cream,
+        backgroundColor: MintflowColors.cream,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: FlowraColors.ink),
+          icon: const Icon(Icons.close, color: MintflowColors.ink),
           onPressed: () => context.pop(),
         ),
         title: Text('Add transaction',
-            style: FlowraTextStyles.displaySmall
-                .copyWith(color: FlowraColors.ink)),
+            style: MintflowTextStyles.displaySmall
+                .copyWith(color: MintflowColors.ink)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(
             decoration: BoxDecoration(
-              color: FlowraColors.creamDark,
-              borderRadius: FlowraRadius.lg_,
+              color: MintflowColors.creamDark,
+              borderRadius: MintflowRadius.lg_,
             ),
             padding: const EdgeInsets.all(3),
             child: Row(
@@ -93,13 +93,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 9),
                   decoration: BoxDecoration(
                     color: active ? Colors.white : Colors.transparent,
-                    borderRadius: FlowraRadius.md_,
+                    borderRadius: MintflowRadius.md_,
                   ),
                   child: Text(
                     t[0].toUpperCase() + t.substring(1),
                     textAlign: TextAlign.center,
-                    style: FlowraTextStyles.labelMedium.copyWith(
-                      color: active ? FlowraColors.ink : FlowraColors.ink60,
+                    style: MintflowTextStyles.labelMedium.copyWith(
+                      color: active ? MintflowColors.ink : MintflowColors.ink60,
                     ),
                   ),
                 ),
@@ -111,7 +111,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           TextFormField(
             controller: _amountCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: FlowraTextStyles.amountSmall,
+            style: MintflowTextStyles.amountSmall,
             decoration: const InputDecoration(
               prefixText: '\$ ',
               hintText: '0.00',
@@ -143,16 +143,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: FlowraColors.green50,
-                borderRadius: FlowraRadius.md_,
+                color: MintflowColors.green50,
+                borderRadius: MintflowRadius.md_,
               ),
               child: Row(children: [
                 const Icon(Icons.auto_awesome,
-                    size: 13, color: FlowraColors.green500),
+                    size: 13, color: MintflowColors.green500),
                 const SizedBox(width: 6),
                 Text('AI will classify automatically if you skip.',
-                    style: FlowraTextStyles.overline.copyWith(
-                        color: FlowraColors.green600,
+                    style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.green600,
                         fontSize: 11,
                         fontWeight: FontWeight.w400)),
               ]),
@@ -188,7 +188,7 @@ class _FieldLabel extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(text.toUpperCase(),
             style:
-                FlowraTextStyles.overline.copyWith(color: FlowraColors.ink60)),
+                MintflowTextStyles.overline.copyWith(color: MintflowColors.ink60)),
       );
 }
 
@@ -205,18 +205,18 @@ class _ClassChip extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-              color: selected ? FlowraColors.green50 : Colors.white,
-              borderRadius: FlowraRadius.lg_,
+              color: selected ? MintflowColors.green50 : Colors.white,
+              borderRadius: MintflowRadius.lg_,
               border: Border.all(
-                color: selected ? FlowraColors.green400 : FlowraColors.ink10,
+                color: selected ? MintflowColors.green400 : MintflowColors.ink10,
                 width: selected ? 1.5 : 1,
               ),
             ),
             child: Text(label,
                 textAlign: TextAlign.center,
-                style: FlowraTextStyles.labelMedium.copyWith(
+                style: MintflowTextStyles.labelMedium.copyWith(
                     color:
-                        selected ? FlowraColors.green600 : FlowraColors.ink60)),
+                        selected ? MintflowColors.green600 : MintflowColors.ink60)),
           ),
         ),
       );

@@ -1,5 +1,5 @@
 """
-Flowra API — OpenAPI / Swagger documentation configuration.
+Mintflow API — OpenAPI / Swagger documentation configuration.
 
 Centralises all spec metadata: tags, descriptions, contact, license,
 server definitions, and security schemes. Keeps main.py clean.
@@ -13,7 +13,7 @@ TAGS_METADATA = [
     {
         "name": "auth",
         "description": (
-            "Authentication via Flowra-issued JWTs. "
+            "Authentication via Mintflow-issued JWTs. "
             "`POST /v1/auth/signup`, `/login`, `/google`, and `/refresh` mint tokens. "
             "Send `Authorization: Bearer <access_token>` on protected routes."
         ),
@@ -107,7 +107,7 @@ SERVERS = [
         "description": "Local development",
     },
     {
-        "url": "https://api.flowra.app",
+        "url": "https://api.mintflow.app",
         "description": "Production (Railway)",
     },
 ]
@@ -116,7 +116,7 @@ SERVERS = [
 
 def build_openapi_schema(app):
     """
-    Build a fully enriched OpenAPI schema with Flowra branding,
+    Build a fully enriched OpenAPI schema with Mintflow branding,
     server definitions, security schemes, and tag ordering.
     Called once and cached by FastAPI.
     """
@@ -124,13 +124,13 @@ def build_openapi_schema(app):
         return app.openapi_schema
 
     schema = get_openapi(
-        title="Flowra API",
+        title="Mintflow API",
         version="1.0.0",
         summary="Personal finance tracking and AI coaching API",
         description="""
 ## Overview
 
-**Flowra** is a personal finance tracking platform that helps individuals
+**Mintflow** is a personal finance tracking platform that helps individuals
 understand and control their money. This API powers the iOS, Android, and
 Web clients.
 
@@ -176,7 +176,7 @@ After expiry, users revert to Seed unless they upgrade.
 
 ## Credit card handling
 
-Flowra uses a **two-account model** for credit cards:
+Mintflow uses a **two-account model** for credit cards:
 
 - Purchases made on a credit card → counted as **expenses** on the transaction date
 - Credit card bill payments from a bank account → **excluded** from spend totals
@@ -231,18 +231,18 @@ The limit is enforced at the API gateway layer on Railway.
 
 ## Contact & support
 
-- **Website:** [flowra.app](https://flowra.app)
-- **Support:** support@flowra.app
-- **Status:** [status.flowra.app](https://status.flowra.app)
+- **Website:** [mintflow.app](https://mintflow.app)
+- **Support:** support@mintflow.app
+- **Status:** [status.mintflow.app](https://status.mintflow.app)
         """,
         contact={
-            "name": "Flowra Support",
-            "url": "https://flowra.app",
-            "email": "support@flowra.app",
+            "name": "Mintflow Support",
+            "url": "https://mintflow.app",
+            "email": "support@mintflow.app",
         },
         license_info={
             "name": "Proprietary",
-            "url": "https://flowra.app/terms",
+            "url": "https://mintflow.app/terms",
         },
         routes=app.routes,
         tags=TAGS_METADATA,

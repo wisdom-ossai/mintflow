@@ -33,7 +33,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="flowra.app"/>
+                <data android:scheme="https" android:host="mintflow.app"/>
             </intent-filter>
 
             <!-- Custom scheme for Plaid OAuth redirect -->
@@ -41,8 +41,8 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="flowra" android:host="oauth"/>
-                <data android:scheme="flowra" android:host="reset-password" />
+                <data android:scheme="mintflow" android:host="oauth"/>
+                <data android:scheme="mintflow" android:host="reset-password" />
             </intent-filter>
 
             <meta-data
@@ -57,7 +57,7 @@
 
         <!-- Firebase push notifications -->
         <service
-            android:name=".FlowraMessagingService"
+            android:name=".MintflowMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>

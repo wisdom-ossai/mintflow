@@ -1,5 +1,5 @@
 """
-Flowra API — main application entry point with full Swagger/OpenAPI documentation.
+Mintflow API — main application entry point with full Swagger/OpenAPI documentation.
 """
 import logging
 from contextlib import asynccontextmanager
@@ -55,7 +55,7 @@ else:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"Starting Flowra API v{settings.APP_VERSION} [{settings.APP_ENV}]")
+    logger.info(f"Starting Mintflow API v{settings.APP_VERSION} [{settings.APP_ENV}]")
 
     if settings.SCHEDULER_ENABLED:
         setup_scheduler()
@@ -68,14 +68,14 @@ async def lifespan(app: FastAPI):
 
     if settings.SCHEDULER_ENABLED and scheduler.running:
         scheduler.shutdown(wait=False)
-    logger.info("Flowra API shutting down")
+    logger.info("Mintflow API shutting down")
 
 
 # ─── App ───────────────────────────────────────────────────────────────────
 # Disable FastAPI's built-in docs — we serve custom ones below with branding.
 
 app = FastAPI(
-    title="Flowra API",
+    title="Mintflow API",
     version="1.0.0",
     docs_url=None,    # custom endpoint below
     redoc_url=None,   # custom endpoint below
@@ -125,7 +125,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 @app.get("/docs", include_in_schema=False)
 async def swagger_ui():
     """
-    Branded Swagger UI with Flowra colours and custom configuration.
+    Branded Swagger UI with Mintflow colours and custom configuration.
     Accessible in development and staging — disabled in production.
     """
     if settings.is_production:
@@ -133,8 +133,8 @@ async def swagger_ui():
 
     html = get_swagger_ui_html(
         openapi_url="/openapi.json",
-        title="Flowra API — Documentation",
-        swagger_favicon_url="https://flowra.app/favicon.ico",
+        title="Mintflow API — Documentation",
+        swagger_favicon_url="https://mintflow.app/favicon.ico",
         swagger_ui_parameters={
             "defaultModelsExpandDepth": 1,       # show schemas collapsed
             "defaultTagsExpandDepth": 1,          # show tag groups expanded
@@ -146,32 +146,32 @@ async def swagger_ui():
         },
     )
 
-    # Inject Flowra brand styles over Swagger defaults
+    # Inject Mintflow brand styles over Swagger defaults
     branded = html.body.decode().replace(
         "</head>",
         """
 <style>
-  /* ── Flowra brand overrides ─────────────────────────────── */
+  /* ── Mintflow brand overrides ─────────────────────────────── */
   :root {
-    --flowra-green: #2EAD6A;
-    --flowra-dark:  #0A2E1C;
-    --flowra-gold:  #EDB93A;
-    --flowra-cream: #FAFAF7;
+    --mintflow-green: #2EAD6A;
+    --mintflow-dark:  #0A2E1C;
+    --mintflow-gold:  #EDB93A;
+    --mintflow-cream: #FAFAF7;
   }
 
   /* Top bar */
   .swagger-ui .topbar {
-    background: var(--flowra-dark) !important;
+    background: var(--mintflow-dark) !important;
     padding: 10px 20px;
   }
 
   /* Logo replacement */
   .swagger-ui .topbar-wrapper .link::before {
-    content: "🌱 flowra api";
+    content: "🌱 mintflow api";
     font-family: Georgia, serif;
     font-size: 20px;
     font-style: italic;
-    color: var(--flowra-cream);
+    color: var(--mintflow-cream);
     letter-spacing: -0.02em;
   }
 
@@ -180,8 +180,8 @@ async def swagger_ui():
   /* Primary buttons */
   .swagger-ui .btn.execute,
   .swagger-ui .btn.authorize {
-    background: var(--flowra-green) !important;
-    border-color: var(--flowra-green) !important;
+    background: var(--mintflow-green) !important;
+    border-color: var(--mintflow-green) !important;
     color: #fff !important;
     border-radius: 8px !important;
     font-weight: 500 !important;
@@ -190,14 +190,14 @@ async def swagger_ui():
   .swagger-ui .btn.authorize svg { fill: #fff !important; }
 
   /* HTTP method badges */
-  .swagger-ui .opblock.opblock-post .opblock-summary-method  { background: var(--flowra-green) !important; }
+  .swagger-ui .opblock.opblock-post .opblock-summary-method  { background: var(--mintflow-green) !important; }
   .swagger-ui .opblock.opblock-get  .opblock-summary-method  { background: #185FA5 !important; }
   .swagger-ui .opblock.opblock-patch .opblock-summary-method { background: #854F0B !important; }
   .swagger-ui .opblock.opblock-delete .opblock-summary-method{ background: #A32D2D !important; }
 
   /* Operation expand border */
   .swagger-ui .opblock.opblock-get    { border-color: #185FA5 !important; }
-  .swagger-ui .opblock.opblock-post   { border-color: var(--flowra-green) !important; }
+  .swagger-ui .opblock.opblock-post   { border-color: var(--mintflow-green) !important; }
   .swagger-ui .opblock.opblock-patch  { border-color: #854F0B !important; }
   .swagger-ui .opblock.opblock-delete { border-color: #A32D2D !important; }
 
@@ -212,16 +212,16 @@ async def swagger_ui():
   /* Info section */
   .swagger-ui .info .title {
     font-family: Georgia, serif !important;
-    color: var(--flowra-dark) !important;
+    color: var(--mintflow-dark) !important;
   }
 
   /* Auth lock icon colour */
-  .swagger-ui .authorization__btn svg { fill: var(--flowra-green) !important; }
+  .swagger-ui .authorization__btn svg { fill: var(--mintflow-green) !important; }
 
   /* Response code 200/201 */
   .swagger-ui .responses-inner .response-col_status { font-weight: 600; }
   .swagger-ui table.responses-table tr.response_200 .response-col_status,
-  .swagger-ui table.responses-table tr.response_201 .response-col_status { color: var(--flowra-green); }
+  .swagger-ui table.responses-table tr.response_201 .response-col_status { color: var(--mintflow-green); }
   .swagger-ui table.responses-table tr.response_401 .response-col_status,
   .swagger-ui table.responses-table tr.response_403 .response-col_status { color: #A32D2D; }
   .swagger-ui table.responses-table tr.response_404 .response-col_status { color: #854F0B; }
@@ -232,11 +232,11 @@ async def swagger_ui():
   /* Filter box */
   .swagger-ui .filter-container input {
     border-radius: 8px !important;
-    border-color: var(--flowra-green) !important;
+    border-color: var(--mintflow-green) !important;
   }
 
   /* Scheme/server selector */
-  .swagger-ui .scheme-container { background: var(--flowra-cream) !important; }
+  .swagger-ui .scheme-container { background: var(--mintflow-cream) !important; }
 </style>
 </head>""",
     )
@@ -251,8 +251,8 @@ async def redoc_ui():
 
     return get_redoc_html(
         openapi_url="/openapi.json",
-        title="Flowra API — Reference",
-        redoc_favicon_url="https://flowra.app/favicon.ico",
+        title="Mintflow API — Reference",
+        redoc_favicon_url="https://mintflow.app/favicon.ico",
         with_google_fonts=True,
     )
 
@@ -295,7 +295,7 @@ async def health():
 @app.get("/", include_in_schema=False)
 async def root():
     return {
-        "message": "Flowra API",
+        "message": "Mintflow API",
         "version": settings.APP_VERSION,
         "docs": "/docs",
         "redoc": "/redoc",

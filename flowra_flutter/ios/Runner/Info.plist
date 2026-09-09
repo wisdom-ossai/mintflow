@@ -19,7 +19,7 @@
   <string>6.0</string>
 
   <key>CFBundleName</key>
-  <string>flowra</string>
+  <string>mintflow</string>
 
   <key>CFBundlePackageType</key>
   <string>APPL</string>
@@ -42,7 +42,7 @@
       <string>Editor</string>
       <key>CFBundleURLSchemes</key>
       <array>
-        <string>flowra</string>
+        <string>mintflow</string>
       </array>
     </dict>
   </array>

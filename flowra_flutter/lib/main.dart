@@ -15,7 +15,7 @@ import 'data/datasources/service_locator.dart';
 import 'presentation/cubits/cubits.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra — main.dart
+// Mintflow — main.dart
 // Entry point. Initializes dotenv, Firebase, RevenueCat, and Cubits.
 // Auth session = tokens in FlutterSecureStorage (FastAPI JWT).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ void main() async {
     debugPrint('⚠️ Failed to load .env file: $e');
   }
 
-  await FlowraCache.init();
+  await MintflowCache.init();
 
   try {
     await Firebase.initializeApp();
@@ -52,17 +52,17 @@ void main() async {
   await ServiceLocator.init();
   await configureRevenueCat();
 
-  runApp(const FlowraApp());
+  runApp(const MintflowApp());
 }
 
-class FlowraApp extends StatefulWidget {
-  const FlowraApp({super.key});
+class MintflowApp extends StatefulWidget {
+  const MintflowApp({super.key});
 
   @override
-  State<FlowraApp> createState() => _FlowraAppState();
+  State<MintflowApp> createState() => _MintflowAppState();
 }
 
-class _FlowraAppState extends State<FlowraApp> {
+class _MintflowAppState extends State<MintflowApp> {
   late final GoRouter _router;
   late final DashboardCubit _dashboardCubit;
   late final TransactionCubit _transactionCubit;
@@ -85,8 +85,8 @@ class _FlowraAppState extends State<FlowraApp> {
     // 401 from API (failed refresh) → login
     AuthGate.unauthorizedTick.addListener(() {
       if (_router.routerDelegate.currentConfiguration.uri.path !=
-          FlowraRoutes.login) {
-        _router.go(FlowraRoutes.login);
+          MintflowRoutes.login) {
+        _router.go(MintflowRoutes.login);
       }
     });
 
@@ -140,8 +140,8 @@ class _FlowraAppState extends State<FlowraApp> {
       child: MaterialApp.router(
         title: 'Mintflow',
         debugShowCheckedModeBanner: false,
-        theme: FlowraTheme.light,
-        darkTheme: FlowraTheme.dark,
+        theme: MintflowTheme.light,
+        darkTheme: MintflowTheme.dark,
         themeMode: ThemeMode.system,
         routerConfig: _router,
       ),

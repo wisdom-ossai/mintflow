@@ -38,7 +38,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       );
       if (mounted) {
         context.push(
-          FlowraRoutes.checkEmail,
+          MintflowRoutes.checkEmail,
           extra: _emailCtrl.text.trim(),
         );
       }
@@ -53,7 +53,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: Column(children: [
         // ── Dark top panel ──────────────────────────────────────────────────
         _ForgotTopPanel(),
@@ -71,22 +71,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: FlowraColors.creamDark,
-                      borderRadius: FlowraRadius.lg_,
-                      border: Border.all(color: FlowraColors.ink10),
+                      color: MintflowColors.creamDark,
+                      borderRadius: MintflowRadius.lg_,
+                      border: Border.all(color: MintflowColors.ink10),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(Icons.info_outline,
-                            size: 16, color: FlowraColors.ink60),
+                            size: 16, color: MintflowColors.ink60),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Enter the email address you signed up with. '
                             "We'll send you a secure link to reset your password.",
-                            style: FlowraTextStyles.bodySmall.copyWith(
-                              color: FlowraColors.ink60,
+                            style: MintflowTextStyles.bodySmall.copyWith(
+                              color: MintflowColors.ink60,
                               height: 1.6,
                             ),
                           ),
@@ -139,12 +139,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   // Back to sign in
                   Center(
                     child: TextButton.icon(
-                      onPressed: () => context.go(FlowraRoutes.login),
+                      onPressed: () => context.go(MintflowRoutes.login),
                       icon: const Icon(Icons.arrow_back,
-                          size: 16, color: FlowraColors.green500),
+                          size: 16, color: MintflowColors.green500),
                       label: Text('Back to sign in',
-                          style: FlowraTextStyles.labelMedium
-                              .copyWith(color: FlowraColors.green500)),
+                          style: MintflowTextStyles.labelMedium
+                              .copyWith(color: MintflowColors.green500)),
                     ),
                   ),
                 ],
@@ -164,7 +164,7 @@ class _ForgotTopPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: FlowraColors.green900,
+      color: MintflowColors.green900,
       child: Stack(children: [
         // Decorative circles
         Positioned(
@@ -175,7 +175,7 @@ class _ForgotTopPanel extends StatelessWidget {
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FlowraColors.green400.withOpacity(0.1),
+                color: MintflowColors.green400.withOpacity(0.1),
               ),
             )),
         Positioned(
@@ -186,7 +186,7 @@ class _ForgotTopPanel extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: FlowraColors.gold400.withOpacity(0.08),
+                color: MintflowColors.gold400.withOpacity(0.08),
               ),
             )),
         SafeArea(
@@ -204,7 +204,7 @@ class _ForgotTopPanel extends StatelessWidget {
                     height: 36,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
-                      borderRadius: FlowraRadius.sm_,
+                      borderRadius: MintflowRadius.sm_,
                     ),
                     child: const Icon(Icons.arrow_back,
                         color: Colors.white, size: 18),
@@ -217,25 +217,25 @@ class _ForgotTopPanel extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: FlowraColors.green400.withOpacity(0.2),
-                    borderRadius: FlowraRadius.lg_,
+                    color: MintflowColors.green400.withOpacity(0.2),
+                    borderRadius: MintflowRadius.lg_,
                     border: Border.all(
-                        color: FlowraColors.green400.withOpacity(0.4)),
+                        color: MintflowColors.green400.withOpacity(0.4)),
                   ),
                   child: const Icon(Icons.lock_reset_outlined,
-                      color: FlowraColors.green400, size: 26),
+                      color: MintflowColors.green400, size: 26),
                 ),
                 const SizedBox(height: 14),
 
                 Text('Forgot\nyour password?',
-                    style: FlowraTextStyles.displaySmall.copyWith(
-                        color: FlowraColors.cream,
+                    style: MintflowTextStyles.displaySmall.copyWith(
+                        color: MintflowColors.cream,
                         fontStyle: FontStyle.italic,
                         height: 1.2)),
                 const SizedBox(height: 6),
                 Text('No worries — happens to the best of us.',
-                    style: FlowraTextStyles.bodySmall.copyWith(
-                        color: FlowraColors.cream.withOpacity(0.5),
+                    style: MintflowTextStyles.bodySmall.copyWith(
+                        color: MintflowColors.cream.withOpacity(0.5),
                         fontWeight: FontWeight.w300)),
               ],
             ),

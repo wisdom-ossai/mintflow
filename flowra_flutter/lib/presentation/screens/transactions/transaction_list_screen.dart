@@ -54,10 +54,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       List<TransactionModel> items) {
     final map = <String, List<TransactionModel>>{};
     for (final tx in items) {
-      final key = FlowraFormat.relativeDate(tx.date) == 'Today' ||
-              FlowraFormat.relativeDate(tx.date) == 'Yesterday'
-          ? '${FlowraFormat.relativeDate(tx.date)} — ${FlowraFormat.dateShort(tx.date)}'
-          : FlowraFormat.dateShort(tx.date);
+      final key = MintflowFormat.relativeDate(tx.date) == 'Today' ||
+              MintflowFormat.relativeDate(tx.date) == 'Yesterday'
+          ? '${MintflowFormat.relativeDate(tx.date)} — ${MintflowFormat.dateShort(tx.date)}'
+          : MintflowFormat.dateShort(tx.date);
       map.putIfAbsent(key, () => []).add(tx);
     }
     return map;
@@ -66,17 +66,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
           return CustomScrollView(
             slivers: [
               SliverAppBar(
                 pinned: true,
-                backgroundColor: FlowraColors.green900,
+                backgroundColor: MintflowColors.green900,
                 title: Text('Transactions',
-                    style: FlowraTextStyles.displaySmall
-                        .copyWith(color: FlowraColors.cream)),
+                    style: MintflowTextStyles.displaySmall
+                        .copyWith(color: MintflowColors.cream)),
                 actions: [
                   IconButton(
                     icon: Icon(
@@ -114,7 +114,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                               filled: true,
                               fillColor: Colors.white.withOpacity(0.1),
                               border: OutlineInputBorder(
-                                borderRadius: FlowraRadius.lg_,
+                                borderRadius: MintflowRadius.lg_,
                                 borderSide: BorderSide.none,
                               ),
                               contentPadding: const EdgeInsets.symmetric(
@@ -126,7 +126,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                           ),
                         ),
                       Container(
-                        color: FlowraColors.green900,
+                        color: MintflowColors.green900,
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                         child: SizedBox(
                           height: 36,
@@ -158,17 +158,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                                       horizontal: 16, vertical: 7),
                                   decoration: BoxDecoration(
                                     color: active
-                                        ? FlowraColors.green400
+                                        ? MintflowColors.green400
                                         : Colors.white.withOpacity(0.1),
-                                    borderRadius: FlowraRadius.pill_,
+                                    borderRadius: MintflowRadius.pill_,
                                     border: Border.all(
                                       color: active
-                                          ? FlowraColors.green400
+                                          ? MintflowColors.green400
                                           : Colors.white.withOpacity(0.2),
                                     ),
                                   ),
                                   child: Text(f,
-                                      style: FlowraTextStyles.labelSmall
+                                      style: MintflowTextStyles.labelSmall
                                           .copyWith(
                                         color: Colors.white,
                                         fontWeight: active
@@ -196,8 +196,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(state.message,
-                            style: FlowraTextStyles.bodyMedium
-                                .copyWith(color: FlowraColors.ink60)),
+                            style: MintflowTextStyles.bodyMedium
+                                .copyWith(color: MintflowColors.ink60)),
                         const SizedBox(height: 12),
                         TextButton(
                           onPressed: () => context
@@ -215,8 +215,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     child: Center(
                       child: Text(
                         'No transactions yet',
-                        style: FlowraTextStyles.bodyMedium
-                            .copyWith(color: FlowraColors.ink60),
+                        style: MintflowTextStyles.bodyMedium
+                            .copyWith(color: MintflowColors.ink60),
                       ),
                     ),
                   )
@@ -236,10 +236,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 10),
-                              color: FlowraColors.creamDark,
+                              color: MintflowColors.creamDark,
                               child: Text(key,
-                                  style: FlowraTextStyles.overline.copyWith(
-                                      color: FlowraColors.ink60,
+                                  style: MintflowTextStyles.overline.copyWith(
+                                      color: MintflowColors.ink60,
                                       fontWeight: FontWeight.w500)),
                             ),
                             ...txs.asMap().entries.map((e) {
@@ -251,7 +251,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                                   const Divider(
                                       height: 1,
                                       indent: 72,
-                                      color: FlowraColors.ink10),
+                                      color: MintflowColors.ink10),
                               ]);
                             }),
                           ],
@@ -299,9 +299,9 @@ class _TxRow extends StatelessWidget {
             color: isCC
                 ? const Color(0xFFF5F0FF)
                 : tx.isIncome
-                    ? FlowraColors.green50
-                    : FlowraColors.creamDark,
-            borderRadius: FlowraRadius.md_,
+                    ? MintflowColors.green50
+                    : MintflowColors.creamDark,
+            borderRadius: MintflowRadius.md_,
           ),
           child: Icon(
             isCC
@@ -311,10 +311,10 @@ class _TxRow extends StatelessWidget {
                     : Icons.receipt_long_outlined,
             size: 18,
             color: isCC
-                ? FlowraColors.purple
+                ? MintflowColors.purple
                 : tx.isIncome
-                    ? FlowraColors.green500
-                    : FlowraColors.ink60,
+                    ? MintflowColors.green500
+                    : MintflowColors.ink60,
           ),
         ),
         const SizedBox(width: 12),
@@ -323,8 +323,8 @@ class _TxRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(tx.displayName,
-                  style: FlowraTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w500, color: FlowraColors.ink)),
+                  style: MintflowTextStyles.bodySmall.copyWith(
+                      fontWeight: FontWeight.w500, color: MintflowColors.ink)),
               const SizedBox(height: 2),
               Row(children: [
                 Text(
@@ -333,11 +333,11 @@ class _TxRow extends StatelessWidget {
                       : (tx.category?.name ??
                           (tx.isIncome ? 'Income' : 'Expense')),
                   style: isCC
-                      ? FlowraTextStyles.overline.copyWith(
-                          color: FlowraColors.purple,
+                      ? MintflowTextStyles.overline.copyWith(
+                          color: MintflowColors.purple,
                           fontWeight: FontWeight.w500)
-                      : FlowraTextStyles.overline
-                          .copyWith(color: FlowraColors.ink60),
+                      : MintflowTextStyles.overline
+                          .copyWith(color: MintflowColors.ink60),
                 ),
                 if (tx.isNeed != null) ...[
                   const SizedBox(width: 4),
@@ -350,27 +350,27 @@ class _TxRow extends StatelessWidget {
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Text(
             tx.isIncome
-                ? '+${FlowraFormat.currency(tx.amount)}'
+                ? '+${MintflowFormat.currency(tx.amount)}'
                 : isCC
-                    ? FlowraFormat.currency(tx.amount)
-                    : '-${FlowraFormat.currency(tx.amount)}',
-            style: FlowraTextStyles.labelLarge.copyWith(
+                    ? MintflowFormat.currency(tx.amount)
+                    : '-${MintflowFormat.currency(tx.amount)}',
+            style: MintflowTextStyles.labelLarge.copyWith(
               color: tx.isIncome
-                  ? FlowraColors.green400
+                  ? MintflowColors.green400
                   : isCC
-                      ? FlowraColors.ink60
-                      : FlowraColors.ink,
+                      ? MintflowColors.ink60
+                      : MintflowColors.ink,
               fontSize: isCC ? 12 : 14,
             ),
           ),
           if (tx.aiCategorized)
             Row(children: [
               const Icon(Icons.auto_awesome,
-                  size: 10, color: FlowraColors.green400),
+                  size: 10, color: MintflowColors.green400),
               const SizedBox(width: 2),
               Text('AI',
-                  style: FlowraTextStyles.overline
-                      .copyWith(color: FlowraColors.green400, fontSize: 9)),
+                  style: MintflowTextStyles.overline
+                      .copyWith(color: MintflowColors.green400, fontSize: 9)),
             ]),
         ]),
       ]),
@@ -385,14 +385,14 @@ class _NeedWantTag extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
         decoration: BoxDecoration(
-          color: isNeed ? FlowraColors.green50 : const Color(0xFFFFF8E6),
+          color: isNeed ? MintflowColors.green50 : const Color(0xFFFFF8E6),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
           isNeed ? 'need' : 'want',
-          style: FlowraTextStyles.overline.copyWith(
+          style: MintflowTextStyles.overline.copyWith(
             fontSize: 9,
-            color: isNeed ? FlowraColors.green600 : const Color(0xFF9A6200),
+            color: isNeed ? MintflowColors.green600 : const Color(0xFF9A6200),
             fontWeight: FontWeight.w500,
           ),
         ),

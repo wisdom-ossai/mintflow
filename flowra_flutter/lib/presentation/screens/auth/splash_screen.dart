@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen>
     final hasTokens = await ServiceLocator.instance.tokens.hasTokens();
     if (!hasTokens) {
       AuthGate.setAuthenticated(false);
-      context.go(FlowraRoutes.login);
+      context.go(MintflowRoutes.login);
       return;
     }
 
@@ -56,13 +56,13 @@ class _SplashScreenState extends State<SplashScreen>
         final complete = state.user.hasCompletedOnboarding;
         AuthGate.setOnboardingComplete(complete);
         context.go(
-            complete ? FlowraRoutes.dashboard : FlowraRoutes.onboarding);
+            complete ? MintflowRoutes.dashboard : MintflowRoutes.onboarding);
         return;
       }
     } catch (_) {}
 
     AuthGate.setOnboardingComplete(true);
-    if (mounted) context.go(FlowraRoutes.dashboard);
+    if (mounted) context.go(MintflowRoutes.dashboard);
   }
 
   @override
@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.green900,
+      backgroundColor: MintflowColors.green900,
       body: Stack(children: [
         Positioned(top: -80, left: -60, child: _Ring(size: 420, opacity: 0.06)),
         Positioned(top: 60, left: 20, child: _Ring(size: 280, opacity: 0.04)),
@@ -82,15 +82,15 @@ class _SplashScreenState extends State<SplashScreen>
             bottom: 80,
             right: 20,
             child:
-                _Ring(size: 160, opacity: 0.05, color: FlowraColors.green400)),
+                _Ring(size: 160, opacity: 0.05, color: MintflowColors.green400)),
         Positioned(
             top: 110,
             right: 70,
-            child: _Dot(color: FlowraColors.green400, size: 8, opacity: 0.6)),
+            child: _Dot(color: MintflowColors.green400, size: 8, opacity: 0.6)),
         Positioned(
             bottom: 160,
             left: 50,
-            child: _Dot(color: FlowraColors.green100, size: 5, opacity: 0.4)),
+            child: _Dot(color: MintflowColors.green100, size: 5, opacity: 0.4)),
         Center(
           child: FadeTransition(
             opacity: _fade,
@@ -101,8 +101,8 @@ class _SplashScreenState extends State<SplashScreen>
                 const SizedBox(height: 20),
                 Text(
                   'Mintflow',
-                  style: FlowraTextStyles.displayLarge.copyWith(
-                    color: FlowraColors.cream,
+                  style: MintflowTextStyles.displayLarge.copyWith(
+                    color: MintflowColors.cream,
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.w500,
                     letterSpacing: -0.5,
@@ -126,7 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
                     backgroundColor: Colors.white.withOpacity(0.12),
-                    color: FlowraColors.green400,
+                    color: MintflowColors.green400,
                   ),
                 ),
               ),
@@ -144,7 +144,7 @@ class _Ring extends StatelessWidget {
   const _Ring(
       {required this.size,
       required this.opacity,
-      this.color = FlowraColors.green400});
+      this.color = MintflowColors.green400});
   @override
   Widget build(BuildContext context) => Container(
         width: size,

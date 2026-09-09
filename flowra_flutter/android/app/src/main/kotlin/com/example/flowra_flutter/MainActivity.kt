@@ -1,4 +1,4 @@
-package com.example.flowra_flutter
+package com.example.mintflow_flutter
 
 import io.flutter.embedding.android.FlutterActivity
 

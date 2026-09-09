@@ -15,7 +15,7 @@ docker-down:
 	docker compose down
 
 docker-build:
-	docker build -t flowra-api:latest .
+	docker build -t mintflow-api:latest .
 
 # ─── Database ──────────────────────────────────────────────────────────────
 migrate:
@@ -56,4 +56,4 @@ install:
 	$(VENV)/pip install -r requirements.txt
 
 setup: install migrate seed
-	@echo "\n✓ Flowra backend ready. Run 'make dev' to start."
+	@echo "\n✓ Mintflow backend ready. Run 'make dev' to start."

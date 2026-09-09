@@ -89,7 +89,7 @@ async def create_link_token(user_id: str) -> dict:
     client = get_plaid_client()
     request = LinkTokenCreateRequest(
         products=[Products("transactions")],
-        client_name="Flowra",
+        client_name="Mintflow",
         country_codes=[CountryCode("US")],
         language="en",
         user=LinkTokenCreateRequestUser(client_user_id=user_id),

@@ -1,4 +1,4 @@
-import 'package:flowra_flutter/core/theme/app_theme.dart';
+import 'package:mintflow_flutter/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 class ErrorBanner extends StatelessWidget {
@@ -10,17 +10,17 @@ class ErrorBanner extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: FlowraColors.redSoft,
-          borderRadius: FlowraRadius.md_,
-          border: Border.all(color: FlowraColors.red.withOpacity(0.3)),
+          color: MintflowColors.redSoft,
+          borderRadius: MintflowRadius.md_,
+          border: Border.all(color: MintflowColors.red.withOpacity(0.3)),
         ),
         child: Row(children: [
-          Icon(Icons.error_outline, color: FlowraColors.red, size: 16),
+          Icon(Icons.error_outline, color: MintflowColors.red, size: 16),
           const SizedBox(width: 8),
           Expanded(
               child: Text(message,
-                  style: FlowraTextStyles.bodySmall
-                      .copyWith(color: FlowraColors.red))),
+                  style: MintflowTextStyles.bodySmall
+                      .copyWith(color: MintflowColors.red))),
         ]),
       );
 }

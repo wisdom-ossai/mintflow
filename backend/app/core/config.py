@@ -33,15 +33,15 @@ class Settings(BaseSettings):
 
     # App
     APP_ENV: str = "development"
-    APP_NAME: str = "Flowra API"
+    APP_NAME: str = "Mintflow API"
     APP_VERSION: str = "1.0.0"
     SECRET_KEY: str
     ALLOWED_ORIGINS: str = "http://localhost:4444"
     SCHEDULER_ENABLED: bool = True
     TRIAL_DAYS: int = 7
-    APP_PUBLIC_URL: str = "https://flowra.app"
+    APP_PUBLIC_URL: str = "https://mintflow.app"
     # Deep link base for mobile password reset (Flutter scheme)
-    APP_DEEP_LINK_RESET: str = "flowra://reset-password"
+    APP_DEEP_LINK_RESET: str = "mintflow://reset-password"
 
     # Database (Railway Postgres in prod; local docker-compose for dev)
     DATABASE_URL: str
@@ -59,7 +59,7 @@ class Settings(BaseSettings):
 
     # Resend transactional email
     RESEND_API_KEY: str = ""
-    EMAIL_FROM: str = "Flowra <noreply@flowra.app>"
+    EMAIL_FROM: str = "Mintflow <noreply@mintflow.app>"
 
     # Plaid
     PLAID_CLIENT_ID: str

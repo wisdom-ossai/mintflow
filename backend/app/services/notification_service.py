@@ -122,7 +122,7 @@ async def send_daily_summary(db: AsyncSession, user: User) -> None:
 
     await send_push(
         firebase_token=user.firebase_token,
-        title="Flowra daily summary",
+        title="Mintflow daily summary",
         body=body,
         data={"type": "daily_summary", "screen": "dashboard"},
     )
@@ -212,11 +212,11 @@ async def send_milestone(
         ),
         "first_transaction": (
             "You're tracking!",
-            "Your first transaction is logged. Flowra is on it.",
+            "Your first transaction is logged. Mintflow is on it.",
         ),
     }
 
-    title, body = messages.get(milestone_type, ("Nice work!", "You're making progress with Flowra."))
+    title, body = messages.get(milestone_type, ("Nice work!", "You're making progress with Mintflow."))
     await send_push(
         firebase_token=user.firebase_token,
         title=title,

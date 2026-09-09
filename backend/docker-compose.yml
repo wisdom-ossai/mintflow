@@ -5,7 +5,7 @@ services:
     build:
       context: .
       target: builder
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
     env_file:
@@ -16,20 +16,20 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql+asyncpg://flowra:flowra@postgres:5432/flowra
+      - DATABASE_URL=postgresql+asyncpg://mintflow:mintflow@postgres:5432/mintflow
 
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: flowra
-      POSTGRES_PASSWORD: flowra
-      POSTGRES_DB: flowra
+      POSTGRES_USER: mintflow
+      POSTGRES_PASSWORD: mintflow
+      POSTGRES_DB: mintflow
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U flowra"]
+      test: ["CMD-SHELL", "pg_isready -U mintflow"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -38,7 +38,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@flowra.app
+      PGADMIN_DEFAULT_EMAIL: admin@mintflow.app
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"

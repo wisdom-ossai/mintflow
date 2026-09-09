@@ -50,7 +50,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     }
   }
 
-  String get _monthLabel => FlowraFormat.monthYear(_period);
+  String get _monthLabel => MintflowFormat.monthYear(_period);
 
   IconData _iconFor(String type) {
     switch (type) {
@@ -67,9 +67,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Color _iconBg(String type) {
     switch (type) {
       case 'positive':
-        return FlowraColors.green50;
+        return MintflowColors.green50;
       case 'recommendation':
-        return FlowraColors.purpleSoft;
+        return MintflowColors.purpleSoft;
       default:
         return const Color(0xFFFFF8E6);
     }
@@ -78,9 +78,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Color _iconColor(String type) {
     switch (type) {
       case 'positive':
-        return FlowraColors.green500;
+        return MintflowColors.green500;
       case 'recommendation':
-        return FlowraColors.purple;
+        return MintflowColors.purple;
       default:
         return const Color(0xFFD4A020);
     }
@@ -89,14 +89,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: BlocBuilder<InsightCubit, InsightState>(
         builder: (context, state) {
           return CustomScrollView(slivers: [
             SliverAppBar(
               expandedHeight: 180,
               pinned: true,
-              backgroundColor: FlowraColors.green900,
+              backgroundColor: MintflowColors.green900,
               flexibleSpace: FlexibleSpaceBar(
                 background: SafeArea(
                   child: Padding(
@@ -112,7 +112,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                               height: 32,
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.1),
-                                borderRadius: FlowraRadius.sm_,
+                                borderRadius: MintflowRadius.sm_,
                               ),
                               child: const Icon(Icons.chevron_left,
                                   color: Colors.white, size: 20),
@@ -120,8 +120,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                           ),
                           const SizedBox(width: 10),
                           Text(_monthLabel,
-                              style: FlowraTextStyles.labelLarge
-                                  .copyWith(color: FlowraColors.cream)),
+                              style: MintflowTextStyles.labelLarge
+                                  .copyWith(color: MintflowColors.cream)),
                           const SizedBox(width: 10),
                           GestureDetector(
                             onTap: _nextMonth,
@@ -130,7 +130,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                               height: 32,
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.1),
-                                borderRadius: FlowraRadius.sm_,
+                                borderRadius: MintflowRadius.sm_,
                               ),
                               child: Icon(Icons.chevron_right,
                                   color: Colors.white.withOpacity(
@@ -144,8 +144,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         ]),
                         const SizedBox(height: 12),
                         Text('Your month\nin review',
-                            style: FlowraTextStyles.displaySmall.copyWith(
-                                color: FlowraColors.cream,
+                            style: MintflowTextStyles.displaySmall.copyWith(
+                                color: MintflowColors.cream,
                                 fontStyle: FontStyle.italic,
                                 height: 1.2)),
                         if (state is InsightLoaded) ...[
@@ -154,8 +154,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                             state.insight.summary,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: FlowraTextStyles.bodySmall.copyWith(
-                              color: FlowraColors.cream.withOpacity(0.6),
+                            style: MintflowTextStyles.bodySmall.copyWith(
+                              color: MintflowColors.cream.withOpacity(0.6),
                             ),
                           ),
                         ],
@@ -165,8 +165,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 ),
               ),
               title: Text(_monthLabel,
-                  style: FlowraTextStyles.labelLarge
-                      .copyWith(color: FlowraColors.cream)),
+                  style: MintflowTextStyles.labelLarge
+                      .copyWith(color: MintflowColors.cream)),
             ),
             if (state is InsightLoading || state is InsightInitial)
               const SliverFillRemaining(
@@ -183,30 +183,30 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: FlowraColors.green50,
-                          borderRadius: FlowraRadius.xl_,
+                          color: MintflowColors.green50,
+                          borderRadius: MintflowRadius.xl_,
                         ),
                         child: const Icon(Icons.auto_awesome,
-                            color: FlowraColors.green500, size: 28),
+                            color: MintflowColors.green500, size: 28),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'Monthly AI insights',
-                        style: FlowraTextStyles.labelLarge
-                            .copyWith(color: FlowraColors.ink),
+                        style: MintflowTextStyles.labelLarge
+                            .copyWith(color: MintflowColors.ink),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Unlock Growth to get a plain-English review of your spending each month.',
-                        style: FlowraTextStyles.bodySmall
-                            .copyWith(color: FlowraColors.ink60, height: 1.5),
+                        style: MintflowTextStyles.bodySmall
+                            .copyWith(color: MintflowColors.ink60, height: 1.5),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () => context.push(
-                            '${FlowraRoutes.paywall}?feature=ai_insights'),
+                            '${MintflowRoutes.paywall}?feature=ai_insights'),
                         child: const Text('See Growth plans'),
                       ),
                     ],
@@ -223,8 +223,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       children: [
                         Text(state.message,
                             textAlign: TextAlign.center,
-                            style: FlowraTextStyles.bodyMedium
-                                .copyWith(color: FlowraColors.ink60)),
+                            style: MintflowTextStyles.bodyMedium
+                                .copyWith(color: MintflowColors.ink60)),
                         const SizedBox(height: 12),
                         TextButton(
                             onPressed: _load, child: const Text('Retry')),
@@ -264,8 +264,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
                           state.insight.summary.isNotEmpty
                               ? state.insight.summary
                               : 'No insights for this month yet.',
-                          style: FlowraTextStyles.bodyMedium
-                              .copyWith(color: FlowraColors.ink60),
+                          style: MintflowTextStyles.bodyMedium
+                              .copyWith(color: MintflowColors.ink60),
                         ),
                       ),
                     const SizedBox(height: 16),
@@ -279,25 +279,25 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       onTap: () => Share.share(
                         'My ${_monthLabel} Mintflow summary:\n'
                         '${state.insight.summary}\n\n'
-                        'Track yours at flowra.app',
+                        'Track yours at mintflow.app',
                       ),
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: FlowraColors.creamDark,
-                          borderRadius: FlowraRadius.lg_,
-                          border: Border.all(color: FlowraColors.ink10),
+                          color: MintflowColors.creamDark,
+                          borderRadius: MintflowRadius.lg_,
+                          border: Border.all(color: MintflowColors.ink10),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(Icons.ios_share_outlined,
-                                size: 18, color: FlowraColors.ink60),
+                                size: 18, color: MintflowColors.ink60),
                             const SizedBox(width: 8),
                             Text(
                               'Share my ${_monthLabel.split(' ').first} recap',
-                              style: FlowraTextStyles.labelLarge
-                                  .copyWith(color: FlowraColors.ink),
+                              style: MintflowTextStyles.labelLarge
+                                  .copyWith(color: MintflowColors.ink),
                             ),
                           ],
                         ),
@@ -325,12 +325,12 @@ class _FeedbackCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: FlowraRadius.lg_,
-        border: Border.all(color: FlowraColors.ink10),
+        borderRadius: MintflowRadius.lg_,
+        border: Border.all(color: MintflowColors.ink10),
       ),
       child: Column(children: [
         Text('Were these insights helpful?',
-            style: FlowraTextStyles.labelLarge.copyWith(color: FlowraColors.ink)),
+            style: MintflowTextStyles.labelLarge.copyWith(color: MintflowColors.ink)),
         const SizedBox(height: 12),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           _Thumb(
@@ -351,7 +351,7 @@ class _FeedbackCard extends StatelessWidget {
             thumbsUp!
                 ? 'Thanks! Glad this was useful.'
                 : 'Thanks for the feedback — we\'ll improve.',
-            style: FlowraTextStyles.bodySmall.copyWith(color: FlowraColors.ink60),
+            style: MintflowTextStyles.bodySmall.copyWith(color: MintflowColors.ink60),
           ),
         ],
       ]),
@@ -375,13 +375,13 @@ class _Thumb extends StatelessWidget {
         height: 52,
         decoration: BoxDecoration(
           color: selected
-              ? (up ? FlowraColors.green50 : FlowraColors.redSoft)
-              : FlowraColors.creamDark,
-          borderRadius: FlowraRadius.lg_,
+              ? (up ? MintflowColors.green50 : MintflowColors.redSoft)
+              : MintflowColors.creamDark,
+          borderRadius: MintflowRadius.lg_,
           border: Border.all(
             color: selected
-                ? (up ? FlowraColors.green400 : FlowraColors.red)
-                : FlowraColors.ink10,
+                ? (up ? MintflowColors.green400 : MintflowColors.red)
+                : MintflowColors.ink10,
             width: selected ? 1.5 : 1,
           ),
         ),
@@ -389,8 +389,8 @@ class _Thumb extends StatelessWidget {
           up ? Icons.thumb_up_outlined : Icons.thumb_down_outlined,
           size: 22,
           color: selected
-              ? (up ? FlowraColors.green500 : FlowraColors.red)
-              : FlowraColors.ink60,
+              ? (up ? MintflowColors.green500 : MintflowColors.red)
+              : MintflowColors.ink60,
         ),
       ),
     );
@@ -418,8 +418,8 @@ class _InsightCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: FlowraRadius.xl_,
-          border: Border.all(color: FlowraColors.ink10),
+          borderRadius: MintflowRadius.xl_,
+          border: Border.all(color: MintflowColors.ink10),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -427,24 +427,24 @@ class _InsightCard extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                  color: iconBg, borderRadius: FlowraRadius.md_),
+                  color: iconBg, borderRadius: MintflowRadius.md_),
               child: Icon(icon, size: 18, color: iconColor),
             ),
             const SizedBox(width: 12),
             Expanded(
                 child: Text(title,
-                    style: FlowraTextStyles.labelLarge
-                        .copyWith(color: FlowraColors.ink, height: 1.35))),
+                    style: MintflowTextStyles.labelLarge
+                        .copyWith(color: MintflowColors.ink, height: 1.35))),
           ]),
           const SizedBox(height: 8),
           Text(body,
-              style: FlowraTextStyles.bodySmall
-                  .copyWith(color: FlowraColors.ink60, height: 1.6)),
+              style: MintflowTextStyles.bodySmall
+                  .copyWith(color: MintflowColors.ink60, height: 1.6)),
           if (actionLabel != null) ...[
             const SizedBox(height: 10),
             Text(actionLabel!,
-                style: FlowraTextStyles.labelSmall
-                    .copyWith(color: FlowraColors.green500)),
+                style: MintflowTextStyles.labelSmall
+                    .copyWith(color: MintflowColors.green500)),
           ],
         ]),
       );

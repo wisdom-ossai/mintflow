@@ -45,12 +45,12 @@ class _LoginScreenState extends State<LoginScreen> {
       if (state is UserLoaded) {
         AuthGate.setOnboardingComplete(state.user.hasCompletedOnboarding);
         context.go(state.user.hasCompletedOnboarding
-            ? FlowraRoutes.dashboard
-            : FlowraRoutes.onboarding);
+            ? MintflowRoutes.dashboard
+            : MintflowRoutes.onboarding);
         return;
       }
     } catch (_) {}
-    if (mounted) context.go(FlowraRoutes.dashboard);
+    if (mounted) context.go(MintflowRoutes.dashboard);
   }
 
   Future<void> _login() async {
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -124,14 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 const BrandLogo(
                   size: 40,
                   showWordmark: true,
-                  wordmarkColor: FlowraColors.green900,
+                  wordmarkColor: MintflowColors.green900,
                 ),
                 const SizedBox(height: 40),
-                Text('Welcome back', style: FlowraTextStyles.displayMedium),
+                Text('Welcome back', style: MintflowTextStyles.displayMedium),
                 const SizedBox(height: 6),
                 Text('Sign in to your account',
-                    style: FlowraTextStyles.bodyMedium
-                        .copyWith(color: FlowraColors.ink60)),
+                    style: MintflowTextStyles.bodyMedium
+                        .copyWith(color: MintflowColors.ink60)),
                 const SizedBox(height: 32),
 
                 // Error banner
@@ -166,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         _obscure
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: FlowraColors.ink60,
+                        color: MintflowColors.ink60,
                         size: 20,
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => context.go(FlowraRoutes.forgotPassword),
+                    onPressed: () => context.go(MintflowRoutes.forgotPassword),
                     child: const Text('Forgot password?'),
                   ),
                 ),
@@ -208,8 +208,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text('or',
-                        style: FlowraTextStyles.labelSmall
-                            .copyWith(color: FlowraColors.ink60)),
+                        style: MintflowTextStyles.labelSmall
+                            .copyWith(color: MintflowColors.ink60)),
                   ),
                   const Expanded(child: Divider()),
                 ]),
@@ -229,17 +229,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Sign up link
                 Center(
                   child: GestureDetector(
-                    onTap: () => context.go(FlowraRoutes.signup),
+                    onTap: () => context.go(MintflowRoutes.signup),
                     child: RichText(
                       text: TextSpan(
-                        style: FlowraTextStyles.bodySmall
-                            .copyWith(color: FlowraColors.ink60),
+                        style: MintflowTextStyles.bodySmall
+                            .copyWith(color: MintflowColors.ink60),
                         children: [
                           const TextSpan(text: "Don't have an account? "),
                           TextSpan(
                               text: 'Sign up',
                               style: TextStyle(
-                                color: FlowraColors.green500,
+                                color: MintflowColors.green500,
                                 fontWeight: FontWeight.w500,
                               )),
                         ],

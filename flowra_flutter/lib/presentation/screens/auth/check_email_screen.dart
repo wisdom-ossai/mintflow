@@ -77,7 +77,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: FlowraColors.cream,
+      backgroundColor: MintflowColors.cream,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -92,20 +92,20 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: FlowraColors.green50,
-                    borderRadius: FlowraRadius.xl_,
+                    color: MintflowColors.green50,
+                    borderRadius: MintflowRadius.xl_,
                     border:
-                        Border.all(color: FlowraColors.green100, width: 1.5),
+                        Border.all(color: MintflowColors.green100, width: 1.5),
                   ),
                   child: const Icon(Icons.mark_email_unread_outlined,
-                      size: 44, color: FlowraColors.green500),
+                      size: 44, color: MintflowColors.green500),
                 ),
               ),
               const SizedBox(height: 12),
 
               // Title
               Text('Check your email',
-                  style: FlowraTextStyles.displaySmall
+                  style: MintflowTextStyles.displaySmall
                       .copyWith(fontStyle: FontStyle.italic)),
               const SizedBox(height: 10),
 
@@ -113,14 +113,14 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: FlowraTextStyles.bodyMedium
-                      .copyWith(color: FlowraColors.ink60, height: 1.6),
+                  style: MintflowTextStyles.bodyMedium
+                      .copyWith(color: MintflowColors.ink60, height: 1.6),
                   children: [
                     const TextSpan(text: "We've sent a reset link to\n"),
                     TextSpan(
                       text: _maskedEmail,
                       style: TextStyle(
-                        color: FlowraColors.ink,
+                        color: MintflowColors.ink,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -139,8 +139,8 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: FlowraRadius.xl_,
-                  border: Border.all(color: FlowraColors.ink10),
+                  borderRadius: MintflowRadius.xl_,
+                  border: Border.all(color: MintflowColors.ink10),
                 ),
                 child: Column(children: [
                   _Step(
@@ -180,17 +180,17 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: FlowraColors.green50,
-                      borderRadius: FlowraRadius.md_,
-                      border: Border.all(color: FlowraColors.green100),
+                      color: MintflowColors.green50,
+                      borderRadius: MintflowRadius.md_,
+                      border: Border.all(color: MintflowColors.green100),
                     ),
                     child: Row(children: [
                       const Icon(Icons.check_circle_outline,
-                          color: FlowraColors.green500, size: 16),
+                          color: MintflowColors.green500, size: 16),
                       const SizedBox(width: 8),
                       Text('Resent! Check your inbox again.',
-                          style: FlowraTextStyles.bodySmall
-                              .copyWith(color: FlowraColors.green600)),
+                          style: MintflowTextStyles.bodySmall
+                              .copyWith(color: MintflowColors.green600)),
                     ]),
                   ),
                 ),
@@ -207,7 +207,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: FlowraColors.green500))
+                              strokeWidth: 2, color: MintflowColors.green500))
                       : Text(
                           _countdown > 0
                               ? 'Resend in ${_countdown}s'
@@ -221,7 +221,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
-                  onPressed: () => context.go(FlowraRoutes.login),
+                  onPressed: () => context.go(MintflowRoutes.login),
                   child: const Text('Back to sign in'),
                 ),
               ),
@@ -229,8 +229,8 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
 
               Text(
                 'Check your spam folder if you don\'t see it.',
-                style: FlowraTextStyles.overline.copyWith(
-                    color: FlowraColors.ink30, fontWeight: FontWeight.w400),
+                style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.ink30, fontWeight: FontWeight.w400),
               ),
             ],
           ),
@@ -252,19 +252,19 @@ class _Step extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: active ? FlowraColors.green400 : FlowraColors.creamDark,
+              color: active ? MintflowColors.green400 : MintflowColors.creamDark,
               shape: BoxShape.circle,
             ),
             child: Center(
                 child: Text(number,
-                    style: FlowraTextStyles.labelSmall.copyWith(
-                        color: active ? Colors.white : FlowraColors.ink60,
+                    style: MintflowTextStyles.labelSmall.copyWith(
+                        color: active ? Colors.white : MintflowColors.ink60,
                         fontWeight: FontWeight.w500))),
           ),
           const SizedBox(width: 12),
           Text(text,
-              style: FlowraTextStyles.bodySmall.copyWith(
-                  color: active ? FlowraColors.ink : FlowraColors.ink60)),
+              style: MintflowTextStyles.bodySmall.copyWith(
+                  color: active ? MintflowColors.ink : MintflowColors.ink60)),
         ]),
       );
 }
@@ -273,6 +273,6 @@ class _StepDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(left: 13),
-        child: Container(width: 1.5, height: 12, color: FlowraColors.ink10),
+        child: Container(width: 1.5, height: 12, color: MintflowColors.ink10),
       );
 }

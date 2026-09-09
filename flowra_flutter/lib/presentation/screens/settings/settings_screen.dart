@@ -18,12 +18,12 @@ class SettingsScreen extends StatelessWidget {
         final email = user?.email ?? '';
         final tierLabel = user?.effectiveTier.name ?? 'seed';
         return Scaffold(
-          backgroundColor: FlowraColors.cream,
+          backgroundColor: MintflowColors.cream,
           appBar: AppBar(
-            backgroundColor: FlowraColors.green900,
+            backgroundColor: MintflowColors.green900,
             title: Text('Settings',
-                style: FlowraTextStyles.displaySmall
-                    .copyWith(color: FlowraColors.cream)),
+                style: MintflowTextStyles.displaySmall
+                    .copyWith(color: MintflowColors.cream)),
           ),
           body: ListView(children: [
             // Profile card
@@ -32,21 +32,21 @@ class SettingsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: FlowraRadius.xl_,
-                border: Border.all(color: FlowraColors.ink10),
+                borderRadius: MintflowRadius.xl_,
+                border: Border.all(color: MintflowColors.ink10),
               ),
               child: Row(children: [
                 Container(
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: FlowraColors.green400,
-                    borderRadius: FlowraRadius.lg_,
+                    color: MintflowColors.green400,
+                    borderRadius: MintflowRadius.lg_,
                   ),
                   child: Center(
                       child: Text(
                     name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                    style: FlowraTextStyles.displaySmall
+                    style: MintflowTextStyles.displaySmall
                         .copyWith(color: Colors.white, fontSize: 20),
                   )),
                 ),
@@ -55,23 +55,23 @@ class SettingsScreen extends StatelessWidget {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: FlowraTextStyles.labelLarge),
+                    Text(name, style: MintflowTextStyles.labelLarge),
                     Text(email,
-                        style: FlowraTextStyles.bodySmall
-                            .copyWith(color: FlowraColors.ink60)),
+                        style: MintflowTextStyles.bodySmall
+                            .copyWith(color: MintflowColors.ink60)),
                   ],
                 )),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: FlowraColors.purple.withOpacity(0.1),
-                    borderRadius: FlowraRadius.pill_,
+                    color: MintflowColors.purple.withOpacity(0.1),
+                    borderRadius: MintflowRadius.pill_,
                   ),
                   child: Text(
                     tierLabel[0].toUpperCase() + tierLabel.substring(1),
-                    style: FlowraTextStyles.overline.copyWith(
-                        color: FlowraColors.purple,
+                    style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.purple,
                         fontWeight: FontWeight.w500),
                   ),
                 ),
@@ -82,12 +82,12 @@ class SettingsScreen extends StatelessWidget {
               _Tile(Icons.person_outline, 'Edit profile', () {}),
               _Tile(Icons.lock_outline, 'Change password', () {}),
               _Tile(Icons.notifications_outlined, 'Notifications',
-                  () => context.push(FlowraRoutes.notificationSettings)),
+                  () => context.push(MintflowRoutes.notificationSettings)),
               _Tile(Icons.currency_exchange, 'Currency and locale', () {}),
             ]),
             _Section('Subscription', [
               _Tile(Icons.star_outline, 'Manage plan',
-                  () => context.push(FlowraRoutes.paywall),
+                  () => context.push(MintflowRoutes.paywall),
                   trailing: tierLabel[0].toUpperCase() + tierLabel.substring(1)),
               _Tile(Icons.download_outlined, 'Export data (CSV)', () {}),
             ]),
@@ -102,8 +102,8 @@ class SettingsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: FlowraColors.red,
-                  side: BorderSide(color: FlowraColors.red.withOpacity(0.5)),
+                  foregroundColor: MintflowColors.red,
+                  side: BorderSide(color: MintflowColors.red.withOpacity(0.5)),
                 ),
                 onPressed: () async {
                   try {
@@ -112,7 +112,7 @@ class SettingsScreen extends StatelessWidget {
                     await ServiceLocator.instance.tokens.clear();
                   }
                   AuthGate.onboardingComplete.value = null;
-                  if (context.mounted) context.go(FlowraRoutes.login);
+                  if (context.mounted) context.go(MintflowRoutes.login);
                 },
                 child: const Text('Sign out'),
               ),
@@ -136,15 +136,15 @@ class _Section extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
             child: Text(title.toUpperCase(),
-                style: FlowraTextStyles.overline
-                    .copyWith(color: FlowraColors.ink60)),
+                style: MintflowTextStyles.overline
+                    .copyWith(color: MintflowColors.ink60)),
           ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: FlowraRadius.xl_,
-              border: Border.all(color: FlowraColors.ink10),
+              borderRadius: MintflowRadius.xl_,
+              border: Border.all(color: MintflowColors.ink10),
             ),
             child: Column(
               children: tiles
@@ -153,7 +153,7 @@ class _Section extends StatelessWidget {
                   .map((e) => Column(children: [
                         e.value,
                         if (e.key < tiles.length - 1)
-                          Divider(height: 1, color: FlowraColors.ink10),
+                          Divider(height: 1, color: MintflowColors.ink10),
                       ]))
                   .toList(),
             ),
@@ -172,15 +172,15 @@ class _Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListTile(
         dense: true,
-        leading: Icon(icon, size: 20, color: FlowraColors.ink60),
+        leading: Icon(icon, size: 20, color: MintflowColors.ink60),
         title: Text(label,
-            style: FlowraTextStyles.bodySmall
+            style: MintflowTextStyles.bodySmall
                 .copyWith(fontWeight: FontWeight.w500)),
         trailing: trailing != null
             ? Text(trailing!,
-                style: FlowraTextStyles.labelSmall
-                    .copyWith(color: FlowraColors.ink60))
-            : Icon(Icons.chevron_right, size: 18, color: FlowraColors.ink30),
+                style: MintflowTextStyles.labelSmall
+                    .copyWith(color: MintflowColors.ink60))
+            : Icon(Icons.chevron_right, size: 18, color: MintflowColors.ink30),
         onTap: onTap,
       );
 }

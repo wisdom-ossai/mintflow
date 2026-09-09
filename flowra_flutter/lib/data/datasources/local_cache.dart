@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra Local Cache
+// Mintflow Local Cache
 // Replaces hive_flutter. Uses shared_preferences for lightweight JSON caching.
 // Purpose: reduce API calls for frequently-read, slow-changing data.
 //
@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 //   - JWT token: stored in FlutterSecureStorage (not here — sensitive)
 // ─────────────────────────────────────────────────────────────────────────────
 
-class FlowraCache {
+class MintflowCache {
   static SharedPreferences? _prefs;
 
   static Future<void> init() async {
@@ -22,7 +22,7 @@ class FlowraCache {
   }
 
   static SharedPreferences get _p {
-    assert(_prefs != null, 'FlowraCache.init() must be called before use');
+    assert(_prefs != null, 'MintflowCache.init() must be called before use');
     return _prefs!;
   }
 
@@ -84,7 +84,7 @@ class FlowraCache {
 
   /// Call on logout — clears all cached data.
   static Future<void> clearAll() async {
-    final keys = _p.getKeys().where((k) => k.startsWith('flowra_')).toList();
+    final keys = _p.getKeys().where((k) => k.startsWith('mintflow_')).toList();
     await Future.wait(keys.map(_p.remove));
   }
 }
@@ -94,19 +94,19 @@ class FlowraCache {
 class CacheKeys {
   CacheKeys._();
 
-  static const dashboardSummary = 'flowra_dashboard_summary';
-  static const transactions = 'flowra_transactions_p1'; // first page only
-  static const accounts = 'flowra_accounts';
-  static const goals = 'flowra_goals';
-  static const bills = 'flowra_bills';
-  static const billPayments = 'flowra_bill_payments';
-  static const userProfile = 'flowra_user_profile';
-  static const categories = 'flowra_categories';
-  static const notifPrefs = 'flowra_notif_prefs';
+  static const dashboardSummary = 'mintflow_dashboard_summary';
+  static const transactions = 'mintflow_transactions_p1'; // first page only
+  static const accounts = 'mintflow_accounts';
+  static const goals = 'mintflow_goals';
+  static const bills = 'mintflow_bills';
+  static const billPayments = 'mintflow_bill_payments';
+  static const userProfile = 'mintflow_user_profile';
+  static const categories = 'mintflow_categories';
+  static const notifPrefs = 'mintflow_notif_prefs';
 
-  // Insight cache — keyed by period e.g. "flowra_insight_2025-11"
-  static String insight(String periodKey) => 'flowra_insight_$periodKey';
+  // Insight cache — keyed by period e.g. "mintflow_insight_2025-11"
+  static String insight(String periodKey) => 'mintflow_insight_$periodKey';
 
   // Debt plan
-  static const debtPlan = 'flowra_debt_plan';
+  static const debtPlan = 'mintflow_debt_plan';
 }

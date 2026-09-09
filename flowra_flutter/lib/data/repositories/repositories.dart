@@ -6,7 +6,7 @@ import 'dart:convert';
 // ─────────────────────────────────────────────────────────────────────────────
 // Repositories — thin layer between cubits and the API client.
 // Responsibilities: caching, error normalization, cache invalidation.
-// Each repository uses FlowraCache for TTL-based local caching.
+// Each repository uses MintflowCache for TTL-based local caching.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -14,18 +14,18 @@ import 'dart:convert';
 // ═══════════════════════════════════════════════════════════════════════════
 
 class UserRepository {
-  final FlowraApiClient _api;
+  final MintflowApiClient _api;
   UserRepository(this._api);
 
   Future<UserModel> getMe({bool forceRefresh = false}) async {
     if (!forceRefresh) {
-      final cached = FlowraCache.get<String>(CacheKeys.userProfile);
+      final cached = MintflowCache.get<String>(CacheKeys.userProfile);
       if (cached != null) {
         return UserModel.fromJson(jsonDecode(cached));
       }
     }
     final user = await _api.getMe();
-    await FlowraCache.set(
+    await MintflowCache.set(
       CacheKeys.userProfile,
       jsonEncode(_userToJson(user)),
       ttl: const Duration(hours: 1),
@@ -35,19 +35,19 @@ class UserRepository {
 
   Future<UserModel> updateMe(Map<String, dynamic> data) async {
     final user = await _api.updateMe(data);
-    await FlowraCache.set(CacheKeys.userProfile, jsonEncode(_userToJson(user)));
+    await MintflowCache.set(CacheKeys.userProfile, jsonEncode(_userToJson(user)));
     return user;
   }
 
   Future<UserModel> completeOnboarding(Map<String, dynamic> data) async {
     final user = await _api.completeOnboarding(data);
-    await FlowraCache.set(CacheKeys.userProfile, jsonEncode(_userToJson(user)));
+    await MintflowCache.set(CacheKeys.userProfile, jsonEncode(_userToJson(user)));
     return user;
   }
 
   Future<void> deleteAccount() async {
     await _api.deleteAccount();
-    await FlowraCache.clearAll();
+    await MintflowCache.clearAll();
   }
 
   Map<String, dynamic> _userToJson(UserModel u) => {
@@ -69,7 +69,7 @@ class UserRepository {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class DashboardRepository {
-  final FlowraApiClient _api;
+  final MintflowApiClient _api;
   DashboardRepository(this._api);
 
   Future<DashboardSummary> getSummary({
@@ -84,7 +84,7 @@ class DashboardRepository {
     final isCurrentMonth = y == now.year && m == now.month;
 
     if (!forceRefresh && isCurrentMonth) {
-      final cached = FlowraCache.get<Map>(cacheKey);
+      final cached = MintflowCache.get<Map>(cacheKey);
       if (cached != null) {
         return DashboardSummary.fromJson(Map<String, dynamic>.from(cached));
       }
@@ -94,7 +94,7 @@ class DashboardRepository {
 
     if (isCurrentMonth) {
       // Cache current month for 10 minutes — stale quickly due to transactions
-      await FlowraCache.set(
+      await MintflowCache.set(
         cacheKey,
         _summaryToMap(summary),
         ttl: const Duration(minutes: 10),
@@ -140,7 +140,7 @@ class DashboardRepository {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class TransactionRepository {
-  final FlowraApiClient _api;
+  final MintflowApiClient _api;
   TransactionRepository(this._api);
 
   Future<TransactionListResult> getTransactions({
@@ -202,7 +202,7 @@ class TransactionRepository {
       if (incomeSource != null) 'income_source': incomeSource,
     });
     // Invalidate dashboard cache — new transaction changes totals
-    await FlowraCache.invalidateDashboard();
+    await MintflowCache.invalidateDashboard();
     return tx;
   }
 
@@ -211,13 +211,13 @@ class TransactionRepository {
     Map<String, dynamic> data,
   ) async {
     final tx = await _api.updateTransaction(id, data);
-    await FlowraCache.invalidateDashboard();
+    await MintflowCache.invalidateDashboard();
     return tx;
   }
 
   Future<void> deleteTransaction(String id) async {
     await _api.deleteTransaction(id);
-    await FlowraCache.invalidateDashboard();
+    await MintflowCache.invalidateDashboard();
   }
 }
 
@@ -238,12 +238,12 @@ class TransactionListResult {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class GoalRepository {
-  final FlowraApiClient _api;
+  final MintflowApiClient _api;
   GoalRepository(this._api);
 
   Future<List<SavingsGoalModel>> getGoals({bool forceRefresh = false}) async {
     if (!forceRefresh) {
-      final cached = FlowraCache.get<List>(CacheKeys.goals);
+      final cached = MintflowCache.get<List>(CacheKeys.goals);
       if (cached != null) {
         return cached
             .map((e) => SavingsGoalModel.fromJson(Map<String, dynamic>.from(e)))
@@ -251,7 +251,7 @@ class GoalRepository {
       }
     }
     final goals = await _api.getGoals();
-    await FlowraCache.set(
+    await MintflowCache.set(
       CacheKeys.goals,
       goals.map(_goalToMap).toList(),
       ttl: const Duration(minutes: 5),
@@ -276,19 +276,19 @@ class GoalRepository {
       if (icon != null) 'icon': icon,
       if (color != null) 'color': color,
     });
-    await FlowraCache.invalidateGoals();
+    await MintflowCache.invalidateGoals();
     return goal;
   }
 
   Future<SavingsGoalModel> contribute(String id, double amount) async {
     final goal = await _api.addGoalContribution(id, amount);
-    await FlowraCache.invalidateGoals();
+    await MintflowCache.invalidateGoals();
     return goal;
   }
 
   Future<void> deleteGoal(String id) async {
     await _api.deleteGoal(id);
-    await FlowraCache.invalidateGoals();
+    await MintflowCache.invalidateGoals();
   }
 
   Map<String, dynamic> _goalToMap(SavingsGoalModel g) => {
@@ -312,12 +312,12 @@ class GoalRepository {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class BillRepository {
-  final FlowraApiClient _api;
+  final MintflowApiClient _api;
   BillRepository(this._api);
 
   Future<List<BillModel>> getBills({bool forceRefresh = false}) async {
     if (!forceRefresh) {
-      final cached = FlowraCache.get<List>(CacheKeys.bills);
+      final cached = MintflowCache.get<List>(CacheKeys.bills);
       if (cached != null) {
         return cached
             .map((e) => BillModel.fromJson(Map<String, dynamic>.from(e)))
@@ -325,7 +325,7 @@ class BillRepository {
       }
     }
     final bills = await _api.getBills();
-    await FlowraCache.set(
+    await MintflowCache.set(
       CacheKeys.bills,
       bills.map(_billToMap).toList(),
       ttl: const Duration(minutes: 5),
@@ -338,14 +338,14 @@ class BillRepository {
     final y = year ?? now.year;
     final m = month ?? now.month;
     final key = '${CacheKeys.billPayments}_${y}_$m';
-    final cached = FlowraCache.get<List>(key);
+    final cached = MintflowCache.get<List>(key);
     if (cached != null) {
       return cached
           .map((e) => BillPaymentModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
     }
     final payments = await _api.getBillPayments(year: y, month: m);
-    await FlowraCache.set(key, payments.map(_paymentToMap).toList(),
+    await MintflowCache.set(key, payments.map(_paymentToMap).toList(),
         ttl: const Duration(minutes: 5));
     return payments;
   }
@@ -364,7 +364,7 @@ class BillRepository {
       if (amount != null) 'amount': amount,
       if (categoryId != null) 'category_id': categoryId,
     });
-    await FlowraCache.invalidateBills();
+    await MintflowCache.invalidateBills();
     return bill;
   }
 
@@ -373,13 +373,13 @@ class BillRepository {
     double? amountPaid,
   }) async {
     final payment = await _api.markBillPaid(billId, amountPaid: amountPaid);
-    await FlowraCache.invalidateBills();
+    await MintflowCache.invalidateBills();
     return payment;
   }
 
   Future<void> deleteBill(String id) async {
     await _api.deleteBill(id);
-    await FlowraCache.invalidateBills();
+    await MintflowCache.invalidateBills();
   }
 
   Map<String, dynamic> _billToMap(BillModel b) => {
@@ -411,7 +411,7 @@ class BillRepository {
 // ═══════════════════════════════════════════════════════════════════════════
 
 class InsightRepository {
-  final FlowraApiClient _api;
+  final MintflowApiClient _api;
   InsightRepository(this._api);
 
   Future<InsightModel> getMonthlyInsight({
@@ -421,13 +421,13 @@ class InsightRepository {
   }) async {
     final key = CacheKeys.insight('$year-${month.toString().padLeft(2, '0')}');
     if (!forceRefresh) {
-      final cached = FlowraCache.get<Map>(key);
+      final cached = MintflowCache.get<Map>(key);
       if (cached != null) {
         return InsightModel.fromJson(Map<String, dynamic>.from(cached));
       }
     }
     final insight = await _api.getMonthlyInsight(year, month);
-    await FlowraCache.set(
+    await MintflowCache.set(
         key,
         {
           'id': insight.id,

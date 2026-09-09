@@ -6,7 +6,7 @@ import '../../data/models/models.dart';
 import '../../data/datasources/service_locator.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flowra Cubits — one per domain area.
+// Mintflow Cubits — one per domain area.
 // Pattern: state sealed class (loading / loaded / error) + Cubit.
 // Screens call cubit methods; UI reacts to BlocBuilder.
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-# Flowra — Deployment Guide
+# Mintflow — Deployment Guide
 
 Step-by-step from zero to live on Railway, App Store, and Google Play.
 
@@ -23,7 +23,7 @@ Step-by-step from zero to live on Railway, App Store, and Google Play.
 ### 1.1 Create project
 
 1. Go to [supabase.com](https://supabase.com) → New project
-2. Name: `flowra-production`
+2. Name: `mintflow-production`
 3. Region: `us-east-1` (closest to Railway default)
 4. Save your database password securely
 
@@ -60,7 +60,7 @@ Enable:
 ### 1.5 Run Alembic migrations
 
 ```bash
-cd flowra-backend
+cd mintflow-backend
 cp .env.example .env
 # Fill in SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL
 
@@ -82,7 +82,7 @@ Supabase Dashboard → SQL Editor → New query → Run
 
 1. Go to [railway.app](https://railway.app) → New project → Deploy from GitHub repo
 2. Select your repo
-3. Choose the `flowra-backend` directory as root
+3. Choose the `mintflow-backend` directory as root
 
 ### 2.2 Set environment variables
 
@@ -91,7 +91,7 @@ Railway Dashboard → Your service → Variables → Add all from `.env.example`
 ```
 APP_ENV                   = production
 SECRET_KEY                = (generate: python3 -c "import secrets; print(secrets.token_hex(32))")
-ALLOWED_ORIGINS           = https://flowra.app,https://www.flowra.app
+ALLOWED_ORIGINS           = https://mintflow.app,https://www.mintflow.app
 SUPABASE_URL              = (from Supabase)
 SUPABASE_ANON_KEY         = (from Supabase)
 SUPABASE_SERVICE_ROLE_KEY = (from Supabase)
@@ -128,18 +128,18 @@ Or use Railway's volume mount feature for the JSON file.
 
 Railway → Your service → Settings → Domains → Add custom domain
 
-Add: `api.flowra.app`
+Add: `api.mintflow.app`
 
 Point DNS CNAME at Railway's provided hostname.
 
 ### 2.5 Verify deployment
 
 ```bash
-curl https://api.flowra.app/health
+curl https://api.mintflow.app/health
 # Expected: {"status":"ok","version":"1.0.0","env":"production"}
 
-curl https://api.flowra.app/docs
-# Expected: Flowra Swagger UI (disabled in production — 404 is correct)
+curl https://api.mintflow.app/docs
+# Expected: Mintflow Swagger UI (disabled in production — 404 is correct)
 ```
 
 ### 2.6 Plaid production
@@ -158,24 +158,24 @@ After building and testing with sandbox:
 ### 3.1 Create Firebase project
 
 1. Go to [console.firebase.google.com](https://console.firebase.google.com)
-2. New project → `flowra-app`
+2. New project → `mintflow-app`
 3. Disable Google Analytics (optional for privacy)
 
 ### 3.2 Add apps
 
 **Android:**
 
-- Package name: `app.flowra.android`
-- Download `google-services.json` → `flowra-flutter/android/app/`
+- Package name: `app.mintflow.android`
+- Download `google-services.json` → `mintflow-flutter/android/app/`
 
 **iOS:**
 
-- Bundle ID: `app.flowra.ios`
-- Download `GoogleService-Info.plist` → `flowra-flutter/ios/Runner/`
+- Bundle ID: `app.mintflow.ios`
+- Download `GoogleService-Info.plist` → `mintflow-flutter/ios/Runner/`
 
 **Web:**
 
-- App nickname: `flowra-web`
+- App nickname: `mintflow-web`
 - Copy the config snippet for later
 
 ### 3.3 Enable Cloud Messaging
@@ -198,12 +198,12 @@ Save as `firebase-credentials.json` — this goes to Railway (see Part 2.3).
 ```bash
 npm install -g firebase-tools
 firebase login
-firebase init hosting --project flowra-app
+firebase init hosting --project mintflow-app
 
 # firebase.json
 {
   "hosting": {
-    "public": "flowra-flutter/build/web",
+    "public": "mintflow-flutter/build/web",
     "ignore": ["firebase.json", "**/.*"],
     "rewrites": [{"source": "**", "destination": "/index.html"}],
     "headers": [{"source": "**/*.js", "headers": [{"key": "Cache-Control", "value": "max-age=31536000"}]}]
@@ -217,18 +217,18 @@ firebase init hosting --project flowra-app
 
 ### 4.1 Create RevenueCat project
 
-1. [app.revenuecat.com](https://app.revenuecat.com) → New project → `flowra`
-2. Add iOS app (Bundle ID: `app.flowra.ios`)
-3. Add Android app (Package: `app.flowra.android`)
+1. [app.revenuecat.com](https://app.revenuecat.com) → New project → `mintflow`
+2. Add iOS app (Bundle ID: `app.mintflow.ios`)
+3. Add Android app (Package: `app.mintflow.android`)
 
 ### 4.2 Create products in stores
 
 **App Store Connect:**
 
-- `flowra_growth_monthly` — $6.99/month — "Growth monthly"
-- `flowra_growth_annual` — $59.00/year — "Growth annual"
-- `flowra_pro_monthly` — $12.99/month — "Pro monthly"
-- `flowra_pro_annual` — $99.00/year — "Pro annual"
+- `mintflow_growth_monthly` — $6.99/month — "Growth monthly"
+- `mintflow_growth_annual` — $59.00/year — "Growth annual"
+- `mintflow_pro_monthly` — $12.99/month — "Pro monthly"
+- `mintflow_pro_annual` — $99.00/year — "Pro annual"
 
 **Google Play Console:**
 Same product IDs and prices in Subscriptions section.
@@ -256,7 +256,7 @@ Add to Flutter `.env` file.
 RevenueCat → Integrations → Webhooks → Add endpoint:
 
 ```
-URL:    https://api.flowra.app/v1/subscriptions/webhook
+URL:    https://api.mintflow.app/v1/subscriptions/webhook
 Secret: (generate and add to Railway as REVENUECAT_WEBHOOK_SECRET)
 ```
 
@@ -272,13 +272,14 @@ Secret: (generate and add to Railway as REVENUECAT_WEBHOOK_SECRET)
 ### 5.2 App Store Connect setup
 
 1. appstoreconnect.apple.com → Apps → New App
-2. Bundle ID: `app.flowra.ios`
-3. SKU: `flowra-ios-001`
+2. Bundle ID: `app.mintflow.ios`
+3. SKU: `mintflow-ios-001`
 4. Fill in:
-   - App name: Flowra
-   - Primary language: English
-   - Category: Finance
-   - Sub-category: Personal Finance
+
+- App name: Mintflow
+- Primary language: English
+- Category: Finance
+- Sub-category: Personal Finance
 
 ### 5.3 App metadata (prepare before submission)
 
@@ -291,11 +292,11 @@ Secret: (generate and add to Railway as REVENUECAT_WEBHOOK_SECRET)
 **App description (App Store):**
 
 ```
-Flowra — Your money, flowing forward.
+Mintflow — Your money, flowing forward.
 
 Track every dollar. Hit your savings goals. Pay off debt faster.
 
-Flowra is the personal finance app that goes beyond tracking — it coaches you.
+Mintflow is the personal finance app that goes beyond tracking — it coaches you.
 
 WHAT FLOWRA DOES:
 • Automatically imports transactions from 10,000+ US banks via Plaid
@@ -307,8 +308,8 @@ WHAT FLOWRA DOES:
 • Delivers monthly AI insights written in plain English
 
 PRIVACY FIRST:
-Flowra is read-only. It cannot move money or modify your accounts. Your banking
-credentials never pass through Flowra — they stay with Plaid, the same
+Mintflow is read-only. It cannot move money or modify your accounts. Your banking
+credentials never pass through Mintflow — they stay with Plaid, the same
 technology used by major US banks.
 
 PLANS:
@@ -321,9 +322,9 @@ Start with a 7-day free trial of all Pro features. No card required.
 
 **Keywords:** budget, spending tracker, expense tracker, savings goals, debt payoff, personal finance, money manager, bill tracker
 
-**Privacy policy URL:** https://flowra.app/privacy
+**Privacy policy URL:** [https://mintflow.app/privacy](https://mintflow.app/privacy)
 
-**Support URL:** https://flowra.app/support
+**Support URL:** [https://mintflow.app/support](https://mintflow.app/support)
 
 ### 5.4 Age rating
 
@@ -344,11 +345,11 @@ Data Not Linked to You:
 ### 5.6 Build and upload
 
 ```bash
-cd flowra-flutter
+cd mintflow-flutter
 
 # Build
 flutter build ipa --release \
-  --dart-define=API_BASE_URL=https://api.flowra.app
+  --dart-define=API_BASE_URL=https://api.mintflow.app
 
 # Open Xcode and upload via Organizer
 open ios/Runner.xcworkspace
@@ -376,7 +377,7 @@ Review typically takes 1–3 business days.
 ### 6.1 Google Play Console
 
 1. play.google.com/console → Create app
-2. Package name: `app.flowra.android`
+2. Package name: `app.mintflow.android`
 3. App category: Finance
 4. One-time $25 registration fee
 
@@ -386,7 +387,7 @@ Same description and screenshots as iOS. Additional requirements:
 
 - Feature graphic: 1024×500 PNG
 - Short description (80 chars): "AI-powered finance tracker. Goals, bills, debt payoff."
-- Privacy policy URL: https://flowra.app/privacy
+- Privacy policy URL: [https://mintflow.app/privacy](https://mintflow.app/privacy)
 
 ### 6.3 Data safety section
 
@@ -405,25 +406,25 @@ Play Console → Setup → App signing → Let Google manage signing key (recomm
 ### 6.5 Build and upload
 
 ```bash
-cd flowra-flutter
+cd mintflow-flutter
 
 # Generate keystore (first time only)
 keytool -genkey -v \
-  -keystore android/app/flowra.jks \
-  -alias flowra \
+  -keystore android/app/mintflow.jks \
+  -alias mintflow \
   -keyalg RSA -keysize 2048 -validity 10000
 
 # Write key.properties
 cat > android/key.properties << EOF
 storePassword=YOUR_STORE_PASSWORD
 keyPassword=YOUR_KEY_PASSWORD
-keyAlias=flowra
-storeFile=flowra.jks
+keyAlias=mintflow
+storeFile=mintflow.jks
 EOF
 
 # Build AAB
 flutter build appbundle --release \
-  --dart-define=API_BASE_URL=https://api.flowra.app
+  --dart-define=API_BASE_URL=https://api.mintflow.app
 
 # Output: build/app/outputs/bundle/release/app-release.aab
 ```
@@ -451,10 +452,10 @@ RAILWAY_TOKEN              Railway API token (railway.app → Account → Tokens
 ```
 SUPABASE_URL               https://your-project.supabase.co
 SUPABASE_ANON_KEY          eyJ...
-API_BASE_URL               https://api.flowra.app
+API_BASE_URL               https://api.mintflow.app
 
 # Android signing
-KEYSTORE_BASE64            base64 -i android/app/flowra.jks | pbcopy
+KEYSTORE_BASE64            base64 -i android/app/mintflow.jks | pbcopy
 KEYSTORE_STORE_PASSWORD    your-store-password
 KEYSTORE_KEY_PASSWORD      your-key-password
 GOOGLE_PLAY_SERVICE_ACCOUNT  (JSON from Play Console service account)
@@ -479,7 +480,7 @@ FIREBASE_SERVICE_ACCOUNT   JSON from Firebase Console → Service Accounts
 - [ ] All `.env` files in `.gitignore` and NOT committed
 - [ ] `firebase-credentials.json` in `.gitignore`
 - [ ] `android/key.properties` in `.gitignore`
-- [ ] `android/app/flowra.jks` in `.gitignore`
+- [ ] `android/app/mintflow.jks` in `.gitignore`
 - [ ] Supabase RLS policies applied and verified
 - [ ] `APP_ENV=production` in Railway
 - [ ] Swagger docs disabled in production (`/docs` returns 404)
@@ -487,8 +488,8 @@ FIREBASE_SERVICE_ACCOUNT   JSON from Firebase Console → Service Accounts
 
 ### Legal (required before launch)
 
-- [ ] Privacy policy live at `https://flowra.app/privacy`
-- [ ] Terms of service live at `https://flowra.app/terms`
+- [ ] Privacy policy live at `https://mintflow.app/privacy`
+- [ ] Terms of service live at `https://mintflow.app/terms`
 - [ ] Legal review completed by fintech-aware lawyer
 - [ ] CCPA compliance verified (right to delete account works)
 - [ ] Plaid production access approved
@@ -528,22 +529,22 @@ FIREBASE_SERVICE_ACCOUNT   JSON from Firebase Console → Service Accounts
 
 ```bash
 # Check API health
-curl https://api.flowra.app/health
+curl https://api.mintflow.app/health
 
 # Monitor Railway logs (real-time)
-railway logs --tail --service flowra-api
+railway logs --tail --service mintflow-api
 
 # Run database migration (if needed)
-railway run --service flowra-api alembic upgrade head
+railway run --service mintflow-api alembic upgrade head
 
 # Check Supabase for auth issues
 # Supabase Dashboard → Authentication → Users
 
 # Check Sentry for errors
-# sentry.io → flowra project → Issues
+# sentry.io → mintflow project → Issues
 
 # Trigger manual Plaid sync (if needed)
-curl -X POST https://api.flowra.app/v1/accounts/plaid/sync/{account_id} \
+curl -X POST https://api.mintflow.app/v1/accounts/plaid/sync/{account_id} \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

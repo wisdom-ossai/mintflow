@@ -1,4 +1,4 @@
-name: flowra_flutter
+name: mintflow_flutter
 description: "Mintflow — personal finance that keeps your money in motion."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
@@ -26,7 +26,7 @@ dependencies:
   # retrofit: ^4.9.2
   pretty_dio_logger: ^1.4.0
 
-  # ── Auth (Flowra FastAPI + Google) ────────────────────────────────────
+  # ── Auth (Mintflow FastAPI + Google) ────────────────────────────────────
   google_sign_in: ^6.2.2
 
   # ── Local storage ─────────────────────────────────────────────────────

@@ -1,8 +1,8 @@
-# Flowra — Flutter Frontend
+# Mintflow — Flutter Frontend
 
 > Your money, flowing forward.
 
-Cross-platform Flutter app (iOS · Android · Web) for the Flowra personal finance platform.
+Cross-platform Flutter app (iOS · Android · Web) for the Mintflow personal finance platform.
 
 ---
 
@@ -11,7 +11,7 @@ Cross-platform Flutter app (iOS · Android · Web) for the Flowra personal finan
 ```
 lib/
 ├── core/
-│   ├── theme/         app_theme.dart       — Flowra design system (colors, typography, theme)
+│   ├── theme/         app_theme.dart       — Mintflow design system (colors, typography, theme)
 │   ├── router/        app_router.dart      — GoRouter with auth guards + bottom nav shell
 │   └── utils/         format.dart          — Currency, date, and debt formatting helpers
 ├── data/
@@ -62,7 +62,7 @@ SUPABASE_ANON_KEY=your-anon-key
 For compile-time API URL (recommended for production):
 
 ```bash
-flutter run --dart-define=API_BASE_URL=https://api.flowra.app
+flutter run --dart-define=API_BASE_URL=https://api.mintflow.app
 ```
 
 ### 4. Firebase setup
@@ -111,11 +111,11 @@ flutter run --dart-define=API_BASE_URL=http://localhost:8000 -d ios
 
 ```bash
 # Generate keystore (first time only)
-keytool -genkey -v -keystore flowra.jks -alias flowra -keyalg RSA -keysize 2048 -validity 10000
+keytool -genkey -v -keystore mintflowow.jks -aliamintflowflow -keyalg RSA -keysize 2048 -validity 10000
 
 # Build app bundle
 flutter build appbundle --release \
-  --dart-define=API_BASE_URL=https://api.flowra.app
+  --dart-define=API_BASE_URL=https://api.mintflowow.app
 
 # Output: build/app/outputs/bundle/release/app-release.aab
 ```
@@ -138,7 +138,7 @@ signingConfigs {
 ```bash
 # Build IPA
 flutter build ipa --release \
-  --dart-define=API_BASE_URL=https://api.flowra.app
+  --dart-define=API_BASE_URL=https://api.mintflowow.app
 
 # Open in Xcode for signing and upload
 open ios/Runner.xcworkspace
@@ -146,16 +146,16 @@ open ios/Runner.xcworkspace
 
 Required in Xcode:
 
-- Set Bundle ID: `app.flowra.ios`
+- Set Bundle ID: `app.mintflowow.ios`
 - Set Team to your Apple Developer account
 - Enable Push Notifications capability
-- Enable Associated Domains: `applinks:flowra.app`
+- Enable Associated Domains: `applinks:mintflowow.app`
 
 ### Web (Vercel / Firebase Hosting)
 
 ```bash
 flutter build web --release \
-  --dart-define=API_BASE_URL=https://api.flowra.app \
+  --dart-define=API_BASE_URL=https://api.mintflowow.app \
   --web-renderer canvaskit
 
 # Deploy to Firebase
@@ -169,10 +169,10 @@ firebase deploy --only hosting
 1. Create a RevenueCat project at app.revenuecat.com
 2. Add iOS and Android apps
 3. Create 3 products in each store matching:
-   - `flowra_growth_monthly` — $6.99/month
-   - `flowra_growth_annual` — $59/year
-   - `flowra_pro_monthly` — $12.99/month
-   - `flowra_pro_annual` — $99/year
+   - `mintflowow_growth_monthly` — $6.99/month
+   - `mintflowow_growth_annual` — $59/year
+   - `mintflowow_pro_monthly` — $12.99/month
+   - `mintflowow_pro_annual` — $99/year
 4. Add API keys to `.env`:
    ```env
    REVENUECAT_IOS_KEY=appl_xxxx
@@ -197,7 +197,7 @@ The app uses **flutter_bloc** (BLoC pattern). Each screen has a corresponding Cu
 
 ```
 Screen → BLoC/Cubit → Repository → ApiClient → FastAPI backend
-                    ↘ FlowraCache (shared_preferences) for offline support
+                    ↘ MintflowCache (shared_preferences) for offline support
 ```
 
 ### Local caching — why not Hive?
@@ -205,10 +205,10 @@ Screen → BLoC/Cubit → Repository → ApiClient → FastAPI backend
 `hive_generator >=1.0.1` requires `build ^2.0.0` but `build_runner >=2.4.0`
 requires `build ^4.0.0` — they are fundamentally incompatible and cannot be
 resolved. Hive was removed and replaced with `shared_preferences` +
-`FlowraCache` (a thin TTL wrapper in `lib/data/datasources/local_cache.dart`).
+`MintflowCache` (a thin TTL wrapper in `lib/data/datasources/local_cache.dart`).
 
 `shared_preferences` is maintained by the Flutter team, requires zero codegen,
-and is more than sufficient for Flowra's caching needs (dashboard summaries,
+and is more than sufficient for Mintflow's caching needs (dashboard summaries,
 goals, bills, user profile). Sensitive data (JWT token) stays in
 `flutter_secure_storage` as before.
 
@@ -268,7 +268,7 @@ All design decisions are in `lib/core/theme/app_theme.dart`:
 - [ ] Fonts in `assets/fonts/`
 - [ ] `dart run build_runner build` completed
 - [ ] Android keystore configured in `key.properties`
-- [ ] iOS bundle ID set to `app.flowra.ios`
+- [ ] iOS bundle ID set to `app.mintflowow.ios`
 - [ ] Push Notifications capability enabled in Xcode
 - [ ] RevenueCat products created and keys configured
 - [ ] `API_BASE_URL` set to production Railway URL

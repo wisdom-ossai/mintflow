@@ -81,26 +81,31 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final serverClientId = (dotenv.env['GOOGLE_CLIENT_ID'] ?? '').trim();
+      final iosClientId = (dotenv.env['GOOGLE_IOS_CLIENT_ID'] ?? '').trim();
       final googleSignIn = GoogleSignIn(
+        clientId: iosClientId.isEmpty ? null : iosClientId,
         serverClientId: serverClientId.isEmpty ? null : serverClientId,
         scopes: const ['email', 'profile'],
       );
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
-        setState(() => _loading = false);
+        if (mounted) setState(() => _loading = false);
         return;
       }
       final auth = await googleUser.authentication;
       final idToken = auth.idToken;
       if (idToken == null || idToken.isEmpty) {
-        throw Exception('Google Sign-In did not return an ID token. '
-            'Set GOOGLE_CLIENT_ID (Web client) in .env.');
+        throw Exception(
+          'Google Sign-In did not return an ID token. '
+          'Set GOOGLE_CLIENT_ID to the Web OAuth client ID in .env.',
+        );
       }
       final result =
           await ServiceLocator.instance.api.google(idToken: idToken);
       if (!mounted) return;
       await _afterAuth(result.user.id);
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = friendlyAuthError(e);
         _loading = false;

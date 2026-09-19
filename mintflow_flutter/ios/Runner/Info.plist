@@ -33,6 +33,11 @@
   <key>CFBundleVersion</key>
   <string>$(FLUTTER_BUILD_NUMBER)</string>
 
+  <!-- Google Sign-In (iOS OAuth client). Missing GIDClientID / URL
+       scheme makes google_sign_in abort the process on signIn(). -->
+  <key>GIDClientID</key>
+  <string>194594747474-bbs3v151baamo4ftok7qj7ct6lr0kl65.apps.googleusercontent.com</string>
+
   <!-- ── Deep links ──────────────────────────────────────────────── -->
   <key>CFBundleURLTypes</key>
   <array>
@@ -43,6 +48,14 @@
       <key>CFBundleURLSchemes</key>
       <array>
         <string>mintflow</string>
+      </array>
+    </dict>
+    <dict>
+      <key>CFBundleTypeRole</key>
+      <string>Editor</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>com.googleusercontent.apps.194594747474-bbs3v151baamo4ftok7qj7ct6lr0kl65</string>
       </array>
     </dict>
   </array>

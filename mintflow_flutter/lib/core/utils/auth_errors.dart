@@ -1,12 +1,20 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 
 /// Maps Dio / network failures to calm, user-facing copy.
 /// Never surface raw [SocketException] / Dio dump strings in the UI.
 String friendlyAuthError(Object error) {
   if (error is DioException) {
     return _fromDio(error);
+  }
+  if (error is PlatformException) {
+    final code = error.code.toLowerCase();
+    if (code.contains('canceled') || code.contains('cancelled')) {
+      return 'Google sign-in was cancelled.';
+    }
+    return 'Google sign-in failed. Please try again.';
   }
   return _fromNetworkOrUnknown(error);
 }

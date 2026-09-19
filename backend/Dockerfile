@@ -43,12 +43,14 @@ RUN chmod +x /app/entrypoint.sh && \
     chown -R mintflow:mintflow /app
 USER mintflow
 
-# Expose port
-EXPOSE 8000
+# Railway injects PORT at runtime (typically 8080). EXPOSE must match that
+# or the public domain's target port stays on 8000 and Hikari returns 502.
+EXPOSE 8080
 
-# Health check (Railway uses healthcheckPath; this is for local docker)
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"
+# Probe the same port uvicorn binds ($PORT). Hardcoding 8000 marks the
+# container unhealthy while the app is healthy on 8080.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import os,httpx; httpx.get('http://127.0.0.1:%s/health' % os.environ.get('PORT','8080')).raise_for_status()"
 
 # Migrate then start. Railway startCommand must also use this script
 # (it overrides Dockerfile CMD/ENTRYPOINT).

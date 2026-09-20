@@ -79,8 +79,10 @@ class SettingsScreen extends StatelessWidget {
             ),
 
             _Section('Account', [
-              _Tile(Icons.person_outline, 'Edit profile', () {}),
-              _Tile(Icons.lock_outline, 'Change password', () {}),
+              _Tile(Icons.person_outline, 'Edit profile',
+                  () => context.push(MintflowRoutes.profile)),
+              _Tile(Icons.lock_outline, 'Change password',
+                  () => context.push(MintflowRoutes.privacySecurity)),
               _Tile(Icons.notifications_outlined, 'Notifications',
                   () => context.push(MintflowRoutes.notificationSettings)),
               _Tile(Icons.currency_exchange, 'Currency and locale', () {}),
@@ -89,10 +91,12 @@ class SettingsScreen extends StatelessWidget {
               _Tile(Icons.star_outline, 'Manage plan',
                   () => context.push(MintflowRoutes.paywall),
                   trailing: tierLabel[0].toUpperCase() + tierLabel.substring(1)),
-              _Tile(Icons.download_outlined, 'Export data (CSV)', () {}),
+              _Tile(Icons.download_outlined, 'Export data (CSV)',
+                  () => context.push(MintflowRoutes.exportData)),
             ]),
             _Section('About', [
-              _Tile(Icons.privacy_tip_outlined, 'Privacy policy', () {}),
+              _Tile(Icons.privacy_tip_outlined, 'Privacy policy',
+                  () => context.push(MintflowRoutes.privacySecurity)),
               _Tile(Icons.description_outlined, 'Terms of service', () {}),
               _Tile(Icons.info_outline, 'App version', () {},
                   trailing: '1.0.0'),

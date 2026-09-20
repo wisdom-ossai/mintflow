@@ -20,6 +20,7 @@ from app.schemas.schemas import (
 from app.services.plaid_service import (
     create_link_token,
     exchange_public_token,
+    remove_plaid_item,
     sync_transactions,
     verify_plaid_webhook,
 )
@@ -150,6 +151,46 @@ async def list_accounts(
         .order_by(Account.created_at)
     )
     return [AccountRead.model_validate(a) for a in result.scalars().all()]
+
+
+@router.delete(
+    "/{account_id}",
+    response_model=OKResponse,
+    summary="Unlink / deactivate an account",
+    responses={
+        200: {"description": "Account unlinked."},
+        401: {"description": "Missing or invalid JWT."},
+        404: {"description": "Account not found."},
+    },
+)
+async def unlink_account(
+    account_id: str,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Soft-deactivate a linked or manual account.
+    For Plaid accounts, revokes the Item access token (best-effort).
+    Transactions remain for history; the account no longer syncs.
+    """
+    result = await db.execute(
+        select(Account).where(
+            Account.id == account_id,
+            Account.user_id == current_user.id,
+            Account.is_active == True,  # noqa: E712
+        )
+    )
+    account = result.scalar_one_or_none()
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    if account.plaid_access_token:
+        await remove_plaid_item(account.plaid_access_token)
+        account.plaid_access_token = None
+
+    account.is_active = False
+    await db.flush()
+    return OKResponse(message="Account unlinked")
 
 
 @router.post(

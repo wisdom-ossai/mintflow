@@ -224,6 +224,24 @@ async def logout_all(db: AsyncSession, user_id: str) -> None:
     )
 
 
+async def change_password(
+    db: AsyncSession,
+    user: User,
+    *,
+    current_password: str,
+    new_password: str,
+) -> None:
+    if not user.password_hash:
+        raise HTTPException(
+            status_code=400,
+            detail="This account uses Google Sign-In. Set a password via forgot password, or continue with Google.",
+        )
+    if not verify_password(current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    user.password_hash = hash_password(new_password)
+    await logout_all(db, str(user.id))
+
+
 async def request_password_reset(db: AsyncSession, email: str) -> None:
     """Always succeeds from the caller's perspective (no email enumeration)."""
     user = await _get_user_by_email(db, email)

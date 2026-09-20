@@ -3,6 +3,9 @@ import 'package:mintflow_flutter/presentation/screens/auth/check_email_screen.da
 import 'package:mintflow_flutter/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:mintflow_flutter/presentation/screens/auth/reset_password_screen.dart';
 import 'package:mintflow_flutter/presentation/screens/profile/profile_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/profile/linked_accounts_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/profile/export_data_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/profile/privacy_security_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:mintflow_flutter/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
@@ -47,6 +50,9 @@ class MintflowRoutes {
   static const notificationSettings = '/notifications/settings';
   static const paywall = '/paywall';
   static const profile = '/profile';
+  static const linkedAccounts = '/profile/linked-accounts';
+  static const exportData = '/profile/export-data';
+  static const privacySecurity = '/profile/privacy-security';
   static const forgotPassword = '/forgot-password';
   static const checkEmail = '/check-email';
   static const resetPassword = '/reset-password';
@@ -199,6 +205,18 @@ GoRouter buildRouter() {
       GoRoute(
         path: MintflowRoutes.notificationSettings,
         builder: (_, __) => const NotificationSettingsScreen(),
+      ),
+      GoRoute(
+        path: MintflowRoutes.linkedAccounts,
+        builder: (_, __) => const LinkedAccountsScreen(),
+      ),
+      GoRoute(
+        path: MintflowRoutes.exportData,
+        builder: (_, __) => const ExportDataScreen(),
+      ),
+      GoRoute(
+        path: MintflowRoutes.privacySecurity,
+        builder: (_, __) => const PrivacySecurityScreen(),
       ),
     ],
   );

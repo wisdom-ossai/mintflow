@@ -155,6 +155,21 @@ class MintflowApiClient {
     });
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await _dio.post('/auth/change-password', data: {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+    });
+  }
+
+  Future<void> logoutAll() async {
+    await _dio.post('/auth/logout-all');
+    await _tokens.clear();
+  }
+
   Future<UserModel> getAuthMe() async {
     final res = await _dio.get('/auth/me');
     return UserModel.fromJson(res.data as Map<String, dynamic>);
@@ -183,6 +198,19 @@ class MintflowApiClient {
   }
 
   Future<void> deleteAccount() => _dio.delete('/users/me');
+
+  /// Pro-gated CSV of all transactions. Returns raw bytes + suggested filename.
+  Future<({List<int> bytes, String filename})> exportTransactionsCsv() async {
+    final res = await _dio.get<List<int>>(
+      '/users/me/export/transactions.csv',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    final disposition = res.headers.value('content-disposition') ?? '';
+    final match = RegExp(r'filename="?([^";]+)"?').firstMatch(disposition);
+    final filename = match?.group(1) ??
+        'mintflow-transactions-${DateTime.now().toUtc().toIso8601String().substring(0, 10).replaceAll('-', '')}.csv';
+    return (bytes: res.data ?? <int>[], filename: filename);
+  }
 
   // ── Dashboard ─────────────────────────────────────────────────────────────
 
@@ -265,6 +293,10 @@ class MintflowApiClient {
   Future<Map<String, dynamic>> syncAccount(String accountId) async {
     final res = await _dio.post('/accounts/plaid/sync/$accountId');
     return res.data;
+  }
+
+  Future<void> unlinkAccount(String accountId) async {
+    await _dio.delete('/accounts/$accountId');
   }
 
   // ── Budgets ───────────────────────────────────────────────────────────────

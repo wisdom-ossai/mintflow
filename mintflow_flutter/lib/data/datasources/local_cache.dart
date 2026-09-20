@@ -82,6 +82,17 @@ class MintflowCache {
     await _p.remove(CacheKeys.goals);
   }
 
+  /// Non-expiring preference (budget method, monthly savings target, etc.).
+  static Future<void> setPref(String key, String value) =>
+      _p.setString('pref_$key', value);
+
+  static String? getPref(String key) => _p.getString('pref_$key');
+
+  static Future<void> setPrefDouble(String key, double value) =>
+      _p.setDouble('pref_$key', value);
+
+  static double? getPrefDouble(String key) => _p.getDouble('pref_$key');
+
   /// Call on logout — clears all cached data.
   static Future<void> clearAll() async {
     final keys = _p.getKeys().where((k) => k.startsWith('mintflow_')).toList();
@@ -109,4 +120,9 @@ class CacheKeys {
 
   // Debt plan
   static const debtPlan = 'mintflow_debt_plan';
+
+  // Financial profile preferences
+  static const budgetMethod = 'budget_method';
+  static const monthlySavingsTarget = 'monthly_savings_target';
+  static const biometricLock = 'biometric_lock';
 }

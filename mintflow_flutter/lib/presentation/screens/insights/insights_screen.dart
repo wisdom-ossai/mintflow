@@ -142,14 +142,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
                             ),
                           ),
                         ]),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 4),
                         Text('Your month\nin review',
                             style: MintflowTextStyles.displaySmall.copyWith(
                                 color: MintflowColors.cream,
                                 fontStyle: FontStyle.italic,
                                 height: 1.2)),
                         if (state is InsightLoaded) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           Text(
                             state.insight.summary,
                             maxLines: 2,

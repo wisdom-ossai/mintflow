@@ -4,16 +4,20 @@ fully documented for Swagger/OpenAPI.
 """
 from datetime import datetime, timezone
 from typing import Annotated, Optional
+import csv
+import io
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
+from sqlalchemy.orm import selectinload
 
 from app.core.auth import CurrentUser, require_feature, get_current_user
 from app.db.session import get_db
 from app.models.models import (
     User, Budget, BudgetPeriod, Insight, InsightPeriod,
-    NotificationPreference, NotificationType,
+    NotificationPreference, NotificationType, Transaction,
 )
 from app.schemas.schemas import (
     UserRead, UserUpdate, OnboardingPayload,
@@ -231,6 +235,68 @@ async def get_subscription(current_user: CurrentUser):
     )
 
 
+@users_router.get(
+    "/me/export/transactions.csv",
+    summary="Export transactions as CSV",
+    responses={
+        200: {"description": "CSV file of all user transactions."},
+        401: {"description": "Missing or invalid JWT."},
+        403: {"description": "Requires Pro tier."},
+    },
+)
+async def export_transactions_csv(
+    current_user: Annotated[User, Depends(require_feature("csv_export"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Download all of the authenticated user's transactions as a CSV file.
+    Pro feature (`csv_export`). Suitable for tax prep and spreadsheets.
+    """
+    result = await db.execute(
+        select(Transaction)
+        .options(selectinload(Transaction.category))
+        .where(Transaction.user_id == current_user.id)
+        .order_by(Transaction.date.desc())
+    )
+    txs = result.scalars().all()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        "date",
+        "amount",
+        "type",
+        "merchant",
+        "description",
+        "category",
+        "is_need",
+        "is_credit_card_payment",
+        "source",
+        "notes",
+    ])
+    for tx in txs:
+        writer.writerow([
+            tx.date.isoformat() if tx.date else "",
+            str(tx.amount),
+            tx.transaction_type.value if tx.transaction_type else "",
+            tx.merchant_name or "",
+            tx.description or "",
+            tx.category.name if tx.category else "",
+            "" if tx.is_need is None else str(tx.is_need).lower(),
+            str(bool(tx.is_credit_card_payment)).lower(),
+            tx.source.value if tx.source else "",
+            tx.notes or "",
+        ])
+
+    buf.seek(0)
+    filename = f"mintflow-transactions-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @users_router.delete(
     "/me",
     response_model=OKResponse,
@@ -249,8 +315,8 @@ async def delete_account(
 
     This operation is **irreversible** and:
     1. Revokes Plaid Items (invalidates access tokens)
-    2. Deletes the Supabase Auth user
-    3. Cascades ORM rows: accounts, transactions, categories, budgets, insights, prefs
+    2. Cascades ORM rows: accounts, transactions, categories, budgets, insights, prefs
+    3. Revokes all auth sessions
 
     Required for GDPR/CCPA compliance (right to erasure).
     """

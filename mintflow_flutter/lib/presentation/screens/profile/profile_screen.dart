@@ -1,5 +1,6 @@
 import 'package:mintflow_flutter/core/router/app_router.dart';
 import 'package:mintflow_flutter/core/utils/format.dart';
+import 'package:mintflow_flutter/data/datasources/local_cache.dart';
 import 'package:mintflow_flutter/data/models/models.dart';
 import 'package:mintflow_flutter/presentation/cubits/cubits.dart';
 import 'package:flutter/material.dart';
@@ -36,11 +37,17 @@ class _ProfileScreenState extends State<ProfileScreen>
   // Settings state
   bool _notificationsEnabled = true;
   bool _darkModeEnabled = false;
-  bool _biometricEnabled = true;
   bool _weeklyReport = true;
   bool _budgetAlerts = true;
   String _selectedCurrency = 'USD';
   String _selectedLanguage = 'English';
+  int _linkedAccountCount = 0;
+
+  // Financial profile
+  double? _monthlyBudget;
+  double? _monthlySavings;
+  String _budgetMethod = 'Needs vs Wants';
+  bool _financialLoading = false;
 
   @override
   void initState() {
@@ -85,9 +92,61 @@ class _ProfileScreenState extends State<ProfileScreen>
     Future.delayed(const Duration(milliseconds: 350), () {
       if (mounted) _sectionsController.forward();
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserCubit>().load();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<UserCubit>().load();
+      if (mounted) await _loadFinancialProfile();
+      if (mounted) await _loadLinkedAccountCount();
     });
+  }
+
+  Future<void> _loadLinkedAccountCount() async {
+    try {
+      final accounts = await ServiceLocator.instance.api.getAccounts();
+      if (!mounted) return;
+      setState(() => _linkedAccountCount = accounts.length);
+    } catch (_) {}
+  }
+
+  Future<void> _loadFinancialProfile() async {
+    setState(() => _financialLoading = true);
+    try {
+      final method =
+          MintflowCache.getPref(CacheKeys.budgetMethod) ?? 'Needs vs Wants';
+      final savedSavings =
+          MintflowCache.getPrefDouble(CacheKeys.monthlySavingsTarget);
+
+      double? budget;
+      try {
+        final budgets = await ServiceLocator.instance.api.getBudgets();
+        for (final b in budgets) {
+          if (b['category_id'] == null) {
+            budget = double.tryParse(b['amount']?.toString() ?? '');
+            break;
+          }
+        }
+      } catch (_) {}
+
+      final userState = context.read<UserCubit>().state;
+      final income = userState is UserLoaded ? userState.user.monthlyIncome : null;
+
+      double? savings = savedSavings;
+      if (savings == null && income != null && budget != null) {
+        savings = (income - budget).clamp(0, double.infinity);
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _budgetMethod = method;
+        _monthlyBudget = budget;
+        _monthlySavings = savings;
+        _financialLoading = false;
+        if (userState is UserLoaded) {
+          _selectedCurrency = userState.user.currency;
+        }
+      });
+    } catch (_) {
+      if (mounted) setState(() => _financialLoading = false);
+    }
   }
 
   @override
@@ -143,7 +202,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                           // Financial profile
                           _SectionLabel(label: 'Financial Profile'),
                           const SizedBox(height: 10),
-                          _FinancialProfileCard(),
+                          _FinancialProfileCard(
+                            monthlyBudget: _monthlyBudget,
+                            monthlySavings: _monthlySavings,
+                            budgetMethod: _budgetMethod,
+                            loading: _financialLoading,
+                            onEditBudget: () => _editMonthlyBudget(context),
+                            onEditSavings: () => _editSavingsGoal(context),
+                            onEditMethod: () => _editBudgetMethod(context),
+                          ),
 
                           const SizedBox(height: 24),
 
@@ -207,17 +274,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     setState(() => _darkModeEnabled = v),
                               ),
                               _Divider(),
-                              _ToggleRow(
-                                icon: Icons.fingerprint_rounded,
-                                iconColor: MintflowColors.green500,
-                                iconBg: MintflowColors.green50,
-                                label: 'Biometric lock',
-                                subtitle: 'Face ID / Fingerprint',
-                                value: _biometricEnabled,
-                                onChanged: (v) =>
-                                    setState(() => _biometricEnabled = v),
-                              ),
-                              _Divider(),
                               _SelectRow(
                                 icon: Icons.language_outlined,
                                 iconColor: MintflowColors.blue,
@@ -250,9 +306,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 iconColor: MintflowColors.green500,
                                 iconBg: MintflowColors.green50,
                                 label: 'Linked accounts',
-                                subtitle: '2 connected',
-                                onTap: () =>
-                                    _showStub(context, 'Linked accounts'),
+                                subtitle: _linkedAccountCount == 0
+                                    ? 'None connected'
+                                    : '$_linkedAccountCount connected',
+                                onTap: () async {
+                                  await context
+                                      .push(MintflowRoutes.linkedAccounts);
+                                  if (mounted) await _loadLinkedAccountCount();
+                                },
                               ),
                               _Divider(),
                               _ActionRow(
@@ -260,8 +321,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 iconColor: MintflowColors.blue,
                                 iconBg: MintflowColors.blueSoft,
                                 label: 'Export data',
-                                subtitle: 'CSV or PDF',
-                                onTap: () => _showStub(context, 'Export data'),
+                                subtitle: 'CSV (Pro)',
+                                onTap: () =>
+                                    context.push(MintflowRoutes.exportData),
                               ),
                               _Divider(),
                               _ActionRow(
@@ -269,8 +331,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 iconColor: MintflowColors.purple,
                                 iconBg: MintflowColors.purpleSoft,
                                 label: 'Privacy & security',
-                                onTap: () =>
-                                    _showStub(context, 'Privacy & security'),
+                                onTap: () => context
+                                    .push(MintflowRoutes.privacySecurity),
                               ),
                             ],
                           ),
@@ -374,7 +436,171 @@ class _ProfileScreenState extends State<ProfileScreen>
       title: 'Currency',
       options: currencies,
       selected: _selectedCurrency,
-      onSelect: (v) => setState(() => _selectedCurrency = v),
+      onSelect: (v) async {
+        setState(() => _selectedCurrency = v);
+        await context.read<UserCubit>().updateProfile({'currency': v});
+      },
+    );
+  }
+
+  void _editBudgetMethod(BuildContext context) {
+    const methods = [
+      'Needs vs Wants',
+      '50/30/20',
+      'Zero-based',
+      'Pay yourself first',
+    ];
+    _showOptionSheet(
+      context,
+      title: 'Budget method',
+      options: methods,
+      selected: _budgetMethod,
+      onSelect: (v) async {
+        setState(() => _budgetMethod = v);
+        await MintflowCache.setPref(CacheKeys.budgetMethod, v);
+      },
+    );
+  }
+
+  Future<void> _editMonthlyBudget(BuildContext context) async {
+    final amount = await _showAmountSheet(
+      context,
+      title: 'Monthly budget',
+      subtitle: 'How much do you plan to spend each month?',
+      initial: _monthlyBudget,
+      confirmLabel: 'Save budget',
+    );
+    if (amount == null || !mounted) return;
+
+    setState(() => _financialLoading = true);
+    try {
+      await ServiceLocator.instance.api.createBudget({
+        'amount': amount,
+        'period': 'monthly',
+        'category_id': null,
+        'rollover': false,
+      });
+      await MintflowCache.invalidateDashboard();
+
+      final userState = context.read<UserCubit>().state;
+      final income =
+          userState is UserLoaded ? userState.user.monthlyIncome : null;
+      final savings = income != null
+          ? (income - amount).clamp(0, double.infinity).toDouble()
+          : _monthlySavings;
+
+      if (savings != null) {
+        await MintflowCache.setPrefDouble(
+            CacheKeys.monthlySavingsTarget, savings);
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _monthlyBudget = amount;
+        _monthlySavings = savings;
+        _financialLoading = false;
+      });
+      context.read<DashboardCubit>().refresh();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Monthly budget set to ${MintflowFormat.currency(amount)}'),
+          backgroundColor: MintflowColors.green900,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _financialLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(friendlyAuthError(e)),
+          backgroundColor: MintflowColors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _editSavingsGoal(BuildContext context) async {
+    final amount = await _showAmountSheet(
+      context,
+      title: 'Monthly savings goal',
+      subtitle: 'How much do you want to save each month?',
+      initial: _monthlySavings,
+      confirmLabel: 'Save goal',
+    );
+    if (amount == null || !mounted) return;
+
+    setState(() => _financialLoading = true);
+    try {
+      await MintflowCache.setPrefDouble(
+          CacheKeys.monthlySavingsTarget, amount);
+
+      final userState = context.read<UserCubit>().state;
+      final income =
+          userState is UserLoaded ? userState.user.monthlyIncome : null;
+
+      double? budget = _monthlyBudget;
+      // If income is known, keep spend budget in sync: budget = income − savings
+      if (income != null && income > 0) {
+        budget = (income - amount).clamp(0, double.infinity).toDouble();
+        await ServiceLocator.instance.api.createBudget({
+          'amount': budget,
+          'period': 'monthly',
+          'category_id': null,
+          'rollover': false,
+        });
+        await MintflowCache.invalidateDashboard();
+        if (mounted) context.read<DashboardCubit>().refresh();
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _monthlySavings = amount;
+        _monthlyBudget = budget;
+        _financialLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Savings goal set to ${MintflowFormat.currency(amount)} / mo.'),
+          backgroundColor: MintflowColors.green900,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _financialLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(friendlyAuthError(e)),
+          backgroundColor: MintflowColors.red,
+        ),
+      );
+    }
+  }
+
+  Future<double?> _showAmountSheet(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required double? initial,
+    required String confirmLabel,
+  }) {
+    return showModalBottomSheet<double>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AmountEditSheet(
+        title: title,
+        subtitle: subtitle,
+        initial: initial,
+        confirmLabel: confirmLabel,
+      ),
     );
   }
 
@@ -745,8 +971,33 @@ class _HeaderStat extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _FinancialProfileCard extends StatelessWidget {
+  final double? monthlyBudget;
+  final double? monthlySavings;
+  final String budgetMethod;
+  final bool loading;
+  final VoidCallback onEditBudget;
+  final VoidCallback onEditSavings;
+  final VoidCallback onEditMethod;
+
+  const _FinancialProfileCard({
+    required this.monthlyBudget,
+    required this.monthlySavings,
+    required this.budgetMethod,
+    required this.loading,
+    required this.onEditBudget,
+    required this.onEditSavings,
+    required this.onEditMethod,
+  });
+
   @override
   Widget build(BuildContext context) {
+    final budgetValue = monthlyBudget != null
+        ? MintflowFormat.currency(monthlyBudget!)
+        : 'Not set';
+    final savingsValue = monthlySavings != null
+        ? '${MintflowFormat.currency(monthlySavings!)} / mo.'
+        : 'Not set';
+
     return _SettingsCard(
       children: [
         _InfoRow(
@@ -754,8 +1005,8 @@ class _FinancialProfileCard extends StatelessWidget {
           iconColor: MintflowColors.green500,
           iconBg: MintflowColors.green50,
           label: 'Monthly budget',
-          value: '\$3,500',
-          onTap: () {},
+          value: loading ? '…' : budgetValue,
+          onTap: onEditBudget,
         ),
         _Divider(),
         _InfoRow(
@@ -763,8 +1014,8 @@ class _FinancialProfileCard extends StatelessWidget {
           iconColor: MintflowColors.gold500,
           iconBg: MintflowColors.gold50,
           label: 'Savings goal',
-          value: '\$500 / mo.',
-          onTap: () {},
+          value: loading ? '…' : savingsValue,
+          onTap: onEditSavings,
         ),
         _Divider(),
         _InfoRow(
@@ -772,8 +1023,8 @@ class _FinancialProfileCard extends StatelessWidget {
           iconColor: MintflowColors.blue,
           iconBg: MintflowColors.blueSoft,
           label: 'Budget method',
-          value: 'Needs vs Wants',
-          onTap: () {},
+          value: budgetMethod,
+          onTap: onEditMethod,
         ),
       ],
     );
@@ -1390,6 +1641,133 @@ class _MintflowDialog extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Amount edit bottom sheet (budget / savings)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AmountEditSheet extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final double? initial;
+  final String confirmLabel;
+
+  const _AmountEditSheet({
+    required this.title,
+    required this.subtitle,
+    required this.initial,
+    required this.confirmLabel,
+  });
+
+  @override
+  State<_AmountEditSheet> createState() => _AmountEditSheetState();
+}
+
+class _AmountEditSheetState extends State<_AmountEditSheet> {
+  late final TextEditingController _ctrl;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(
+      text: widget.initial != null
+          ? widget.initial!.toStringAsFixed(
+              widget.initial! == widget.initial!.roundToDouble() ? 0 : 2)
+          : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final raw = _ctrl.text.replaceAll(',', '').trim();
+    final amount = double.tryParse(raw);
+    if (amount == null || amount < 0) {
+      setState(() => _error = 'Enter a valid amount');
+      return;
+    }
+    Navigator.pop(context, amount);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: MintflowColors.cream,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          20,
+          24,
+          24 + MediaQuery.of(context).padding.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: MintflowColors.ink10,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              widget.title,
+              style: MintflowTextStyles.displaySmall
+                  .copyWith(color: MintflowColors.ink),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              widget.subtitle,
+              style: MintflowTextStyles.bodySmall
+                  .copyWith(color: MintflowColors.ink60),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _ctrl,
+              autofocus: true,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+              ],
+              style: MintflowTextStyles.amountSmall
+                  .copyWith(color: MintflowColors.ink),
+              decoration: InputDecoration(
+                prefixText: '\$ ',
+                hintText: '0',
+                errorText: _error,
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _submit,
+                child: Text(widget.confirmLabel),
+              ),
             ),
           ],
         ),

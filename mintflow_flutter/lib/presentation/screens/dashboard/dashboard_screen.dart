@@ -288,13 +288,13 @@ class _RingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final remLabel = remaining != null
+        ? 'Left ${MintflowFormat.currencyCompact(remaining!)}'
+        : 'Left';
     final budgetLabel = budget != null
-        ? 'of ${MintflowFormat.currency(budget!)} spent'
+        ? 'of ${MintflowFormat.currencyCompact(budget!)}'
         : 'spent this month';
     final pctLabel = ((targetProgress * 100).round()).clamp(0, 999);
-    final remLabel = remaining != null
-        ? 'Remaining ${MintflowFormat.currency(remaining!)}'
-        : 'Remaining';
 
     return Container(
       color: MintflowColors.green900,
@@ -311,31 +311,42 @@ class _RingSection extends StatelessWidget {
                 child: CustomPaint(
                   painter: _BudgetRingPainter(progress: p),
                   child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          MintflowFormat.currency(spent * progressAnim.value),
-                          style: MintflowTextStyles.amountMedium.copyWith(
-                            color: MintflowColors.cream,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              MintflowFormat.currency(
+                                  spent * progressAnim.value),
+                              maxLines: 1,
+                              style: MintflowTextStyles.amountMedium.copyWith(
+                                color: MintflowColors.cream,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          budgetLabel,
-                          style: MintflowTextStyles.labelSmall.copyWith(
-                            color: MintflowColors.cream.withOpacity(0.45),
-                            fontWeight: FontWeight.w300,
+                          const SizedBox(height: 2),
+                          Text(
+                            budgetLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: MintflowTextStyles.labelSmall.copyWith(
+                              color: MintflowColors.cream.withOpacity(0.45),
+                              fontWeight: FontWeight.w300,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          '${(pctLabel * progressAnim.value).round()}% used',
-                          style: MintflowTextStyles.labelMedium.copyWith(
-                            color: MintflowColors.green400,
+                          const SizedBox(height: 3),
+                          Text(
+                            '${(pctLabel * progressAnim.value).round()}% used',
+                            style: MintflowTextStyles.labelMedium.copyWith(
+                              color: MintflowColors.green400,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -344,23 +355,26 @@ class _RingSection extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Padding(
-            padding: const EdgeInsets.only(bottom: 24),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const _RingLegendItem(
-                  color: MintflowColors.green400,
-                  label: 'Spent',
+                const Expanded(
+                  child: _RingLegendItem(
+                    color: MintflowColors.green400,
+                    label: 'Spent',
+                  ),
                 ),
-                const SizedBox(width: 20),
-                _RingLegendItem(
-                  color: Colors.white.withOpacity(0.15),
-                  label: remLabel,
+                Expanded(
+                  child: _RingLegendItem(
+                    color: Colors.white.withOpacity(0.15),
+                    label: remLabel,
+                  ),
                 ),
-                const SizedBox(width: 20),
-                _RingLegendItem(
-                  color: MintflowColors.gold400,
-                  label: '$daysRemaining days left',
+                Expanded(
+                  child: _RingLegendItem(
+                    color: MintflowColors.gold400,
+                    label: '$daysRemaining days left',
+                  ),
                 ),
               ],
             ),
@@ -380,6 +394,7 @@ class _RingLegendItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           width: 8,
@@ -387,10 +402,15 @@ class _RingLegendItem extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: MintflowTextStyles.labelSmall.copyWith(
-            color: MintflowColors.cream.withOpacity(0.55),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: MintflowTextStyles.labelSmall.copyWith(
+              color: MintflowColors.cream.withOpacity(0.55),
+            ),
           ),
         ),
       ],

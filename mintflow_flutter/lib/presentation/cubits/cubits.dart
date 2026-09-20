@@ -605,6 +605,17 @@ class UserCubit extends Cubit<UserState> {
     } catch (_) {}
   }
 
+  Future<UserModel?> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final user = await _repo.updateMe(data);
+      emit(UserLoaded(user));
+      return user;
+    } catch (e) {
+      emit(UserError(_msg(e)));
+      return null;
+    }
+  }
+
   Future<UserModel?> completeOnboarding(Map<String, dynamic> data) async {
     emit(const UserLoading());
     try {

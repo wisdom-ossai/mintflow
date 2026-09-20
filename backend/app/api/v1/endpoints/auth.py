@@ -12,6 +12,7 @@ from app.core.auth import CurrentUser
 from app.db.session import get_db
 from app.schemas.schemas import (
     AuthTokensResponse,
+    ChangePasswordRequest,
     ForgotPasswordRequest,
     GoogleAuthRequest,
     LogoutRequest,
@@ -158,6 +159,42 @@ async def reset_password(
         db, raw_token=payload.token, new_password=payload.password
     )
     return OKResponse(message="Password updated. Please sign in.")
+
+
+@router.post(
+    "/change-password",
+    response_model=OKResponse,
+    summary="Change password (authenticated)",
+)
+async def change_password(
+    payload: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """
+    Update password for email/password accounts.
+    Revokes all refresh sessions — client must sign in again.
+    """
+    await auth_service.change_password(
+        db,
+        current_user,
+        current_password=payload.current_password,
+        new_password=payload.new_password,
+    )
+    return OKResponse(message="Password updated. Please sign in again.")
+
+
+@router.post(
+    "/logout-all",
+    response_model=OKResponse,
+    summary="Sign out all devices",
+)
+async def logout_all_sessions(
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    await auth_service.logout_all(db, str(current_user.id))
+    return OKResponse(message="Signed out of all devices")
 
 
 @router.get("/me", response_model=UserRead, summary="Current auth user")

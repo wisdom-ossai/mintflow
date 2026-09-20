@@ -14,7 +14,7 @@ TAGS_METADATA = [
         "name": "auth",
         "description": (
             "Authentication via Mintflow-issued JWTs. "
-            "`POST /v1/auth/signup`, `/login`, `/google`, and `/refresh` mint tokens. "
+            "`POST /v1/auth/signup`, `/login`, `/google`, `/apple`, and `/refresh` mint tokens. "
             "Send `Authorization: Bearer <access_token>` on protected routes."
         ),
     },
@@ -93,7 +93,7 @@ SECURITY_SCHEMES = {
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "description": (
-            "JWT access token from `POST /v1/auth/login` (or signup / google / refresh). "
+            "JWT access token from `POST /v1/auth/login` (or signup / google / apple / refresh). "
             "Short-lived; use refresh_token to obtain a new pair."
         ),
     }
@@ -147,7 +147,7 @@ Everything else requires:
 Authorization: Bearer <access_token>
 ```
 
-Obtain tokens via `POST /v1/auth/signup`, `/login`, or `/google`.
+Obtain tokens via `POST /v1/auth/signup`, `/login`, `/google`, or `/apple`.
 Access tokens expire in **15 minutes**. Call `POST /v1/auth/refresh` with the
 opaque `refresh_token` (rotation + reuse detection).
 

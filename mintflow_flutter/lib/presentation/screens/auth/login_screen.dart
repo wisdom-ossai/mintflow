@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../core/utils/revenuecat.dart';
+import '../../../core/utils/social_auth.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
 import '../../widgets/label.dart';
@@ -80,30 +80,46 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      final serverClientId = (dotenv.env['GOOGLE_CLIENT_ID'] ?? '').trim();
-      final iosClientId = (dotenv.env['GOOGLE_IOS_CLIENT_ID'] ?? '').trim();
-      final googleSignIn = GoogleSignIn(
-        clientId: iosClientId.isEmpty ? null : iosClientId,
-        serverClientId: serverClientId.isEmpty ? null : serverClientId,
-        scopes: const ['email', 'profile'],
-      );
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        if (mounted) setState(() => _loading = false);
-        return;
-      }
-      final auth = await googleUser.authentication;
-      final idToken = auth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        throw Exception(
-          'Google Sign-In did not return an ID token. '
-          'Set GOOGLE_CLIENT_ID to the Web OAuth client ID in .env.',
-        );
-      }
+      final idToken = await googleIdToken();
       final result =
           await ServiceLocator.instance.api.google(idToken: idToken);
       if (!mounted) return;
       await _afterAuth(result.user.id);
+    } on GoogleSignInCanceled {
+      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = friendlyAuthError(e);
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _appleLogin() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final apple = await appleIdentity();
+      final result = await ServiceLocator.instance.api.apple(
+        identityToken: apple.identityToken,
+        email: apple.email,
+        fullName: apple.fullName,
+      );
+      if (!mounted) return;
+      await _afterAuth(result.user.id);
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (!mounted) return;
+      if (e.code == AuthorizationErrorCode.canceled) {
+        setState(() => _loading = false);
+        return;
+      }
+      setState(() {
+        _error = friendlyAuthError(e);
+        _loading = false;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -219,6 +235,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Expanded(child: Divider()),
                 ]),
                 const SizedBox(height: 20),
+
+                if (isAppleSignInPlatform) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: SignInWithAppleButton(
+                      onPressed: _loading ? () {} : _appleLogin,
+                      style: SignInWithAppleButtonStyle.black,
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
                 // Google
                 SizedBox(

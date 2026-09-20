@@ -33,8 +33,9 @@
   <key>CFBundleVersion</key>
   <string>$(FLUTTER_BUILD_NUMBER)</string>
 
-  <!-- Google Sign-In (iOS OAuth client). Missing GIDClientID / URL
-       scheme makes google_sign_in abort the process on signIn(). -->
+  <!-- Google Sign-In (iOS OAuth client). Recreate this client in Google Cloud
+       Console for bundle ID app.mintflow.ios, then replace GIDClientID and the
+       URL scheme below. Missing GIDClientID / URL scheme aborts on signIn(). -->
   <key>GIDClientID</key>
   <string>194594747474-bbs3v151baamo4ftok7qj7ct6lr0kl65.apps.googleusercontent.com</string>
 
@@ -136,6 +137,10 @@
 
   <key>UIApplicationSupportsIndirectInputEvents</key>
   <true/>
+
+  <!-- HTTPS-only; no non-exempt encryption. Answers App Store export compliance. -->
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false/>
 
 </dict>
 </plist>

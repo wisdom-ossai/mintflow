@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../core/utils/revenuecat.dart';
+import '../../../core/utils/social_auth.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../widgets/label.dart';
 import '../../widgets/brand_logo.dart';
@@ -50,6 +52,67 @@ class _SignupScreenState extends State<SignupScreen> {
       AuthGate.setOnboardingComplete(false);
       if (mounted) context.go(MintflowRoutes.onboarding);
     } catch (e) {
+      setState(() {
+        _error = friendlyAuthError(e);
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _afterSocial(String userId) async {
+    await identifyRevenueCat(userId);
+    AuthGate.setOnboardingComplete(false);
+    if (mounted) context.go(MintflowRoutes.onboarding);
+  }
+
+  Future<void> _googleSignup() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final idToken = await googleIdToken();
+      final result =
+          await ServiceLocator.instance.api.google(idToken: idToken);
+      if (!mounted) return;
+      await _afterSocial(result.user.id);
+    } on GoogleSignInCanceled {
+      if (mounted) setState(() => _loading = false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = friendlyAuthError(e);
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _appleSignup() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final apple = await appleIdentity();
+      final result = await ServiceLocator.instance.api.apple(
+        identityToken: apple.identityToken,
+        email: apple.email,
+        fullName: apple.fullName,
+      );
+      if (!mounted) return;
+      await _afterSocial(result.user.id);
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (!mounted) return;
+      if (e.code == AuthorizationErrorCode.canceled) {
+        setState(() => _loading = false);
+        return;
+      }
+      setState(() {
+        _error = friendlyAuthError(e);
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = friendlyAuthError(e);
         _loading = false;
@@ -181,6 +244,40 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                Row(children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('or',
+                        style: MintflowTextStyles.labelSmall
+                            .copyWith(color: MintflowColors.ink60)),
+                  ),
+                  const Expanded(child: Divider()),
+                ]),
+                const SizedBox(height: 20),
+
+                if (isAppleSignInPlatform) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: SignInWithAppleButton(
+                      onPressed: _loading ? () {} : _appleSignup,
+                      style: SignInWithAppleButtonStyle.black,
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _loading ? null : _googleSignup,
+                    icon: const _SignupGoogleIcon(),
+                    label: const Text('Continue with Google'),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
                 Center(
                   child: GestureDetector(
                     onTap: () => context.go(MintflowRoutes.login),
@@ -217,4 +314,41 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
+}
+
+class _SignupGoogleIcon extends StatelessWidget {
+  const _SignupGoogleIcon();
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: 18,
+        height: 18,
+        child: CustomPaint(painter: _SignupGooglePainter()),
+      );
+}
+
+class _SignupGooglePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size s) {
+    final c = Offset(s.width / 2, s.height / 2);
+    final r = s.width / 2;
+    final colors = [
+      const Color(0xFF4285F4),
+      const Color(0xFF34A853),
+      const Color(0xFFFBBC05),
+      const Color(0xFFEA4335),
+    ];
+    for (var i = 0; i < 4; i++) {
+      canvas.drawArc(
+        Rect.fromCircle(center: c, radius: r),
+        (i * 90 - 45) * 3.14159 / 180,
+        90 * 3.14159 / 180,
+        true,
+        Paint()..color = colors[i],
+      );
+    }
+    canvas.drawCircle(c, r * 0.55, Paint()..color = Colors.white);
+  }
+
+  @override
+  bool shouldRepaint(_) => false;
 }

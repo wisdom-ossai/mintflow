@@ -1,5 +1,5 @@
 """
-Auth endpoints — signup, login, refresh, logout, Google, password reset.
+Auth endpoints — signup, login, refresh, logout, Google, Apple, password reset.
 """
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.auth import CurrentUser
 from app.db.session import get_db
 from app.schemas.schemas import (
+    AppleAuthRequest,
     AuthTokensResponse,
     ChangePasswordRequest,
     ForgotPasswordRequest,
@@ -93,6 +94,31 @@ async def google_login(
         user, access, refresh = await auth_service.login_or_register_google(
             db,
             id_token_str=payload.id_token,
+            user_agent=ua,
+            ip_address=ip,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return AuthTokensResponse(
+        access_token=access,
+        refresh_token=refresh,
+        user=UserRead.model_validate(user),
+    )
+
+
+@router.post("/apple", response_model=AuthTokensResponse, summary="Sign in with Apple")
+async def apple_login(
+    payload: AppleAuthRequest,
+    request: Request,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    ua, ip = _client_meta(request)
+    try:
+        user, access, refresh = await auth_service.login_or_register_apple(
+            db,
+            identity_token=payload.identity_token,
+            email=str(payload.email) if payload.email else None,
+            full_name=payload.full_name,
             user_agent=ua,
             ip_address=ip,
         )

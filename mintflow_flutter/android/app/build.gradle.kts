@@ -21,8 +21,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.mintflow_flutter"
+        // Play / App Store application id (Kotlin namespace stays com.example.*).
+        applicationId = "app.mintflow.android"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

@@ -22,6 +22,7 @@ from app.core.password import (
 from app.core.security_jwt import create_access_token
 from app.models.models import AuthSession, PasswordResetToken, SubscriptionTier, User, gen_uuid
 from app.services.email_service import send_password_reset_email
+from app.services.apple_auth import verify_apple_identity_token
 from app.services.google_auth import verify_google_id_token
 
 settings = get_settings()
@@ -158,6 +159,81 @@ async def login_or_register_google(
     return user, issue_access(user), refresh
 
 
+def _apple_placeholder_email(apple_sub: str) -> str:
+    safe = "".join(c if c.isalnum() or c in ".-" else "-" for c in apple_sub)[:80]
+    return f"{safe}@signin.mintflow.app"
+
+
+def _apple_email_verified(claims: dict) -> bool:
+    raw = claims.get("email_verified", False)
+    if isinstance(raw, str):
+        return raw.lower() == "true"
+    return bool(raw)
+
+
+async def login_or_register_apple(
+    db: AsyncSession,
+    *,
+    identity_token: str,
+    email: str | None = None,
+    full_name: str | None = None,
+    user_agent: str | None = None,
+    ip_address: str | None = None,
+) -> tuple[User, str, str]:
+    claims = verify_apple_identity_token(identity_token)
+    apple_sub = claims.get("sub")
+    if not apple_sub:
+        raise HTTPException(status_code=400, detail="Apple account is missing identifier")
+
+    token_email = (claims.get("email") or "").lower().strip()
+    provided_email = (email or "").lower().strip()
+    resolved_email = token_email or provided_email
+    name = (full_name or "").strip() or None
+
+    result = await db.execute(select(User).where(User.apple_sub == apple_sub))
+    user = result.scalar_one_or_none()
+    if user is None:
+        if resolved_email:
+            user = await _get_user_by_email(db, resolved_email)
+            if user:
+                user.apple_sub = apple_sub
+                if not user.email_verified_at and (
+                    token_email or _apple_email_verified(claims)
+                ):
+                    user.email_verified_at = _now()
+            else:
+                user = User(
+                    email=resolved_email,
+                    apple_sub=apple_sub,
+                    full_name=name,
+                    subscription_tier=SubscriptionTier.seed,
+                    trial_ends_at=_trial_ends(),
+                    email_verified_at=_now() if token_email or _apple_email_verified(claims) else None,
+                )
+                db.add(user)
+                await db.flush()
+        else:
+            user = User(
+                email=_apple_placeholder_email(str(apple_sub)),
+                apple_sub=apple_sub,
+                full_name=name,
+                subscription_tier=SubscriptionTier.seed,
+                trial_ends_at=_trial_ends(),
+                email_verified_at=_now(),
+            )
+            db.add(user)
+            await db.flush()
+    else:
+        if name and not user.full_name:
+            user.full_name = name
+
+    if name and user.full_name is None:
+        user.full_name = name
+
+    refresh, _ = await create_session(db, user, user_agent=user_agent, ip_address=ip_address)
+    return user, issue_access(user), refresh
+
+
 async def refresh_tokens(
     db: AsyncSession,
     *,
@@ -234,7 +310,7 @@ async def change_password(
     if not user.password_hash:
         raise HTTPException(
             status_code=400,
-            detail="This account uses Google Sign-In. Set a password via forgot password, or continue with Google.",
+            detail="This account uses a social login. Set a password via forgot password, or continue with Google or Apple.",
         )
     if not verify_password(current_password, user.password_hash):
         raise HTTPException(status_code=400, detail="Current password is incorrect")

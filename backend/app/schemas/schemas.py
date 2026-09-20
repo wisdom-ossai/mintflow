@@ -40,6 +40,27 @@ class GoogleAuthRequest(BaseModel):
     id_token: str = Field(min_length=20)
 
 
+class AppleAuthRequest(BaseModel):
+    identity_token: str = Field(min_length=20)
+    # Email / name only on first Apple authorization; JWT may omit them later.
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def _empty_email(cls, v: Any) -> Any:
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return None
+        return v
+
+    @field_validator("full_name", mode="before")
+    @classmethod
+    def _empty_name(cls, v: Any) -> Any:
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return None
+        return v
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str = Field(min_length=20)
 

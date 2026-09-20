@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     # Optional extra audiences (iOS/Android client IDs)
     GOOGLE_CLIENT_IDS: str = ""
 
+    # Sign in with Apple — iOS bundle ID is the identity-token audience
+    APPLE_BUNDLE_ID: str = "app.mintflow.ios"
+    # Optional extra audiences (Services ID for Android/web)
+    APPLE_CLIENT_IDS: str = ""
+
     # Resend transactional email
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "Mintflow <noreply@mintflow.app>"
@@ -109,6 +114,15 @@ class Settings(BaseSettings):
     def google_audiences(self) -> List[str]:
         ids = [self.GOOGLE_CLIENT_ID.strip()] if self.GOOGLE_CLIENT_ID.strip() else []
         for part in self.GOOGLE_CLIENT_IDS.split(","):
+            p = part.strip()
+            if p and p not in ids:
+                ids.append(p)
+        return ids
+
+    @property
+    def apple_audiences(self) -> List[str]:
+        ids = [self.APPLE_BUNDLE_ID.strip()] if self.APPLE_BUNDLE_ID.strip() else []
+        for part in self.APPLE_CLIENT_IDS.split(","):
             p = part.strip()
             if p and p not in ids:
                 ids.append(p)

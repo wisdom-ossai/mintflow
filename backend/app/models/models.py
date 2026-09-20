@@ -86,8 +86,9 @@ class User(Base):
 
     id               = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
     email            = Column(String(255), unique=True, nullable=False, index=True)
-    password_hash    = Column(Text, nullable=True)  # null for Google-only accounts
+    password_hash    = Column(Text, nullable=True)  # null for social-only accounts
     google_sub       = Column(String(255), unique=True, nullable=True, index=True)
+    apple_sub        = Column(String(255), unique=True, nullable=True, index=True)
     email_verified_at = Column(DateTime(timezone=True), nullable=True)
     full_name        = Column(String(255), nullable=True)
     avatar_url       = Column(String(512), nullable=True)

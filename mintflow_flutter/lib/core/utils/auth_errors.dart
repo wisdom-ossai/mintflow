@@ -2,12 +2,24 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+
+import 'social_auth.dart';
 
 /// Maps Dio / network failures to calm, user-facing copy.
 /// Never surface raw [SocketException] / Dio dump strings in the UI.
 String friendlyAuthError(Object error) {
   if (error is DioException) {
     return _fromDio(error);
+  }
+  if (error is GoogleSignInCanceled) {
+    return 'Google sign-in was cancelled.';
+  }
+  if (error is SignInWithAppleAuthorizationException) {
+    if (error.code == AuthorizationErrorCode.canceled) {
+      return 'Sign in was cancelled.';
+    }
+    return 'Apple sign-in failed. Please try again.';
   }
   if (error is PlatformException) {
     final code = error.code.toLowerCase();

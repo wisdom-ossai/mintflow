@@ -117,6 +117,24 @@ class MintflowApiClient {
     return result;
   }
 
+  Future<AuthTokensResult> apple({
+    required String identityToken,
+    String? email,
+    String? fullName,
+  }) async {
+    final res = await _dio.post('/auth/apple', data: {
+      'identity_token': identityToken,
+      if (email != null && email.isNotEmpty) 'email': email,
+      if (fullName != null && fullName.isNotEmpty) 'full_name': fullName,
+    });
+    final result = AuthTokensResult.fromJson(res.data as Map<String, dynamic>);
+    await _tokens.saveTokens(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    return result;
+  }
+
   Future<AuthTokensResult> refresh({required String refreshToken}) async {
     final res = await _refreshDio.post('/auth/refresh', data: {
       'refresh_token': refreshToken,
@@ -451,6 +469,7 @@ class _AuthInterceptor extends Interceptor {
     '/auth/signup',
     '/auth/login',
     '/auth/google',
+    '/auth/apple',
     '/auth/refresh',
     '/auth/forgot-password',
     '/auth/reset-password',

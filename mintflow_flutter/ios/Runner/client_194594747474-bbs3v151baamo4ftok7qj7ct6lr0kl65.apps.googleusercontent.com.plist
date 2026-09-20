@@ -9,6 +9,6 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.mintflowFlutter</string>
+	<string>app.mintflow.ios</string>
 </dict>
 </plist>

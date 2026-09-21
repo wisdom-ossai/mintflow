@@ -196,6 +196,19 @@ async def _run_plaid_sync():
                 except Exception as e:
                     logger.error("Plaid sync failed for account %s: %s", account.id, e)
 
+            # Catch-up detect for users who only had older txs (no new adds this run)
+            try:
+                from app.services.recurring_service import detect_and_upsert_recurring
+
+                user_ids = {str(a.user_id) for a in accounts}
+                for uid in user_ids:
+                    try:
+                        await detect_and_upsert_recurring(db, uid)
+                    except Exception as e:
+                        logger.error("Recurring detect failed for user %s: %s", uid, e)
+            except Exception as e:
+                logger.error("Recurring detect batch error: %s", e)
+
             await db.commit()
         except Exception as e:
             logger.error("Plaid sync job error: %s", e)

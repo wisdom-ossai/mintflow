@@ -6,6 +6,7 @@ import 'package:mintflow_flutter/presentation/screens/profile/profile_screen.dar
 import 'package:mintflow_flutter/presentation/screens/profile/linked_accounts_screen.dart';
 import 'package:mintflow_flutter/presentation/screens/profile/export_data_screen.dart';
 import 'package:mintflow_flutter/presentation/screens/profile/privacy_security_screen.dart';
+import 'package:mintflow_flutter/presentation/screens/subscriptions/recurring_subscriptions_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:mintflow_flutter/core/theme/app_theme.dart';
 import 'package:go_router/go_router.dart';
@@ -53,6 +54,7 @@ class MintflowRoutes {
   static const linkedAccounts = '/profile/linked-accounts';
   static const exportData = '/profile/export-data';
   static const privacySecurity = '/profile/privacy-security';
+  static const recurringSubscriptions = '/subscriptions/tracked';
   static const forgotPassword = '/forgot-password';
   static const checkEmail = '/check-email';
   static const resetPassword = '/reset-password';
@@ -217,6 +219,10 @@ GoRouter buildRouter() {
       GoRoute(
         path: MintflowRoutes.privacySecurity,
         builder: (_, __) => const PrivacySecurityScreen(),
+      ),
+      GoRoute(
+        path: MintflowRoutes.recurringSubscriptions,
+        builder: (_, __) => const RecurringSubscriptionsScreen(),
       ),
     ],
   );

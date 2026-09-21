@@ -345,8 +345,10 @@ class BillLoaded extends BillState {
   // Convenience: merge bill + payment status for current month
   List<BillWithStatus> get billsWithStatus {
     final now = DateTime.now();
+    final lastDay = DateTime(now.year, now.month + 1, 0).day;
     return bills.map((bill) {
-      final dueDate = DateTime(now.year, now.month, bill.dueDay);
+      final day = bill.dueDay.clamp(1, lastDay);
+      final dueDate = DateTime(now.year, now.month, day);
       final payment = payments.where((p) => p.billId == bill.id).firstOrNull;
       BillStatus status;
       if (payment?.isPaid == true) {
@@ -432,6 +434,8 @@ class BillCubit extends Cubit<BillState> {
         isAutopay: isAutopay,
       );
       await load(forceRefresh: true);
+    } on DioException catch (e) {
+      emit(BillError(_billError(e)));
     } catch (e) {
       emit(BillError(_msg(e)));
     }
@@ -441,6 +445,8 @@ class BillCubit extends Cubit<BillState> {
     try {
       await _repo.markPaid(billId, amountPaid: amountPaid);
       await load(forceRefresh: true);
+    } on DioException catch (e) {
+      emit(BillError(_billError(e)));
     } catch (e) {
       emit(BillError(_msg(e)));
     }
@@ -450,10 +456,24 @@ class BillCubit extends Cubit<BillState> {
     try {
       await _repo.deleteBill(id);
       await load(forceRefresh: true);
+    } on DioException catch (e) {
+      emit(BillError(_billError(e)));
     } catch (e) {
       emit(BillError(_msg(e)));
     }
   }
+}
+
+String _billError(DioException e) {
+  final data = e.response?.data;
+  if (data is Map && data['detail'] != null) {
+    final detail = data['detail'].toString();
+    if (detail.isNotEmpty && detail.length <= 200) return detail;
+  }
+  if (e.response?.statusCode == 403) {
+    return 'Upgrade to Growth for unlimited bills.';
+  }
+  return _msg(e);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -636,6 +656,97 @@ class UserCubit extends Cubit<UserState> {
     } catch (e) {
       emit(UserError(_msg(e)));
       return false;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Recurring subscriptions (Plaid-detected)
+// ═══════════════════════════════════════════════════════════════════════════
+
+abstract class RecurringState extends Equatable {
+  const RecurringState();
+  @override
+  List get props => [];
+}
+
+class RecurringInitial extends RecurringState {
+  const RecurringInitial();
+}
+
+class RecurringLoading extends RecurringState {
+  const RecurringLoading();
+}
+
+class RecurringLoaded extends RecurringState {
+  final RecurringSubscriptionList data;
+  const RecurringLoaded(this.data);
+  @override
+  List get props => [data];
+}
+
+class RecurringUpgradeRequired extends RecurringState {
+  const RecurringUpgradeRequired();
+}
+
+class RecurringError extends RecurringState {
+  final String message;
+  const RecurringError(this.message);
+  @override
+  List get props => [message];
+}
+
+class RecurringCubit extends Cubit<RecurringState> {
+  RecurringCubit() : super(const RecurringInitial());
+
+  Future<void> load({String status = 'active'}) async {
+    emit(const RecurringLoading());
+    try {
+      final data = await ServiceLocator.instance.api
+          .getRecurringSubscriptions(status: status);
+      emit(RecurringLoaded(data));
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        emit(const RecurringUpgradeRequired());
+        return;
+      }
+      emit(RecurringError(_msg(e)));
+    } catch (e) {
+      emit(RecurringError(_msg(e)));
+    }
+  }
+
+  Future<void> detect() async {
+    try {
+      await ServiceLocator.instance.api.detectRecurringSubscriptions();
+      await load();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        emit(const RecurringUpgradeRequired());
+        return;
+      }
+      emit(RecurringError(_msg(e)));
+    } catch (e) {
+      emit(RecurringError(_msg(e)));
+    }
+  }
+
+  Future<void> setStatus(String id, String status) async {
+    try {
+      await ServiceLocator.instance.api
+          .updateRecurringSubscription(id, {'status': status});
+      await load();
+    } catch (e) {
+      emit(RecurringError(_msg(e)));
+    }
+  }
+
+  Future<void> dismiss(String id) async {
+    try {
+      await ServiceLocator.instance.api.dismissRecurringSubscription(id);
+      await load();
+    } catch (e) {
+      emit(RecurringError(_msg(e)));
     }
   }
 }

@@ -155,6 +155,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                               children: [
                                 _SummaryRow(summary: summary),
                                 const SizedBox(height: 14),
+                                const _SubscriptionsTeaser(),
+                                const SizedBox(height: 10),
+                                const _BillsTeaser(),
+                                const SizedBox(height: 14),
                                 _InsightCard(
                                   insight: summary.topInsight,
                                   categories: summary.spendingByCategory,
@@ -520,6 +524,104 @@ class _SummaryRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SubscriptionsTeaser extends StatelessWidget {
+  const _SubscriptionsTeaser();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push(MintflowRoutes.recurringSubscriptions),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: MintflowRadius.xl_,
+          border: Border.all(color: MintflowColors.ink10),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: MintflowColors.purpleSoft,
+                borderRadius: MintflowRadius.md_,
+              ),
+              child: const Icon(Icons.subscriptions_outlined,
+                  color: MintflowColors.purple, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Subscriptions', style: MintflowTextStyles.labelMedium),
+                  Text(
+                    'Auto-detected from your banks',
+                    style: MintflowTextStyles.overline
+                        .copyWith(color: MintflowColors.ink60),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                color: MintflowColors.ink30, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BillsTeaser extends StatelessWidget {
+  const _BillsTeaser();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push(MintflowRoutes.bills),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: MintflowRadius.xl_,
+          border: Border.all(color: MintflowColors.ink10),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: MintflowColors.blueSoft,
+                borderRadius: MintflowRadius.md_,
+              ),
+              child: const Icon(Icons.receipt_long_outlined,
+                  color: MintflowColors.blue, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Bills', style: MintflowTextStyles.labelMedium),
+                  Text(
+                    'Rent, utilities, due dates',
+                    style: MintflowTextStyles.overline
+                        .copyWith(color: MintflowColors.ink60),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                color: MintflowColors.ink30, size: 18),
+          ],
+        ),
+      ),
     );
   }
 }

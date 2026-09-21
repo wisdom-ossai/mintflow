@@ -452,6 +452,38 @@ class MintflowApiClient {
     });
     return DebtPlanModel.fromJson(res.data);
   }
+
+  // ── Recurring subscriptions (merchant tracker) ────────────────────────────
+
+  Future<RecurringSubscriptionList> getRecurringSubscriptions({
+    String status = 'active',
+  }) async {
+    final res = await _dio.get(
+      '/recurring-subscriptions',
+      queryParameters: {'status': status},
+    );
+    return RecurringSubscriptionList.fromJson(
+      Map<String, dynamic>.from(res.data as Map),
+    );
+  }
+
+  Future<Map<String, dynamic>> detectRecurringSubscriptions() async {
+    final res = await _dio.post('/recurring-subscriptions/detect');
+    return Map<String, dynamic>.from(res.data as Map);
+  }
+
+  Future<RecurringSubscriptionModel> updateRecurringSubscription(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    final res = await _dio.patch('/recurring-subscriptions/$id', data: data);
+    return RecurringSubscriptionModel.fromJson(
+      Map<String, dynamic>.from(res.data as Map),
+    );
+  }
+
+  Future<void> dismissRecurringSubscription(String id) =>
+      _dio.delete('/recurring-subscriptions/$id');
 }
 
 // ── Auth interceptor ──────────────────────────────────────────────────────────

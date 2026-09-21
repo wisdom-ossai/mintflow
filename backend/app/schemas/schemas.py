@@ -393,3 +393,94 @@ class SubscriptionStatusRead(BaseModel):
     trial_ends_at: Optional[datetime]
     is_trial_active: bool
     effective_tier: SubscriptionTier
+
+
+# ─── Recurring merchant subscriptions (Plaid-detected) ─────────────────────
+
+class RecurringSubscriptionRead(BaseModel):
+    id: str
+    merchant_key: str
+    display_name: str
+    typical_amount: Decimal
+    currency: str
+    frequency: str
+    status: str
+    occurrence_count: int
+    last_charged_at: Optional[datetime]
+    next_expected_at: Optional[datetime]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class RecurringSubscriptionUpdate(BaseModel):
+    status: Optional[str] = Field(
+        None,
+        description="active | dismissed | cancelled",
+    )
+    display_name: Optional[str] = Field(None, max_length=255)
+
+
+class RecurringSubscriptionListResponse(BaseModel):
+    items: list[RecurringSubscriptionRead]
+    monthly_total: Decimal
+    active_count: int
+
+
+class RecurringDetectResponse(BaseModel):
+    created: int
+    updated: int
+    detected: int
+    flagged_transactions: int
+
+
+# ─── Bills ─────────────────────────────────────────────────────────────────
+
+class BillCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    amount: Optional[Decimal] = None
+    due_day: int = Field(ge=1, le=31)
+    category_id: Optional[str] = None
+    is_autopay: bool = False
+
+
+class BillUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    amount: Optional[Decimal] = None
+    due_day: Optional[int] = Field(None, ge=1, le=31)
+    category_id: Optional[str] = None
+    is_autopay: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
+class BillRead(BaseModel):
+    id: str
+    user_id: str
+    name: str
+    amount: Optional[Decimal]
+    due_day: int
+    category_id: Optional[str]
+    is_autopay: bool
+    is_active: bool
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class BillPayRequest(BaseModel):
+    amount_paid: Optional[Decimal] = None
+    paid_date: Optional[datetime] = None
+
+
+class BillPaymentRead(BaseModel):
+    id: str
+    bill_id: str
+    user_id: str
+    amount_paid: Optional[Decimal]
+    due_date: datetime
+    paid_date: Optional[datetime]
+    status: str
+    transaction_id: Optional[str]
+    bill: Optional[BillRead] = None
+
+    model_config = {"from_attributes": True}

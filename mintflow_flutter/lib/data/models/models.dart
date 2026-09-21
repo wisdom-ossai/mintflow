@@ -825,3 +825,101 @@ class InsightModel extends Equatable {
   @override
   List<Object?> get props => [id, periodKey];
 }
+
+// ── Recurring subscriptions (Plaid-detected) ──────────────────────────────────
+
+enum RecurringFrequency { weekly, monthly, yearly }
+
+enum RecurringStatus { active, dismissed, cancelled }
+
+class RecurringSubscriptionModel extends Equatable {
+  final String id;
+  final String merchantKey;
+  final String displayName;
+  final double typicalAmount;
+  final String currency;
+  final RecurringFrequency frequency;
+  final RecurringStatus status;
+  final int occurrenceCount;
+  final DateTime? lastChargedAt;
+  final DateTime? nextExpectedAt;
+  final DateTime createdAt;
+
+  const RecurringSubscriptionModel({
+    required this.id,
+    required this.merchantKey,
+    required this.displayName,
+    required this.typicalAmount,
+    required this.currency,
+    required this.frequency,
+    required this.status,
+    required this.occurrenceCount,
+    this.lastChargedAt,
+    this.nextExpectedAt,
+    required this.createdAt,
+  });
+
+  double get monthlyEquivalent {
+    switch (frequency) {
+      case RecurringFrequency.weekly:
+        return typicalAmount * 52 / 12;
+      case RecurringFrequency.yearly:
+        return typicalAmount / 12;
+      case RecurringFrequency.monthly:
+        return typicalAmount;
+    }
+  }
+
+  factory RecurringSubscriptionModel.fromJson(Map<String, dynamic> json) =>
+      RecurringSubscriptionModel(
+        id: json['id'],
+        merchantKey: json['merchant_key'] ?? '',
+        displayName: json['display_name'] ?? '',
+        typicalAmount: double.parse(json['typical_amount'].toString()),
+        currency: json['currency'] ?? 'USD',
+        frequency: RecurringFrequency.values.firstWhere(
+          (e) => e.name == json['frequency'],
+          orElse: () => RecurringFrequency.monthly,
+        ),
+        status: RecurringStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => RecurringStatus.active,
+        ),
+        occurrenceCount: json['occurrence_count'] ?? 0,
+        lastChargedAt: json['last_charged_at'] != null
+            ? DateTime.parse(json['last_charged_at'])
+            : null,
+        nextExpectedAt: json['next_expected_at'] != null
+            ? DateTime.parse(json['next_expected_at'])
+            : null,
+        createdAt: DateTime.parse(json['created_at']),
+      );
+
+  @override
+  List<Object?> get props => [id, status, typicalAmount];
+}
+
+class RecurringSubscriptionList extends Equatable {
+  final List<RecurringSubscriptionModel> items;
+  final double monthlyTotal;
+  final int activeCount;
+
+  const RecurringSubscriptionList({
+    required this.items,
+    required this.monthlyTotal,
+    required this.activeCount,
+  });
+
+  factory RecurringSubscriptionList.fromJson(Map<String, dynamic> json) =>
+      RecurringSubscriptionList(
+        items: (json['items'] as List? ?? [])
+            .map((e) =>
+                RecurringSubscriptionModel.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
+        monthlyTotal: double.parse((json['monthly_total'] ?? 0).toString()),
+        activeCount: json['active_count'] ?? 0,
+      );
+
+  @override
+  List<Object?> get props => [items, monthlyTotal, activeCount];
+}

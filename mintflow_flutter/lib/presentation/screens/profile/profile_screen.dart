@@ -317,6 +317,26 @@ class _ProfileScreenState extends State<ProfileScreen>
                               ),
                               _Divider(),
                               _ActionRow(
+                                icon: Icons.subscriptions_outlined,
+                                iconColor: MintflowColors.purple,
+                                iconBg: MintflowColors.purpleSoft,
+                                label: 'Subscriptions',
+                                subtitle: 'Detected from your banks',
+                                onTap: () => context.push(
+                                    MintflowRoutes.recurringSubscriptions),
+                              ),
+                              _Divider(),
+                              _ActionRow(
+                                icon: Icons.receipt_long_outlined,
+                                iconColor: MintflowColors.blue,
+                                iconBg: MintflowColors.blueSoft,
+                                label: 'Bills',
+                                subtitle: 'Rent, utilities, due dates',
+                                onTap: () =>
+                                    context.push(MintflowRoutes.bills),
+                              ),
+                              _Divider(),
+                              _ActionRow(
                                 icon: Icons.download_outlined,
                                 iconColor: MintflowColors.blue,
                                 iconBg: MintflowColors.blueSoft,

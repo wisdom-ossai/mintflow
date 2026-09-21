@@ -88,6 +88,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
     'bank_sync': 'Connect your bank with Growth or Pro.',
     'ai_insights': 'Unlock monthly AI insights on Growth or Pro.',
     'ai_categorization': 'AI categorization requires Growth or Pro.',
+    'subscription_tracker':
+        'Track Netflix, Spotify, and other recurring charges on Growth or Pro.',
+    'unlimited_bills': 'Unlimited bills require Growth or Pro.',
     'debt_payoff_plan': 'Debt payoff plans are a Pro feature.',
     'receipt_ocr': 'Receipt scanning is available on Pro.',
     'csv_export': 'CSV export requires Pro.',

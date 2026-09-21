@@ -15,6 +15,10 @@ from app.core.openapi import build_openapi_schema, TAGS_METADATA
 from app.api.v1.endpoints.transactions import router as transactions_router
 from app.api.v1.endpoints.accounts import router as accounts_router
 from app.api.v1.endpoints.subscriptions import router as subscriptions_router
+from app.api.v1.endpoints.recurring_subscriptions import (
+    router as recurring_subscriptions_router,
+)
+from app.api.v1.endpoints.bills import router as bills_router
 from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.misc import (
     users_router, dashboard_router, insights_router,
@@ -270,6 +274,8 @@ app.include_router(notifications_router,  prefix=API_PREFIX)
 app.include_router(transactions_router,   prefix=API_PREFIX)
 app.include_router(accounts_router,       prefix=API_PREFIX)
 app.include_router(subscriptions_router,  prefix=API_PREFIX)
+app.include_router(recurring_subscriptions_router, prefix=API_PREFIX)
+app.include_router(bills_router,          prefix=API_PREFIX)
 
 
 # ─── Health + root ─────────────────────────────────────────────────────────

@@ -286,6 +286,15 @@ async def sync_transactions(
     if account.plaid_access_token and not str(account.plaid_access_token).startswith("enc:v1:"):
         account.plaid_access_token = encrypt_secret(access_token)
 
+    # Refresh recurring merchant detection when new txs arrive.
+    if added_count or modified_count:
+        try:
+            from app.services.recurring_service import detect_and_upsert_recurring
+
+            await detect_and_upsert_recurring(db, str(account.user_id))
+        except Exception as e:
+            logger.warning("Recurring detect after sync failed: %s", e)
+
     return {
         "added": added_count,
         "modified": modified_count,

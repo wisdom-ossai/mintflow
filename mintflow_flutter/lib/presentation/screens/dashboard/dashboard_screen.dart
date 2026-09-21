@@ -123,10 +123,10 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
               Expanded(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: MintflowColors.cream,
+                  decoration: BoxDecoration(
+                    color: MintflowColors.page(context),
                     borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(28)),
+                        const BorderRadius.vertical(top: Radius.circular(28)),
                   ),
                   child: FadeTransition(
                     opacity: _contentFade,
@@ -538,9 +538,9 @@ class _SubscriptionsTeaser extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: MintflowColors.card(context),
           borderRadius: MintflowRadius.xl_,
-          border: Border.all(color: MintflowColors.ink10),
+          border: Border.all(color: MintflowColors.hairline(context)),
         ),
         child: Row(
           children: [
@@ -548,7 +548,7 @@ class _SubscriptionsTeaser extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: MintflowColors.purpleSoft,
+                color: MintflowColors.purpleWash(context),
                 borderRadius: MintflowRadius.md_,
               ),
               child: const Icon(Icons.subscriptions_outlined,
@@ -563,13 +563,13 @@ class _SubscriptionsTeaser extends StatelessWidget {
                   Text(
                     'Auto-detected from your banks',
                     style: MintflowTextStyles.overline
-                        .copyWith(color: MintflowColors.ink60),
+                        .copyWith(color: MintflowColors.textSecondary(context)),
                   ),
                 ],
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.ink30, size: 18),
+                color: MintflowColors.textTertiary(context), size: 18),
           ],
         ),
       ),
@@ -587,9 +587,9 @@ class _BillsTeaser extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: MintflowColors.card(context),
           borderRadius: MintflowRadius.xl_,
-          border: Border.all(color: MintflowColors.ink10),
+          border: Border.all(color: MintflowColors.hairline(context)),
         ),
         child: Row(
           children: [
@@ -597,7 +597,7 @@ class _BillsTeaser extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: MintflowColors.blueSoft,
+                color: MintflowColors.blueWash(context),
                 borderRadius: MintflowRadius.md_,
               ),
               child: const Icon(Icons.receipt_long_outlined,
@@ -612,13 +612,13 @@ class _BillsTeaser extends StatelessWidget {
                   Text(
                     'Rent, utilities, due dates',
                     style: MintflowTextStyles.overline
-                        .copyWith(color: MintflowColors.ink60),
+                        .copyWith(color: MintflowColors.textSecondary(context)),
                   ),
                 ],
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.ink30, size: 18),
+                color: MintflowColors.textTertiary(context), size: 18),
           ],
         ),
       ),
@@ -641,9 +641,9 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.lg_,
-        border: Border.all(color: MintflowColors.creamDark),
+        border: Border.all(color: MintflowColors.stroke(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -651,7 +651,7 @@ class _SummaryCard extends StatelessWidget {
           Text(
             label.toUpperCase(),
             style: MintflowTextStyles.overline.copyWith(
-              color: MintflowColors.ink60,
+              color: MintflowColors.textSecondary(context),
               letterSpacing: 0.06,
             ),
           ),
@@ -659,7 +659,7 @@ class _SummaryCard extends StatelessWidget {
           Text(
             value,
             style: MintflowTextStyles.amountSmall.copyWith(
-              color: MintflowColors.ink,
+              color: MintflowColors.textPrimary(context),
               fontSize: 18,
             ),
           ),
@@ -820,7 +820,7 @@ class _RecentTransactions extends StatelessWidget {
                 Text(
                   'Recent',
                   style: MintflowTextStyles.labelLarge.copyWith(
-                    color: MintflowColors.ink,
+                    color: MintflowColors.textPrimary(context),
                   ),
                 ),
                 GestureDetector(
@@ -847,7 +847,7 @@ class _RecentTransactions extends StatelessWidget {
                 child: Text(
                   'No transactions yet. Tap + to add one.',
                   style: MintflowTextStyles.bodySmall
-                      .copyWith(color: MintflowColors.ink60),
+                      .copyWith(color: MintflowColors.textSecondary(context)),
                 ),
               )
             else
@@ -878,8 +878,9 @@ class _TransactionItem extends StatelessWidget {
       decoration: BoxDecoration(
         border: isLast
             ? null
-            : const Border(
-                bottom: BorderSide(color: MintflowColors.ink10, width: 1),
+            : Border(
+                bottom: BorderSide(
+                    color: MintflowColors.hairline(context), width: 1),
               ),
       ),
       child: Row(
@@ -889,8 +890,8 @@ class _TransactionItem extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: tx.isIncome
-                  ? MintflowColors.green50
-                  : MintflowColors.creamDark,
+                  ? MintflowColors.mintWash(context)
+                  : MintflowColors.softFill(context),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -899,7 +900,7 @@ class _TransactionItem extends StatelessWidget {
                   : Icons.receipt_long_outlined,
               color: tx.isIncome
                   ? MintflowColors.green500
-                  : MintflowColors.ink60,
+                  : MintflowColors.textSecondary(context),
               size: 18,
             ),
           ),
@@ -915,7 +916,7 @@ class _TransactionItem extends StatelessWidget {
                         tx.displayName,
                         overflow: TextOverflow.ellipsis,
                         style: MintflowTextStyles.labelMedium.copyWith(
-                          color: MintflowColors.ink,
+                          color: MintflowColors.textPrimary(context),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -933,7 +934,7 @@ class _TransactionItem extends StatelessWidget {
                     if (tx.category?.name != null) tx.category!.name,
                   ].join(' · '),
                   style: MintflowTextStyles.labelSmall.copyWith(
-                    color: MintflowColors.ink60,
+                    color: MintflowColors.textSecondary(context),
                   ),
                 ),
               ],
@@ -944,7 +945,9 @@ class _TransactionItem extends StatelessWidget {
                 ? '+${MintflowFormat.currency(tx.amount)}'
                 : '-${MintflowFormat.currency(tx.amount)}',
             style: MintflowTextStyles.labelLarge.copyWith(
-              color: tx.isIncome ? MintflowColors.green400 : MintflowColors.ink,
+              color: tx.isIncome
+                  ? MintflowColors.green400
+                  : MintflowColors.textPrimary(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -988,7 +991,7 @@ class DashboardBreakdownScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cats = summary?.spendingByCategory ?? [];
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

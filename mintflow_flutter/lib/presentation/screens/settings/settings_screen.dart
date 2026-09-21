@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/appearance_control.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../data/datasources/service_locator.dart';
@@ -18,7 +19,7 @@ class SettingsScreen extends StatelessWidget {
         final email = user?.email ?? '';
         final tierLabel = user?.effectiveTier.name ?? 'seed';
         return Scaffold(
-          backgroundColor: MintflowColors.cream,
+          backgroundColor: MintflowColors.page(context),
           appBar: AppBar(
             backgroundColor: MintflowColors.green900,
             title: Text('Settings',
@@ -31,9 +32,9 @@ class SettingsScreen extends StatelessWidget {
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: MintflowColors.card(context),
                 borderRadius: MintflowRadius.xl_,
-                border: Border.all(color: MintflowColors.ink10),
+                border: Border.all(color: MintflowColors.hairline(context)),
               ),
               child: Row(children: [
                 Container(
@@ -58,7 +59,7 @@ class SettingsScreen extends StatelessWidget {
                     Text(name, style: MintflowTextStyles.labelLarge),
                     Text(email,
                         style: MintflowTextStyles.bodySmall
-                            .copyWith(color: MintflowColors.ink60)),
+                            .copyWith(color: MintflowColors.textSecondary(context))),
                   ],
                 )),
                 Container(
@@ -78,6 +79,21 @@ class SettingsScreen extends StatelessWidget {
               ]),
             ),
 
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'APPEARANCE',
+                    style: MintflowTextStyles.overline
+                        .copyWith(color: MintflowColors.textSecondary(context)),
+                  ),
+                  const SizedBox(height: 8),
+                  const AppearanceControl(),
+                ],
+              ),
+            ),
             _Section('Account', [
               _Tile(Icons.person_outline, 'Edit profile',
                   () => context.push(MintflowRoutes.profile)),
@@ -141,14 +157,14 @@ class _Section extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
             child: Text(title.toUpperCase(),
                 style: MintflowTextStyles.overline
-                    .copyWith(color: MintflowColors.ink60)),
+                    .copyWith(color: MintflowColors.textSecondary(context))),
           ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: MintflowColors.card(context),
               borderRadius: MintflowRadius.xl_,
-              border: Border.all(color: MintflowColors.ink10),
+              border: Border.all(color: MintflowColors.hairline(context)),
             ),
             child: Column(
               children: tiles
@@ -157,7 +173,9 @@ class _Section extends StatelessWidget {
                   .map((e) => Column(children: [
                         e.value,
                         if (e.key < tiles.length - 1)
-                          Divider(height: 1, color: MintflowColors.ink10),
+                          Divider(
+                              height: 1,
+                              color: MintflowColors.hairline(context)),
                       ]))
                   .toList(),
             ),
@@ -176,15 +194,17 @@ class _Tile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListTile(
         dense: true,
-        leading: Icon(icon, size: 20, color: MintflowColors.ink60),
+        leading: Icon(icon, size: 20, color: MintflowColors.textSecondary(context)),
         title: Text(label,
-            style: MintflowTextStyles.bodySmall
-                .copyWith(fontWeight: FontWeight.w500)),
+            style: MintflowTextStyles.bodySmall.copyWith(
+                fontWeight: FontWeight.w500,
+                color: MintflowColors.textPrimary(context))),
         trailing: trailing != null
             ? Text(trailing!,
                 style: MintflowTextStyles.labelSmall
-                    .copyWith(color: MintflowColors.ink60))
-            : Icon(Icons.chevron_right, size: 18, color: MintflowColors.ink30),
+                    .copyWith(color: MintflowColors.textSecondary(context)))
+            : Icon(Icons.chevron_right,
+                size: 18, color: MintflowColors.textTertiary(context)),
         onTap: onTap,
       );
 }

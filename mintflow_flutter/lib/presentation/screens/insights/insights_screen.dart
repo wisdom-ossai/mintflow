@@ -89,7 +89,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: BlocBuilder<InsightCubit, InsightState>(
         builder: (context, state) {
           return CustomScrollView(slivers: [
@@ -324,13 +324,14 @@ class _FeedbackCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.lg_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(children: [
         Text('Were these insights helpful?',
-            style: MintflowTextStyles.labelLarge.copyWith(color: MintflowColors.ink)),
+            style: MintflowTextStyles.labelLarge
+                .copyWith(color: MintflowColors.textPrimary(context))),
         const SizedBox(height: 12),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           _Thumb(
@@ -417,9 +418,9 @@ class _InsightCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: MintflowColors.card(context),
           borderRadius: MintflowRadius.xl_,
-          border: Border.all(color: MintflowColors.ink10),
+          border: Border.all(color: MintflowColors.hairline(context)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -433,8 +434,9 @@ class _InsightCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
                 child: Text(title,
-                    style: MintflowTextStyles.labelLarge
-                        .copyWith(color: MintflowColors.ink, height: 1.35))),
+                    style: MintflowTextStyles.labelLarge.copyWith(
+                        color: MintflowColors.textPrimary(context),
+                        height: 1.35))),
           ]),
           const SizedBox(height: 8),
           Text(body,

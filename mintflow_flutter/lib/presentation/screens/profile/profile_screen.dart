@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/appearance_control.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
@@ -36,7 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // Settings state
   bool _notificationsEnabled = true;
-  bool _darkModeEnabled = false;
   bool _weeklyReport = true;
   bool _budgetAlerts = true;
   String _selectedCurrency = 'USD';
@@ -181,9 +181,10 @@ class _ProfileScreenState extends State<ProfileScreen>
           // ── Scrollable cream body ────────────────────────────────────────
           Expanded(
             child: Container(
-              decoration: const BoxDecoration(
-                color: MintflowColors.cream,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              decoration: BoxDecoration(
+                color: MintflowColors.page(context),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               child: FadeTransition(
                 opacity: _sectionsFade,
@@ -263,15 +264,33 @@ class _ProfileScreenState extends State<ProfileScreen>
                           const SizedBox(height: 10),
                           _SettingsCard(
                             children: [
-                              _ToggleRow(
-                                icon: Icons.dark_mode_outlined,
-                                iconColor: MintflowColors.purple,
-                                iconBg: MintflowColors.purpleSoft,
-                                label: 'Dark mode',
-                                subtitle: 'Switch to dark theme',
-                                value: _darkModeEnabled,
-                                onChanged: (v) =>
-                                    setState(() => _darkModeEnabled = v),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Appearance',
+                                      style: MintflowTextStyles.labelMedium
+                                          .copyWith(
+                                        color: MintflowColors.textPrimary(
+                                            context),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Light, dark, or match this device',
+                                      style: MintflowTextStyles.overline
+                                          .copyWith(
+                                        color: MintflowColors.textSecondary(
+                                            context),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const AppearanceControl(),
+                                  ],
+                                ),
                               ),
                               _Divider(),
                               _SelectRow(
@@ -419,7 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                             child: Text(
                               'Mintflow v1.0.0',
                               style: MintflowTextStyles.overline.copyWith(
-                                color: MintflowColors.ink30,
+                                color: MintflowColors.textTertiary(context),
                               ),
                             ),
                           ),
@@ -1064,9 +1083,9 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.lg_,
-        border: Border.all(color: MintflowColors.creamDark),
+        border: Border.all(color: MintflowColors.stroke(context)),
       ),
       child: Column(children: children),
     );
@@ -1082,7 +1101,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       label.toUpperCase(),
       style: MintflowTextStyles.overline.copyWith(
-        color: MintflowColors.ink60,
+        color: MintflowColors.textSecondary(context),
         letterSpacing: 0.08,
       ),
     );
@@ -1094,7 +1113,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 56),
-      child: Divider(height: 1, color: MintflowColors.ink10),
+      child: Divider(height: 1, color: MintflowColors.hairline(context)),
     );
   }
 }
@@ -1158,7 +1177,7 @@ class _ToggleRow extends StatelessWidget {
                 Text(
                   label,
                   style: MintflowTextStyles.labelMedium.copyWith(
-                    color: MintflowColors.ink,
+                    color: MintflowColors.textPrimary(context),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -1166,7 +1185,7 @@ class _ToggleRow extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: MintflowTextStyles.overline.copyWith(
-                      color: MintflowColors.ink60,
+                      color: MintflowColors.textSecondary(context),
                     ),
                   ),
               ],
@@ -1211,7 +1230,7 @@ class _SelectRow extends StatelessWidget {
               child: Text(
                 label,
                 style: MintflowTextStyles.labelMedium.copyWith(
-                  color: MintflowColors.ink,
+                  color: MintflowColors.textPrimary(context),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1219,12 +1238,12 @@ class _SelectRow extends StatelessWidget {
             Text(
               value,
               style: MintflowTextStyles.labelMedium.copyWith(
-                color: MintflowColors.ink60,
+                color: MintflowColors.textSecondary(context),
               ),
             ),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.ink30, size: 18),
+                color: MintflowColors.textTertiary(context), size: 18),
           ],
         ),
       ),
@@ -1264,7 +1283,7 @@ class _InfoRow extends StatelessWidget {
               child: Text(
                 label,
                 style: MintflowTextStyles.labelMedium.copyWith(
-                  color: MintflowColors.ink,
+                  color: MintflowColors.textPrimary(context),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1277,7 +1296,8 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 4),
-            Icon(Icons.edit_outlined, color: MintflowColors.ink30, size: 15),
+            Icon(Icons.edit_outlined,
+                color: MintflowColors.textTertiary(context), size: 15),
           ],
         ),
       ),
@@ -1320,7 +1340,7 @@ class _ActionRow extends StatelessWidget {
                   Text(
                     label,
                     style: MintflowTextStyles.labelMedium.copyWith(
-                      color: MintflowColors.ink,
+                      color: MintflowColors.textPrimary(context),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1328,14 +1348,14 @@ class _ActionRow extends StatelessWidget {
                     Text(
                       subtitle!,
                       style: MintflowTextStyles.overline.copyWith(
-                        color: MintflowColors.ink60,
+                        color: MintflowColors.textSecondary(context),
                       ),
                     ),
                 ],
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.ink30, size: 18),
+                color: MintflowColors.textTertiary(context), size: 18),
           ],
         ),
       ),
@@ -1358,7 +1378,8 @@ class _DangerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? MintflowColors.red : MintflowColors.ink60;
+    final color =
+        isDestructive ? MintflowColors.red : MintflowColors.textSecondary(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -1371,8 +1392,8 @@ class _DangerRow extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: isDestructive
-                    ? MintflowColors.redSoft
-                    : MintflowColors.creamDark,
+                    ? MintflowColors.redWash(context)
+                    : MintflowColors.softFill(context),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: color, size: 18),
@@ -1511,7 +1532,7 @@ class _OptionSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: MintflowColors.cream,
+        color: MintflowColors.page(context),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -1527,7 +1548,7 @@ class _OptionSheet extends StatelessWidget {
             width: 36,
             height: 4,
             decoration: BoxDecoration(
-              color: MintflowColors.ink10,
+              color: MintflowColors.hairline(context),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1535,15 +1556,15 @@ class _OptionSheet extends StatelessWidget {
           Text(
             title,
             style: MintflowTextStyles.displaySmall.copyWith(
-              color: MintflowColors.ink,
+              color: MintflowColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: MintflowColors.card(context),
               borderRadius: MintflowRadius.lg_,
-              border: Border.all(color: MintflowColors.creamDark),
+              border: Border.all(color: MintflowColors.stroke(context)),
             ),
             child: Column(
               children: options.map((opt) {
@@ -1567,7 +1588,7 @@ class _OptionSheet extends StatelessWidget {
                                 style: MintflowTextStyles.labelMedium.copyWith(
                                   color: isSelected
                                       ? MintflowColors.green500
-                                      : MintflowColors.ink,
+                                      : MintflowColors.textPrimary(context),
                                   fontWeight: isSelected
                                       ? FontWeight.w600
                                       : FontWeight.w400,
@@ -1584,7 +1605,8 @@ class _OptionSheet extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (!isLast) Divider(height: 1, color: MintflowColors.ink10),
+                    if (!isLast)
+                      Divider(height: 1, color: MintflowColors.hairline(context)),
                   ],
                 );
               }).toList(),
@@ -1618,7 +1640,7 @@ class _MintflowDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.white,
+      backgroundColor: MintflowColors.card(context),
       shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -1629,14 +1651,14 @@ class _MintflowDialog extends StatelessWidget {
             Text(
               title,
               style: MintflowTextStyles.displaySmall.copyWith(
-                color: MintflowColors.ink,
+                color: MintflowColors.textPrimary(context),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               message,
               style: MintflowTextStyles.bodyMedium.copyWith(
-                color: MintflowColors.ink60,
+                color: MintflowColors.textSecondary(context),
               ),
             ),
             const SizedBox(height: 24),
@@ -1727,9 +1749,9 @@ class _AmountEditSheetState extends State<_AmountEditSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
-        decoration: const BoxDecoration(
-          color: MintflowColors.cream,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: MintflowColors.page(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: EdgeInsets.fromLTRB(
           24,
@@ -1746,7 +1768,7 @@ class _AmountEditSheetState extends State<_AmountEditSheet> {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: MintflowColors.ink10,
+                  color: MintflowColors.hairline(context),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1755,13 +1777,13 @@ class _AmountEditSheetState extends State<_AmountEditSheet> {
             Text(
               widget.title,
               style: MintflowTextStyles.displaySmall
-                  .copyWith(color: MintflowColors.ink),
+                  .copyWith(color: MintflowColors.textPrimary(context)),
             ),
             const SizedBox(height: 6),
             Text(
               widget.subtitle,
               style: MintflowTextStyles.bodySmall
-                  .copyWith(color: MintflowColors.ink60),
+                  .copyWith(color: MintflowColors.textSecondary(context)),
             ),
             const SizedBox(height: 20),
             TextField(
@@ -1773,7 +1795,7 @@ class _AmountEditSheetState extends State<_AmountEditSheet> {
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
               ],
               style: MintflowTextStyles.amountSmall
-                  .copyWith(color: MintflowColors.ink),
+                  .copyWith(color: MintflowColors.textPrimary(context)),
               decoration: InputDecoration(
                 prefixText: '\$ ',
                 hintText: '0',

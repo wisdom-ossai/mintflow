@@ -8,6 +8,7 @@ class Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: MintflowTextStyles.overline.copyWith(color: MintflowColors.ink60),
+        style: MintflowTextStyles.overline
+            .copyWith(color: MintflowColors.textSecondary(context)),
       );
 }

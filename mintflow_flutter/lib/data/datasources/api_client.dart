@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../core/auth/auth_gate.dart';
@@ -63,7 +64,8 @@ class MintflowApiClient {
     _dio.interceptors.addAll([
       _AuthInterceptor(_tokens, _refreshDio),
       _RetryInterceptor(_dio),
-      LogInterceptor(requestBody: false, responseBody: false),
+      if (kDebugMode)
+        LogInterceptor(requestBody: false, responseBody: false),
     ]);
   }
 

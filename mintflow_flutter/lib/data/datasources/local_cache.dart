@@ -125,4 +125,5 @@ class CacheKeys {
   static const budgetMethod = 'budget_method';
   static const monthlySavingsTarget = 'monthly_savings_target';
   static const biometricLock = 'biometric_lock';
+  static const themeMode = 'theme_mode';
 }

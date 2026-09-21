@@ -247,7 +247,7 @@ class MintflowShell extends StatelessWidget {
     final currentIndex = _tabs.indexWhere((t) => location.startsWith(t));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F7FB),
+      backgroundColor: MintflowColors.page(context),
       body: child,
       // bottomNavigationBar: _BottomNav(
       //   currentIndex: currentIndex < 0 ? 0 : currentIndex,
@@ -346,13 +346,14 @@ class _MintflowNavBar extends StatelessWidget {
     final bottom = MediaQuery.of(context).padding.bottom;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         border: Border(
-          top: BorderSide(color: MintflowColors.ink10, width: 1),
+          top: BorderSide(color: MintflowColors.hairline(context), width: 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: MintflowColors.ink.withOpacity(0.05),
+            color: Colors.black.withOpacity(
+                MintflowColors.isDark(context) ? 0.35 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -477,7 +478,7 @@ class _NavBarItemState extends State<_NavBarItem>
                     size: 22,
                     color: widget.isActive
                         ? MintflowColors.green500
-                        : MintflowColors.ink30,
+                        : MintflowColors.textTertiary(context),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -486,7 +487,7 @@ class _NavBarItemState extends State<_NavBarItem>
                   style: MintflowTextStyles.overline.copyWith(
                     color: widget.isActive
                         ? MintflowColors.green500
-                        : MintflowColors.ink30,
+                        : MintflowColors.textTertiary(context),
                     fontWeight:
                         widget.isActive ? FontWeight.w600 : FontWeight.w400,
                   ),
@@ -611,7 +612,7 @@ class _StubScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

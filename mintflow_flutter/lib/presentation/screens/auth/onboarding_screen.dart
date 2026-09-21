@@ -229,7 +229,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: Column(children: [
         _OnboardingHeader(step: _step, onBack: _step > 0 ? _back : null),
         Expanded(

@@ -48,6 +48,50 @@ class MintflowColors {
   static const darkBorder = Color(0xFF1A2E4A);
   static const darkText = Color(0xFFFFFFFF);
   static const darkTextMuted = Color(0xFF8BA3C0);
+  static const darkSoftFill = Color(0xFF0F2244);
+  static const darkFaint = Color(0xFF5A7394);
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color page(BuildContext context) =>
+      isDark(context) ? darkSurface : cream;
+
+  static Color card(BuildContext context) =>
+      isDark(context) ? darkCard : Colors.white;
+
+  static Color textPrimary(BuildContext context) =>
+      isDark(context) ? darkText : ink;
+
+  static Color textSecondary(BuildContext context) =>
+      isDark(context) ? darkTextMuted : ink60;
+
+  static Color textTertiary(BuildContext context) =>
+      isDark(context) ? darkFaint : ink30;
+
+  static Color stroke(BuildContext context) =>
+      isDark(context) ? darkBorder : creamDark;
+
+  static Color hairline(BuildContext context) =>
+      isDark(context) ? darkBorder : ink10;
+
+  static Color softFill(BuildContext context) =>
+      isDark(context) ? darkSoftFill : creamDark;
+
+  static Color mintWash(BuildContext context) =>
+      isDark(context) ? green400.withOpacity(0.14) : green50;
+
+  static Color goldWash(BuildContext context) =>
+      isDark(context) ? gold400.withOpacity(0.14) : gold50;
+
+  static Color blueWash(BuildContext context) =>
+      isDark(context) ? blue.withOpacity(0.16) : blueSoft;
+
+  static Color purpleWash(BuildContext context) =>
+      isDark(context) ? purple.withOpacity(0.16) : purpleSoft;
+
+  static Color redWash(BuildContext context) =>
+      isDark(context) ? red.withOpacity(0.16) : redSoft;
 }
 
 // ── Typography ────────────────────────────────────────────────────────────────
@@ -349,8 +393,8 @@ class MintflowTheme {
         primaryColor: MintflowColors.green400,
         colorScheme: ColorScheme.dark(
           primary: MintflowColors.green400,
-          onPrimary: Colors.white,
-          primaryContainer: MintflowColors.green900,
+          onPrimary: MintflowColors.ink,
+          primaryContainer: MintflowColors.darkSoftFill,
           secondary: MintflowColors.gold400,
           onSecondary: MintflowColors.ink,
           surface: MintflowColors.darkCard,
@@ -361,10 +405,34 @@ class MintflowTheme {
           outline: MintflowColors.darkBorder,
         ),
         fontFamily: 'DMSans',
+        textTheme: TextTheme(
+          displayLarge: MintflowTextStyles.displayLarge
+              .copyWith(color: MintflowColors.darkText),
+          displayMedium: MintflowTextStyles.displayMedium
+              .copyWith(color: MintflowColors.darkText),
+          displaySmall: MintflowTextStyles.displaySmall
+              .copyWith(color: MintflowColors.darkText),
+          bodyLarge: MintflowTextStyles.bodyLarge
+              .copyWith(color: MintflowColors.darkText),
+          bodyMedium: MintflowTextStyles.bodyMedium
+              .copyWith(color: MintflowColors.darkText),
+          bodySmall: MintflowTextStyles.bodySmall
+              .copyWith(color: MintflowColors.darkTextMuted),
+          labelLarge: MintflowTextStyles.labelLarge
+              .copyWith(color: MintflowColors.darkText),
+          labelMedium: MintflowTextStyles.labelMedium
+              .copyWith(color: MintflowColors.darkTextMuted),
+          labelSmall: MintflowTextStyles.labelSmall
+              .copyWith(color: MintflowColors.darkTextMuted),
+        ),
         appBarTheme: AppBarTheme(
-          backgroundColor: MintflowColors.darkSurface,
-          foregroundColor: MintflowColors.darkText,
+          backgroundColor: MintflowColors.green900,
+          foregroundColor: MintflowColors.cream,
           elevation: 0,
+          centerTitle: false,
+          titleTextStyle: MintflowTextStyles.displaySmall.copyWith(
+            color: MintflowColors.cream,
+          ),
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: MintflowColors.darkCard,
@@ -372,6 +440,8 @@ class MintflowTheme {
           unselectedItemColor: MintflowColors.darkTextMuted,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
+          selectedLabelStyle: MintflowTextStyles.overline,
+          unselectedLabelStyle: MintflowTextStyles.overline,
         ),
         cardTheme: CardThemeData(
           color: MintflowColors.darkCard,
@@ -380,6 +450,107 @@ class MintflowTheme {
             borderRadius: MintflowRadius.lg_,
             side: BorderSide(color: MintflowColors.darkBorder, width: 1),
           ),
+          margin: const EdgeInsets.only(bottom: MintflowSpacing.md),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: MintflowColors.green400,
+            foregroundColor: MintflowColors.ink,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(
+              horizontal: MintflowSpacing.xxl,
+              vertical: MintflowSpacing.lg,
+            ),
+            shape: RoundedRectangleBorder(borderRadius: MintflowRadius.lg_),
+            textStyle: MintflowTextStyles.labelLarge,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: MintflowColors.green400,
+            side: const BorderSide(color: MintflowColors.green400),
+            padding: const EdgeInsets.symmetric(
+              horizontal: MintflowSpacing.xxl,
+              vertical: MintflowSpacing.lg,
+            ),
+            shape: RoundedRectangleBorder(borderRadius: MintflowRadius.lg_),
+            textStyle: MintflowTextStyles.labelLarge,
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: MintflowColors.green400,
+            textStyle: MintflowTextStyles.labelMedium,
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: MintflowColors.darkCard,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: MintflowSpacing.lg,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: MintflowRadius.lg_,
+            borderSide: BorderSide(color: MintflowColors.darkBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: MintflowRadius.lg_,
+            borderSide: BorderSide(color: MintflowColors.darkBorder, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: MintflowRadius.lg_,
+            borderSide:
+                const BorderSide(color: MintflowColors.green400, width: 1.5),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: MintflowRadius.lg_,
+            borderSide: const BorderSide(color: MintflowColors.red, width: 1.5),
+          ),
+          labelStyle: MintflowTextStyles.labelMedium
+              .copyWith(color: MintflowColors.darkTextMuted),
+          hintStyle: MintflowTextStyles.bodyMedium
+              .copyWith(color: MintflowColors.darkFaint),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: MintflowColors.darkBorder,
+          thickness: 1,
+          space: 0,
+        ),
+        chipTheme: ChipThemeData(
+          backgroundColor: MintflowColors.darkSoftFill,
+          selectedColor: MintflowColors.green400,
+          labelStyle: MintflowTextStyles.labelMedium,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: MintflowRadius.pill_,
+            side: BorderSide(color: MintflowColors.darkBorder),
+          ),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: MintflowColors.darkCard,
+          shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: MintflowColors.darkSurface,
+          modalBackgroundColor: MintflowColors.darkSurface,
+        ),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: MintflowColors.darkCard,
+          contentTextStyle: MintflowTextStyles.bodyMedium
+              .copyWith(color: MintflowColors.darkText),
+          shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
+          behavior: SnackBarBehavior.floating,
+        ),
+        switchTheme: SwitchThemeData(
+          thumbColor: WidgetStateProperty.resolveWith((states) {
+            return Colors.white;
+          }),
+          trackColor: WidgetStateProperty.resolveWith((states) {
+            return states.contains(WidgetState.selected)
+                ? MintflowColors.green400
+                : MintflowColors.darkBorder;
+          }),
         ),
       );
 }

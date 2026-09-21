@@ -280,7 +280,7 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       appBar: AppBar(
         backgroundColor: MintflowColors.green900,
         foregroundColor: MintflowColors.cream,

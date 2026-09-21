@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/auth/auth_gate.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
 import 'core/router/app_router.dart';
 import 'core/utils/revenuecat.dart';
 import 'data/datasources/local_cache.dart';
@@ -64,6 +65,7 @@ class MintflowApp extends StatefulWidget {
 
 class _MintflowAppState extends State<MintflowApp> {
   late final GoRouter _router;
+  late final ThemeCubit _themeCubit;
   late final DashboardCubit _dashboardCubit;
   late final TransactionCubit _transactionCubit;
   late final InsightCubit _insightCubit;
@@ -74,6 +76,7 @@ class _MintflowAppState extends State<MintflowApp> {
   @override
   void initState() {
     super.initState();
+    _themeCubit = ThemeCubit();
     _dashboardCubit = DashboardCubit();
     _transactionCubit = TransactionCubit();
     _insightCubit = InsightCubit();
@@ -116,6 +119,7 @@ class _MintflowAppState extends State<MintflowApp> {
 
   @override
   void dispose() {
+    _themeCubit.close();
     _dashboardCubit.close();
     _transactionCubit.close();
     _insightCubit.close();
@@ -130,6 +134,7 @@ class _MintflowAppState extends State<MintflowApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider.value(value: _themeCubit),
         BlocProvider.value(value: _dashboardCubit),
         BlocProvider.value(value: _transactionCubit),
         BlocProvider.value(value: _insightCubit),
@@ -137,13 +142,36 @@ class _MintflowAppState extends State<MintflowApp> {
         BlocProvider.value(value: _goalCubit),
         BlocProvider.value(value: _billCubit),
       ],
-      child: MaterialApp.router(
-        title: 'Mintflow',
-        debugShowCheckedModeBanner: false,
-        theme: MintflowTheme.light,
-        darkTheme: MintflowTheme.dark,
-        themeMode: ThemeMode.system,
-        routerConfig: _router,
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, mode) {
+          return MaterialApp.router(
+            title: 'Mintflow',
+            debugShowCheckedModeBanner: false,
+            theme: MintflowTheme.light,
+            darkTheme: MintflowTheme.dark,
+            themeMode: mode,
+            routerConfig: _router,
+            builder: (context, child) {
+              final dark =
+                  Theme.of(context).brightness == Brightness.dark;
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: Colors.transparent,
+                  // Navy headers stay readable; Android nav bar follows theme.
+                  statusBarIconBrightness: Brightness.light,
+                  statusBarBrightness: Brightness.dark,
+                  systemNavigationBarColor: dark
+                      ? MintflowColors.darkCard
+                      : Colors.white,
+                  systemNavigationBarIconBrightness:
+                      dark ? Brightness.light : Brightness.dark,
+                  systemNavigationBarDividerColor: Colors.transparent,
+                ),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
+          );
+        },
       ),
     );
   }

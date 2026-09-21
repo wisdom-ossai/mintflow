@@ -132,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -142,17 +142,19 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-                const BrandLogo(
+                BrandLogo(
                   size: 40,
                   showWordmark: true,
-                  wordmarkColor: MintflowColors.green900,
+                  wordmarkColor: MintflowColors.textPrimary(context),
                 ),
                 const SizedBox(height: 40),
-                Text('Welcome back', style: MintflowTextStyles.displayMedium),
+                Text('Welcome back',
+                    style: MintflowTextStyles.displayMedium.copyWith(
+                        color: MintflowColors.textPrimary(context))),
                 const SizedBox(height: 6),
                 Text('Sign in to your account',
                     style: MintflowTextStyles.bodyMedium
-                        .copyWith(color: MintflowColors.ink60)),
+                        .copyWith(color: MintflowColors.textSecondary(context))),
                 const SizedBox(height: 32),
 
                 // Error banner

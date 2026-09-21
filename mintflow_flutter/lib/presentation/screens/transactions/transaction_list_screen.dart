@@ -66,7 +66,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: BlocBuilder<TransactionCubit, TransactionState>(
         builder: (context, state) {
           return CustomScrollView(
@@ -289,7 +289,7 @@ class _TxRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCC = tx.isCreditCardPayment;
     return Container(
-      color: Colors.white,
+      color: MintflowColors.card(context),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
       child: Row(children: [
         Container(
@@ -324,7 +324,8 @@ class _TxRow extends StatelessWidget {
             children: [
               Text(tx.displayName,
                   style: MintflowTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.w500, color: MintflowColors.ink)),
+                      fontWeight: FontWeight.w500,
+                      color: MintflowColors.textPrimary(context))),
               const SizedBox(height: 2),
               Row(children: [
                 Text(
@@ -358,8 +359,8 @@ class _TxRow extends StatelessWidget {
               color: tx.isIncome
                   ? MintflowColors.green400
                   : isCC
-                      ? MintflowColors.ink60
-                      : MintflowColors.ink,
+                      ? MintflowColors.textSecondary(context)
+                      : MintflowColors.textPrimary(context),
               fontSize: isCC ? 12 : 14,
             ),
           ),

@@ -9,7 +9,7 @@ class InAppNotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       appBar: AppBar(
         backgroundColor: MintflowColors.green900,
         title: Text(

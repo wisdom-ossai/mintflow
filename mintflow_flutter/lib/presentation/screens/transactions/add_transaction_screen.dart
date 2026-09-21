@@ -62,9 +62,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       appBar: AppBar(
-        backgroundColor: MintflowColors.cream,
+        backgroundColor: MintflowColors.page(context),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: MintflowColors.ink),

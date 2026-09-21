@@ -123,7 +123,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -133,10 +133,10 @@ class _SignupScreenState extends State<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-                const BrandLogo(
+                BrandLogo(
                   size: 40,
                   showWordmark: true,
-                  wordmarkColor: MintflowColors.green900,
+                  wordmarkColor: MintflowColors.textPrimary(context),
                 ),
                 const SizedBox(height: 40),
 
@@ -168,11 +168,12 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 24),
 
                 Text('Create your account',
-                    style: MintflowTextStyles.displayMedium),
+                    style: MintflowTextStyles.displayMedium.copyWith(
+                        color: MintflowColors.textPrimary(context))),
                 const SizedBox(height: 6),
                 Text('Start tracking in under 2 minutes',
                     style: MintflowTextStyles.bodyMedium
-                        .copyWith(color: MintflowColors.ink60)),
+                        .copyWith(color: MintflowColors.textSecondary(context))),
                 const SizedBox(height: 28),
 
                 if (_error != null) ErrorBanner(message: _error!),

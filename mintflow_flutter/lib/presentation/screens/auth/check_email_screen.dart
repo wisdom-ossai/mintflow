@@ -77,7 +77,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),

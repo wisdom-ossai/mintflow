@@ -100,7 +100,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       body: Column(children: [
         _ResetTopPanel(),
         Expanded(
@@ -153,7 +153,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 child: LinearProgressIndicator(
                                   value: _strength / 5,
                                   minHeight: 4,
-                                  backgroundColor: MintflowColors.creamDark,
+                                  backgroundColor:
+                                      MintflowColors.softFill(context),
                                   color: _strengthColor,
                                 ),
                               ),

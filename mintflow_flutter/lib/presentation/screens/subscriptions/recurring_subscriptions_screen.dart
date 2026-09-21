@@ -26,7 +26,7 @@ class _RecurringBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MintflowColors.cream,
+      backgroundColor: MintflowColors.page(context),
       appBar: AppBar(
         backgroundColor: MintflowColors.green900,
         foregroundColor: MintflowColors.cream,
@@ -192,9 +192,9 @@ class _SubCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(
         children: [
@@ -204,7 +204,7 @@ class _SubCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: MintflowColors.purpleSoft,
+                  color: MintflowColors.purpleWash(context),
                   borderRadius: MintflowRadius.md_,
                 ),
                 child: const Icon(Icons.autorenew_rounded,
@@ -277,9 +277,9 @@ class _EmptyCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(
         children: [

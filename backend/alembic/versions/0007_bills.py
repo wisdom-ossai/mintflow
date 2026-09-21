@@ -8,19 +8,22 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 revision: str = "0007_bills"
 down_revision: Union[str, None] = "0006_recurring_subs"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-bill_payment_status = sa.Enum(
-    "unpaid", "paid", "overdue", name="billpaymentstatus"
+# create_type=False: create enum once below; create_table must not re-emit CREATE TYPE
+bill_payment_status = postgresql.ENUM(
+    "unpaid", "paid", "overdue", name="billpaymentstatus", create_type=False
 )
 
 
 def upgrade() -> None:
-    bill_payment_status.create(op.get_bind(), checkfirst=True)
+    bind = op.get_bind()
+    bill_payment_status.create(bind, checkfirst=True)
 
     op.create_table(
         "bills",

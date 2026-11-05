@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
@@ -44,6 +45,7 @@ class _RecurringBody extends StatelessWidget {
         ],
       ),
       body: BlocBuilder<RecurringCubit, RecurringState>(
+        buildWhen: (prev, next) => prev != next,
         builder: (context, state) {
           if (state is RecurringLoading || state is RecurringInitial) {
             return const Center(
@@ -78,34 +80,100 @@ class _LoadedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MintBreakpoints.widthOf(context);
+    final gutter = MintBreakpoints.pageGutter(context);
+    final contentW =
+        (width - 2 * gutter).clamp(0.0, MintBreakpoints.contentMax);
+    final sidePad = (width - contentW) / 2;
+    final multiCol =
+        MintBreakpoints.isExpanded(context) && data.items.length > 1;
+    final items = data.items;
+
     return RefreshIndicator(
       color: MintflowColors.green400,
       onRefresh: () => context.read<RecurringCubit>().load(),
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-        children: [
-          _SummaryCard(
-            monthlyTotal: data.monthlyTotal,
-            activeCount: data.activeCount,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(sidePad, 20, sidePad, 12),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _SummaryCard(
+                    monthlyTotal: data.monthlyTotal,
+                    activeCount: data.activeCount,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    items.isEmpty
+                        ? 'No subscriptions detected yet'
+                        : 'Detected from your linked accounts',
+                    style: MintflowTextStyles.bodySmall.copyWith(
+                        color: MintflowColors.textSecondary(context)),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            data.items.isEmpty
-                ? 'No subscriptions detected yet'
-                : 'Detected from your linked accounts',
-            style: MintflowTextStyles.bodySmall
-                .copyWith(color: MintflowColors.ink60),
-          ),
-          const SizedBox(height: 12),
-          if (data.items.isEmpty)
-            _EmptyCard(
-              onScan: () => context.read<RecurringCubit>().detect(),
+          if (items.isEmpty)
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(sidePad, 0, sidePad, 40),
+              sliver: SliverToBoxAdapter(
+                child: _EmptyCard(
+                  onScan: () => context.read<RecurringCubit>().detect(),
+                ),
+              ),
             )
           else
-            ...data.items.map(
-              (s) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _SubCard(sub: s),
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(sidePad, 0, sidePad, 40),
+              sliver: SliverList(
+                delegate: multiCol
+                    ? SliverChildBuilderDelegate(
+                        (context, index) {
+                          final i = index * 2;
+                          final left = items[i];
+                          final right =
+                              i + 1 < items.length ? items[i + 1] : null;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _SubCard(
+                                    key: ValueKey(left.id),
+                                    sub: left,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: right == null
+                                      ? const SizedBox.shrink()
+                                      : _SubCard(
+                                          key: ValueKey(right.id),
+                                          sub: right,
+                                        ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        childCount: (items.length + 1) ~/ 2,
+                      )
+                    : SliverChildBuilderDelegate(
+                        (context, index) {
+                          final s = items[index];
+                          return Padding(
+                            key: ValueKey(s.id),
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _SubCard(sub: s),
+                          );
+                        },
+                        childCount: items.length,
+                      ),
               ),
             ),
         ],
@@ -139,7 +207,7 @@ class _SummaryCard extends StatelessWidget {
                 Text(
                   'Est. monthly',
                   style: MintflowTextStyles.overline
-                      .copyWith(color: MintflowColors.cream.withOpacity(0.55)),
+                      .copyWith(color: MintflowColors.onBrandMuted(context, 0.55)),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -153,7 +221,7 @@ class _SummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: MintflowColors.brandOverlay(context, 0.1),
               borderRadius: MintflowRadius.lg_,
             ),
             child: Text(
@@ -170,7 +238,7 @@ class _SummaryCard extends StatelessWidget {
 
 class _SubCard extends StatelessWidget {
   final RecurringSubscriptionModel sub;
-  const _SubCard({required this.sub});
+  const _SubCard({super.key, required this.sub});
 
   String get _freqLabel {
     switch (sub.frequency) {
@@ -219,7 +287,7 @@ class _SubCard extends StatelessWidget {
                     Text(
                       next,
                       style: MintflowTextStyles.overline
-                          .copyWith(color: MintflowColors.ink60),
+                          .copyWith(color: MintflowColors.textSecondary(context)),
                     ),
                   ],
                 ),
@@ -238,7 +306,7 @@ class _SubCard extends StatelessWidget {
               Text(
                 _freqLabel,
                 style: MintflowTextStyles.overline
-                    .copyWith(color: MintflowColors.ink60),
+                    .copyWith(color: MintflowColors.textSecondary(context)),
               ),
               const Spacer(),
               TextButton(
@@ -248,7 +316,7 @@ class _SubCard extends StatelessWidget {
                 child: Text(
                   'Cancel',
                   style: MintflowTextStyles.labelMedium
-                      .copyWith(color: MintflowColors.ink60),
+                      .copyWith(color: MintflowColors.textSecondary(context)),
                 ),
               ),
               TextButton(
@@ -292,7 +360,7 @@ class _EmptyCard extends StatelessWidget {
             'We look for merchants that charge you on a steady weekly or monthly cadence after bank sync.',
             textAlign: TextAlign.center,
             style: MintflowTextStyles.bodySmall
-                .copyWith(color: MintflowColors.ink60),
+                .copyWith(color: MintflowColors.textSecondary(context)),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -328,33 +396,35 @@ class _UpgradeState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.lock_outline_rounded,
-                size: 40, color: MintflowColors.purple),
-            const SizedBox(height: 12),
-            Text('Subscription tracker is on Growth+',
-                style: MintflowTextStyles.labelLarge,
-                textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text(
-              'Auto-detect Netflix, Spotify, and other monthly charges from your linked banks.',
-              textAlign: TextAlign.center,
-              style: MintflowTextStyles.bodySmall
-                  .copyWith(color: MintflowColors.ink60),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: onUpgrade,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MintflowColors.purple,
-                foregroundColor: Colors.white,
+        padding: EdgeInsets.all(MintBreakpoints.pageGutter(context) + 8),
+        child: MintAdaptiveWidth(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.lock_outline_rounded,
+                  size: 40, color: MintflowColors.purple),
+              const SizedBox(height: 12),
+              Text('Subscription tracker is on Growth+',
+                  style: MintflowTextStyles.labelLarge,
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              Text(
+                'Auto-detect Netflix, Spotify, and other monthly charges from your linked banks.',
+                textAlign: TextAlign.center,
+                style: MintflowTextStyles.bodySmall
+                    .copyWith(color: MintflowColors.textSecondary(context)),
               ),
-              child: const Text('Upgrade'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: onUpgrade,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: MintflowColors.purple,
+                  foregroundColor: MintflowColors.cream,
+                ),
+                child: const Text('See Growth plans'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -370,17 +440,20 @@ class _ErrorState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(message,
-                textAlign: TextAlign.center,
-                style: MintflowTextStyles.bodyMedium
-                    .copyWith(color: MintflowColors.ink60)),
-            const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
+        padding: EdgeInsets.all(MintBreakpoints.pageGutter(context)),
+        child: MintAdaptiveWidth(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message,
+                  textAlign: TextAlign.center,
+                  style: MintflowTextStyles.bodyMedium
+                      .copyWith(color: MintflowColors.textSecondary(context))),
+              const SizedBox(height: 12),
+              TextButton(
+                  onPressed: onRetry, child: const Text('Try again')),
+            ],
+          ),
         ),
       ),
     );

@@ -8,6 +8,7 @@ import 'package:plaid_flutter/plaid_flutter.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/datasources/local_cache.dart';
@@ -146,7 +147,7 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(msg),
-            backgroundColor: MintflowColors.ink60,
+            backgroundColor: MintflowColors.textSecondary(context),
           ),
         );
       });
@@ -222,20 +223,20 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: MintflowColors.card(context),
         shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
         title: Text('Unlink account?', style: MintflowTextStyles.labelLarge),
         content: Text(
           '“${account.name}” will stop syncing. Past transactions stay in your history.',
           style: MintflowTextStyles.bodyMedium
-              .copyWith(color: MintflowColors.ink60),
+              .copyWith(color: MintflowColors.textSecondary(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text('Cancel',
                 style: MintflowTextStyles.labelMedium
-                    .copyWith(color: MintflowColors.ink60)),
+                    .copyWith(color: MintflowColors.textSecondary(context))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -299,33 +300,135 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
               : RefreshIndicator(
                   color: MintflowColors.green400,
                   onRefresh: _load,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-                    children: [
-                      Text(
-                        _accounts.isEmpty
-                            ? 'No accounts linked yet'
-                            : '${_accounts.length} connected',
-                        style: MintflowTextStyles.bodyMedium
-                            .copyWith(color: MintflowColors.ink60),
-                      ),
-                      const SizedBox(height: 16),
-                      if (_accounts.isEmpty)
-                        _EmptyCard(onConnect: _linking ? null : _connectBank)
-                      else
-                        ..._accounts.map(
-                          (a) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _AccountCard(
-                              account: a,
-                              busy: _busyAccountId == a.id,
-                              canSync: a.lastSyncedAt != null,
-                              onSync: () => _sync(a),
-                              onUnlink: () => _unlink(a),
+                  child: Builder(
+                    builder: (context) {
+                      final width = MintBreakpoints.widthOf(context);
+                      final gutter = MintBreakpoints.pageGutter(context);
+                      final contentW = (width - 2 * gutter)
+                          .clamp(0.0, MintBreakpoints.contentMax);
+                      final sidePad = (width - contentW) / 2;
+                      final multiCol = MintBreakpoints.isExpanded(context) &&
+                          _accounts.length > 1;
+                      const bottom = 100.0;
+
+                      if (_accounts.isEmpty) {
+                        return ListView(
+                          padding: EdgeInsets.fromLTRB(
+                              sidePad, 20, sidePad, bottom),
+                          children: [
+                            Text(
+                              'No accounts linked yet',
+                              style: MintflowTextStyles.bodyMedium.copyWith(
+                                color: MintflowColors.textSecondary(context),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _EmptyCard(
+                                onConnect: _linking ? null : _connectBank),
+                          ],
+                        );
+                      }
+
+                      return CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverPadding(
+                            padding: EdgeInsets.fromLTRB(
+                                sidePad, 20, sidePad, 16),
+                            sliver: SliverToBoxAdapter(
+                              child: Text(
+                                '${_accounts.length} connected',
+                                style: MintflowTextStyles.bodyMedium.copyWith(
+                                  color:
+                                      MintflowColors.textSecondary(context),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                          SliverPadding(
+                            padding: EdgeInsets.fromLTRB(
+                                sidePad, 0, sidePad, bottom),
+                            sliver: SliverList(
+                              delegate: multiCol
+                                  ? SliverChildBuilderDelegate(
+                                      (context, index) {
+                                        final i = index * 2;
+                                        final left = _accounts[i];
+                                        final right =
+                                            i + 1 < _accounts.length
+                                                ? _accounts[i + 1]
+                                                : null;
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 12),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: _AccountCard(
+                                                  key: ValueKey(left.id),
+                                                  account: left,
+                                                  busy: _busyAccountId ==
+                                                      left.id,
+                                                  canSync: left
+                                                          .lastSyncedAt !=
+                                                      null,
+                                                  onSync: () => _sync(left),
+                                                  onUnlink: () =>
+                                                      _unlink(left),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: right == null
+                                                    ? const SizedBox.shrink()
+                                                    : _AccountCard(
+                                                        key: ValueKey(
+                                                            right.id),
+                                                        account: right,
+                                                        busy: _busyAccountId ==
+                                                            right.id,
+                                                        canSync: right
+                                                                .lastSyncedAt !=
+                                                            null,
+                                                        onSync: () =>
+                                                            _sync(right),
+                                                        onUnlink: () =>
+                                                            _unlink(right),
+                                                      ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      childCount:
+                                          (_accounts.length + 1) ~/ 2,
+                                    )
+                                  : SliverChildBuilderDelegate(
+                                      (context, index) {
+                                        final a = _accounts[index];
+                                        return Padding(
+                                          key: ValueKey(a.id),
+                                          padding: const EdgeInsets.only(
+                                              bottom: 12),
+                                          child: _AccountCard(
+                                            account: a,
+                                            busy: _busyAccountId == a.id,
+                                            canSync:
+                                                a.lastSyncedAt != null,
+                                            onSync: () => _sync(a),
+                                            onUnlink: () => _unlink(a),
+                                          ),
+                                        );
+                                      },
+                                      childCount: _accounts.length,
+                                    ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
       floatingActionButton: _accounts.isEmpty
@@ -362,9 +465,9 @@ class _EmptyCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(
         children: [
@@ -380,7 +483,7 @@ class _EmptyCard extends StatelessWidget {
           Text(
             'Securely sync transactions with Plaid. Growth includes 2 accounts; Pro is unlimited.',
             style: MintflowTextStyles.bodySmall
-                .copyWith(color: MintflowColors.ink60),
+                .copyWith(color: MintflowColors.textSecondary(context)),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -419,6 +522,7 @@ class _AccountCard extends StatelessWidget {
   final VoidCallback onUnlink;
 
   const _AccountCard({
+    super.key,
     required this.account,
     required this.busy,
     required this.canSync,
@@ -455,9 +559,9 @@ class _AccountCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,7 +572,7 @@ class _AccountCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: MintflowColors.green50,
+                  color: MintflowColors.mintWash(context),
                   borderRadius: MintflowRadius.lg_,
                 ),
                 child: Icon(
@@ -490,7 +594,7 @@ class _AccountCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: MintflowTextStyles.overline
-                          .copyWith(color: MintflowColors.ink60),
+                          .copyWith(color: MintflowColors.textSecondary(context)),
                     ),
                   ],
                 ),
@@ -554,9 +658,10 @@ class _ErrorState extends StatelessWidget {
             Text(message,
                 textAlign: TextAlign.center,
                 style: MintflowTextStyles.bodyMedium
-                    .copyWith(color: MintflowColors.ink60)),
+                    .copyWith(color: MintflowColors.textSecondary(context))),
             const SizedBox(height: 16),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(
+                onPressed: onRetry, child: const Text('Try again')),
           ],
         ),
       ),

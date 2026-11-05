@@ -273,3 +273,14 @@ All design decisions are in `lib/core/theme/app_theme.dart`:
 - [ ] RevenueCat products created and keys configured
 - [ ] `API_BASE_URL` set to production Railway URL
 - [ ] Privacy Policy URL set in app settings screens
+
+## Clean up the repo for stale file
+
+````
+cd /Users/user/Desktop/flowra/mintflow_flutter
+flutter clean
+rm -rf macos/Pods macos/Podfile.lock ~/Library/Caches/CocoaPods
+flutter pub get
+cd macos && pod install --repo-update && cd ..
+flutter run -d macos```
+````

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
+import '../../../core/theme/motion.dart';
 import '../../../core/utils/format.dart';
 import '../../cubits/cubits.dart';
 
@@ -67,11 +69,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Color _iconBg(String type) {
     switch (type) {
       case 'positive':
-        return MintflowColors.green50;
+        return MintflowColors.mintWash(context);
       case 'recommendation':
-        return MintflowColors.purpleSoft;
+        return MintflowColors.purpleWash(context);
       default:
-        return const Color(0xFFFFF8E6);
+        return MintflowColors.wantWash(context);
     }
   }
 
@@ -82,7 +84,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       case 'recommendation':
         return MintflowColors.purple;
       default:
-        return const Color(0xFFD4A020);
+        return MintflowColors.wantLabel(context);
     }
   }
 
@@ -91,6 +93,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Scaffold(
       backgroundColor: MintflowColors.page(context),
       body: BlocBuilder<InsightCubit, InsightState>(
+        buildWhen: (prev, next) => prev != next,
         builder: (context, state) {
           return CustomScrollView(slivers: [
             SliverAppBar(
@@ -105,40 +108,65 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          GestureDetector(
-                            onTap: _prevMonth,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: MintflowRadius.sm_,
+                          Semantics(
+                            button: true,
+                            label: 'Previous month',
+                            child: IconButton(
+                              tooltip: 'Previous month',
+                              onPressed: _prevMonth,
+                              constraints: const BoxConstraints(
+                                minWidth: 48,
+                                minHeight: 48,
                               ),
-                              child: const Icon(Icons.chevron_left,
-                                  color: Colors.white, size: 20),
+                              style: IconButton.styleFrom(
+                                backgroundColor:
+                                    MintflowColors.brandOverlay(context),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: MintflowRadius.sm_,
+                                ),
+                              ),
+                              icon: Icon(Icons.chevron_left,
+                                  color: MintflowColors.onBrand(context),
+                                  size: 22),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 4),
                           Text(_monthLabel,
                               style: MintflowTextStyles.labelLarge
                                   .copyWith(color: MintflowColors.cream)),
-                          const SizedBox(width: 10),
-                          GestureDetector(
-                            onTap: _nextMonth,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: MintflowRadius.sm_,
+                          const SizedBox(width: 4),
+                          Semantics(
+                            button: true,
+                            label: 'Next month',
+                            child: IconButton(
+                              tooltip: 'Next month',
+                              onPressed: DateTime(
+                                          _period.year, _period.month + 1)
+                                      .isAfter(DateTime.now())
+                                  ? null
+                                  : _nextMonth,
+                              constraints: const BoxConstraints(
+                                minWidth: 48,
+                                minHeight: 48,
                               ),
-                              child: Icon(Icons.chevron_right,
-                                  color: Colors.white.withOpacity(
-                                      DateTime(_period.year, _period.month + 1)
-                                              .isAfter(DateTime.now())
-                                          ? 0.3
-                                          : 1.0),
-                                  size: 20),
+                              style: IconButton.styleFrom(
+                                backgroundColor:
+                                    MintflowColors.brandOverlay(context),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: MintflowRadius.sm_,
+                                ),
+                              ),
+                              icon: Icon(
+                                Icons.chevron_right,
+                                color: MintflowColors.onBrand(context)
+                                    .withValues(
+                                  alpha: DateTime(_period.year, _period.month + 1)
+                                          .isAfter(DateTime.now())
+                                      ? 0.35
+                                      : 1.0,
+                                ),
+                                size: 22,
+                              ),
                             ),
                           ),
                         ]),
@@ -155,7 +183,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: MintflowTextStyles.bodySmall.copyWith(
-                              color: MintflowColors.cream.withOpacity(0.6),
+                              color: MintflowColors.onBrandMuted(context, 0.6),
                             ),
                           ),
                         ],
@@ -183,7 +211,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: MintflowColors.green50,
+                          color: MintflowColors.mintWash(context),
                           borderRadius: MintflowRadius.xl_,
                         ),
                         child: const Icon(Icons.auto_awesome,
@@ -193,14 +221,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       Text(
                         'Monthly AI insights',
                         style: MintflowTextStyles.labelLarge
-                            .copyWith(color: MintflowColors.ink),
+                            .copyWith(color: MintflowColors.textPrimary(context)),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Unlock Growth to get a plain-English review of your spending each month.',
                         style: MintflowTextStyles.bodySmall
-                            .copyWith(color: MintflowColors.ink60, height: 1.5),
+                            .copyWith(color: MintflowColors.textSecondary(context), height: 1.5),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
@@ -224,10 +252,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         Text(state.message,
                             textAlign: TextAlign.center,
                             style: MintflowTextStyles.bodyMedium
-                                .copyWith(color: MintflowColors.ink60)),
+                                .copyWith(color: MintflowColors.textSecondary(context))),
                         const SizedBox(height: 12),
                         TextButton(
-                            onPressed: _load, child: const Text('Retry')),
+                            onPressed: _load,
+                            child: const Text('Try again')),
                       ],
                     ),
                   ),
@@ -237,79 +266,170 @@ class _InsightsScreenState extends State<InsightsScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: Column(children: [
-                    ...state.insight.insights.map((item) => _InsightCard(
-                          type: item.type,
-                          icon: _iconFor(item.type),
-                          iconBg: _iconBg(item.type),
-                          iconColor: _iconColor(item.type),
-                          title: item.title,
-                          body: item.body,
-                          actionLabel: item.actionLabel,
-                        )),
-                    ...state.insight.recommendations.map((item) => _InsightCard(
-                          type: item.type,
-                          icon: _iconFor(item.type),
-                          iconBg: _iconBg(item.type),
-                          iconColor: _iconColor(item.type),
-                          title: item.title,
-                          body: item.body,
-                          actionLabel: item.actionLabel,
-                        )),
-                    if (state.insight.insights.isEmpty &&
-                        state.insight.recommendations.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Text(
-                          state.insight.summary.isNotEmpty
-                              ? state.insight.summary
-                              : 'No insights for this month yet.',
-                          style: MintflowTextStyles.bodyMedium
-                              .copyWith(color: MintflowColors.ink60),
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    _FeedbackCard(
-                      thumbsUp: state.insight.thumbsUp,
-                      onFeedback: (up) =>
-                          context.read<InsightCubit>().submitFeedback(up),
-                    ),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () => Share.share(
-                        'My ${_monthLabel} Mintflow summary:\n'
-                        '${state.insight.summary}\n\n'
-                        'Track yours at mintflow.app',
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: MintflowColors.creamDark,
-                          borderRadius: MintflowRadius.lg_,
-                          border: Border.all(color: MintflowColors.ink10),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.ios_share_outlined,
-                                size: 18, color: MintflowColors.ink60),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Share my ${_monthLabel.split(' ').first} recap',
-                              style: MintflowTextStyles.labelLarge
-                                  .copyWith(color: MintflowColors.ink),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 80),
-                  ]),
+                  child: _InsightBody(
+                    monthLabel: _monthLabel,
+                    state: state,
+                    iconFor: _iconFor,
+                    iconBg: _iconBg,
+                    iconColor: _iconColor,
+                    onFeedback: (up) =>
+                        context.read<InsightCubit>().submitFeedback(up),
+                  ),
                 ),
               ),
           ]);
         },
       ),
+    );
+  }
+}
+
+class _InsightBody extends StatelessWidget {
+  final String monthLabel;
+  final InsightLoaded state;
+  final IconData Function(String) iconFor;
+  final Color Function(String) iconBg;
+  final Color Function(String) iconColor;
+  final ValueChanged<bool> onFeedback;
+
+  const _InsightBody({
+    required this.monthLabel,
+    required this.state,
+    required this.iconFor,
+    required this.iconBg,
+    required this.iconColor,
+    required this.onFeedback,
+  });
+
+  List<Widget> _cards(BuildContext context) {
+    final items = [
+      ...state.insight.insights,
+      ...state.insight.recommendations,
+    ];
+    if (items.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Text(
+            state.insight.summary.isNotEmpty
+                ? state.insight.summary
+                : 'No insights for this month yet. Add a few transactions, then check back.',
+            style: MintflowTextStyles.bodyMedium
+                .copyWith(color: MintflowColors.textSecondary(context)),
+          ),
+        ),
+      ];
+    }
+    return [
+      for (final item in items)
+        _InsightCard(
+          type: item.type,
+          icon: iconFor(item.type),
+          iconBg: iconBg(item.type),
+          iconColor: iconColor(item.type),
+          title: item.title,
+          body: item.body,
+          actionLabel: item.actionLabel,
+        ),
+    ];
+  }
+
+  Widget _shareButton(BuildContext context) {
+    final shortMonth = monthLabel.split(' ').first;
+    return Semantics(
+      button: true,
+      label: 'Share my $shortMonth recap',
+      child: Material(
+        color: MintflowColors.softFill(context),
+        borderRadius: MintflowRadius.lg_,
+        child: InkWell(
+          borderRadius: MintflowRadius.lg_,
+          onTap: () => SharePlus.instance.share(
+            ShareParams(
+              text: 'My $monthLabel Mintflow summary:\n'
+                  '${state.insight.summary}\n\n'
+                  'Track yours at mintflow.app',
+            ),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: MintflowRadius.lg_,
+              border: Border.all(color: MintflowColors.hairline(context)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.ios_share_outlined,
+                    size: 18, color: MintflowColors.textSecondary(context)),
+                const SizedBox(width: 8),
+                Text(
+                  'Share my $shortMonth recap',
+                  style: MintflowTextStyles.labelLarge
+                      .copyWith(color: MintflowColors.textPrimary(context)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expanded = MintBreakpoints.isExpanded(context);
+    final cards = _cards(context);
+    final sidebar = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _FeedbackCard(
+          thumbsUp: state.insight.thumbsUp,
+          onFeedback: onFeedback,
+        ),
+        const SizedBox(height: 12),
+        _shareButton(context),
+      ],
+    );
+
+    if (!expanded) {
+      return Column(
+        children: [
+          ...cards,
+          const SizedBox(height: 16),
+          sidebar,
+          const SizedBox(height: 80),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final cardWidth = (constraints.maxWidth - 12) / 2;
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 0,
+                    children: [
+                      for (final card in cards)
+                        SizedBox(width: cardWidth, child: card),
+                    ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(width: 20),
+            Expanded(flex: 2, child: sidebar),
+          ],
+        ),
+        const SizedBox(height: 80),
+      ],
     );
   }
 }
@@ -352,7 +472,7 @@ class _FeedbackCard extends StatelessWidget {
             thumbsUp!
                 ? 'Thanks! Glad this was useful.'
                 : 'Thanks for the feedback — we\'ll improve.',
-            style: MintflowTextStyles.bodySmall.copyWith(color: MintflowColors.ink60),
+            style: MintflowTextStyles.bodySmall.copyWith(color: MintflowColors.textSecondary(context)),
           ),
         ],
       ]),
@@ -368,30 +488,47 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: selected
-              ? (up ? MintflowColors.green50 : MintflowColors.redSoft)
-              : MintflowColors.creamDark,
+    final fill = selected
+        ? (up
+            ? MintflowColors.mintWash(context)
+            : MintflowColors.redWash(context))
+        : MintflowColors.softFill(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: up ? 'Helpful' : 'Not helpful',
+      child: Material(
+        color: fill,
+        borderRadius: MintflowRadius.lg_,
+        child: InkWell(
           borderRadius: MintflowRadius.lg_,
-          border: Border.all(
-            color: selected
-                ? (up ? MintflowColors.green400 : MintflowColors.red)
-                : MintflowColors.ink10,
-            width: selected ? 1.5 : 1,
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: MintMotion.duration(
+              context,
+              const Duration(milliseconds: 200),
+            ),
+            curve: MintMotion.curve(context),
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: MintflowRadius.lg_,
+              border: Border.all(
+                color: selected
+                    ? (up ? MintflowColors.green400 : MintflowColors.red)
+                    : MintflowColors.hairline(context),
+                width: selected ? 1.5 : 1,
+              ),
+            ),
+            child: Icon(
+              up ? Icons.thumb_up_outlined : Icons.thumb_down_outlined,
+              size: 22,
+              color: selected
+                  ? (up ? MintflowColors.green500 : MintflowColors.red)
+                  : MintflowColors.textSecondary(context),
+            ),
           ),
-        ),
-        child: Icon(
-          up ? Icons.thumb_up_outlined : Icons.thumb_down_outlined,
-          size: 22,
-          color: selected
-              ? (up ? MintflowColors.green500 : MintflowColors.red)
-              : MintflowColors.ink60,
         ),
       ),
     );
@@ -441,7 +578,7 @@ class _InsightCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(body,
               style: MintflowTextStyles.bodySmall
-                  .copyWith(color: MintflowColors.ink60, height: 1.6)),
+                  .copyWith(color: MintflowColors.textSecondary(context), height: 1.6)),
           if (actionLabel != null) ...[
             const SizedBox(height: 10),
             Text(actionLabel!,

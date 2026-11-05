@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
+import '../../../core/theme/mint_inputs.dart';
 import '../../cubits/cubits.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -25,10 +27,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     final amount = double.tryParse(_amountCtrl.text.replaceAll(',', ''));
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid amount')),
+        const SnackBar(content: Text('Enter an amount greater than zero')),
       );
       return;
     }
@@ -61,73 +64,108 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
       backgroundColor: MintflowColors.page(context),
       appBar: AppBar(
         backgroundColor: MintflowColors.page(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: MintflowColors.ink),
+          tooltip: 'Close',
+          icon: Icon(Icons.close, color: MintflowColors.textPrimary(context)),
           onPressed: () => context.pop(),
         ),
         title: Text('Add transaction',
             style: MintflowTextStyles.displaySmall
-                .copyWith(color: MintflowColors.ink)),
+                .copyWith(color: MintflowColors.textPrimary(context))),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            decoration: BoxDecoration(
-              color: MintflowColors.creamDark,
-              borderRadius: MintflowRadius.lg_,
-            ),
-            padding: const EdgeInsets.all(3),
-            child: Row(
-                children: ['expense', 'income', 'transfer'].map((t) {
-              final active = _type == t;
-              return Expanded(
-                  child: GestureDetector(
-                onTap: () => setState(() => _type = t),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  decoration: BoxDecoration(
-                    color: active ? Colors.white : Colors.transparent,
-                    borderRadius: MintflowRadius.md_,
-                  ),
-                  child: Text(
-                    t[0].toUpperCase() + t.substring(1),
-                    textAlign: TextAlign.center,
-                    style: MintflowTextStyles.labelMedium.copyWith(
-                      color: active ? MintflowColors.ink : MintflowColors.ink60,
+        padding: EdgeInsets.fromLTRB(
+          MintBreakpoints.pageGutter(context),
+          20,
+          MintBreakpoints.pageGutter(context),
+          20 + bottomInset,
+        ),
+        child: MintAdaptiveWidth(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Semantics(
+            label: 'Transaction type',
+            child: Container(
+              decoration: BoxDecoration(
+                color: MintflowColors.softFill(context),
+                borderRadius: MintflowRadius.lg_,
+              ),
+              padding: const EdgeInsets.all(3),
+              child: Row(
+                  children: ['expense', 'income', 'transfer'].map((t) {
+                final active = _type == t;
+                final label = t[0].toUpperCase() + t.substring(1);
+                return Expanded(
+                  child: Semantics(
+                    button: true,
+                    selected: active,
+                    label: label,
+                    child: InkWell(
+                      borderRadius: MintflowRadius.md_,
+                      onTap: () => setState(() => _type = t),
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 48),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: active
+                              ? MintflowColors.card(context)
+                              : Colors.transparent,
+                          borderRadius: MintflowRadius.md_,
+                        ),
+                        child: Text(
+                          label,
+                          textAlign: TextAlign.center,
+                          style: MintflowTextStyles.labelMedium.copyWith(
+                            color: active
+                                ? MintflowColors.textPrimary(context)
+                                : MintflowColors.textSecondary(context),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ));
-            }).toList()),
+                );
+              }).toList()),
+            ),
           ),
           const SizedBox(height: 24),
-          _FieldLabel('Amount'),
           TextFormField(
             controller: _amountCtrl,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            maxLength: 14,
             style: MintflowTextStyles.amountSmall,
-            decoration: const InputDecoration(
-              prefixText: '\$ ',
-              hintText: '0.00',
-            ),
+            decoration: mintInputDecoration(
+              context,
+              label: 'Amount',
+              hint: '0.00',
+            ).copyWith(prefixText: '\$ ', counterText: ''),
             autofocus: true,
           ),
           const SizedBox(height: 16),
-          _FieldLabel('Merchant / description'),
           TextFormField(
             controller: _merchantCtrl,
-            decoration: const InputDecoration(hintText: 'e.g. Whole Foods'),
+            maxLength: 120,
+            decoration: mintInputDecoration(
+              context,
+              label: 'Merchant / description',
+              hint: 'e.g. Whole Foods',
+            ).copyWith(counterText: ''),
           ),
           const SizedBox(height: 16),
           if (_type == 'expense') ...[
-            _FieldLabel('Classification'),
-            const SizedBox(height: 4),
+            Text(
+              'Classification',
+              style: MintflowTextStyles.labelMedium.copyWith(
+                color: MintflowColors.textSecondary(context),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
             Row(children: [
               _ClassChip(
                   label: 'Need',
@@ -143,18 +181,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: MintflowColors.green50,
+                color: MintflowColors.mintWash(context),
                 borderRadius: MintflowRadius.md_,
               ),
               child: Row(children: [
                 const Icon(Icons.auto_awesome,
                     size: 13, color: MintflowColors.green500),
                 const SizedBox(width: 6),
-                Text('AI will classify automatically if you skip.',
-                    style: MintflowTextStyles.overline.copyWith(
-                        color: MintflowColors.green600,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400)),
+                Expanded(
+                  child: Text(
+                    'AI will classify automatically if you skip.',
+                    style: MintflowTextStyles.chip.copyWith(
+                      color: MintflowColors.green600,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
               ]),
             ),
             const SizedBox(height: 16),
@@ -165,31 +207,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             child: ElevatedButton(
               onPressed: _saving ? null : _save,
               child: _saving
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: MintflowColors.onBrand(context),
+                      ),
                     )
                   : const Text('Save transaction'),
             ),
           ),
         ]),
+        ),
       ),
     );
   }
-}
-
-class _FieldLabel extends StatelessWidget {
-  final String text;
-  const _FieldLabel(this.text);
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text.toUpperCase(),
-            style:
-                MintflowTextStyles.overline.copyWith(color: MintflowColors.ink60)),
-      );
 }
 
 class _ClassChip extends StatelessWidget {
@@ -200,23 +233,35 @@ class _ClassChip extends StatelessWidget {
       {required this.label, required this.selected, required this.onTap});
   @override
   Widget build(BuildContext context) => Expanded(
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: selected ? MintflowColors.green50 : Colors.white,
-              borderRadius: MintflowRadius.lg_,
-              border: Border.all(
-                color: selected ? MintflowColors.green400 : MintflowColors.ink10,
-                width: selected ? 1.5 : 1,
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: label,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: MintflowRadius.lg_,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 48),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: selected
+                    ? MintflowColors.mintWash(context)
+                    : MintflowColors.card(context),
+                borderRadius: MintflowRadius.lg_,
+                border: Border.all(
+                  color: selected
+                      ? MintflowColors.green400
+                      : MintflowColors.hairline(context),
+                  width: selected ? 1.5 : 1,
+                ),
               ),
+              child: Text(label,
+                  textAlign: TextAlign.center,
+                  style: MintflowTextStyles.labelMedium.copyWith(
+                      color: selected
+                          ? MintflowColors.green600
+                          : MintflowColors.textSecondary(context))),
             ),
-            child: Text(label,
-                textAlign: TextAlign.center,
-                style: MintflowTextStyles.labelMedium.copyWith(
-                    color:
-                        selected ? MintflowColors.green600 : MintflowColors.ink60)),
           ),
         ),
       );

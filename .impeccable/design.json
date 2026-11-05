@@ -1,0 +1,444 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T12:42:30Z",
+  "title": "Design System: Mintflow",
+  "extensions": {
+    "colorMeta": {
+      "navy": {
+        "role": "primary",
+        "displayName": "Ledger Navy",
+        "canonical": "#05122B",
+        "tonalRamp": [
+          "#020814",
+          "#05122B",
+          "#0A1A38",
+          "#1A2E4A",
+          "#2E4668",
+          "#5A7394",
+          "#8BA3C0",
+          "#E8EDF5"
+        ]
+      },
+      "mint": {
+        "role": "primary",
+        "displayName": "Action Mint",
+        "canonical": "#2CE683",
+        "tonalRamp": [
+          "#0F4A2E",
+          "#1EA35D",
+          "#24C974",
+          "#2CE683",
+          "#6EF0A8",
+          "#B8F5D4",
+          "#E8FBF2",
+          "#F4FFF9"
+        ]
+      },
+      "mint-deep": {
+        "role": "secondary",
+        "displayName": "Deep Mint",
+        "canonical": "#1EA35D",
+        "tonalRamp": [
+          "#0A3D26",
+          "#146B3E",
+          "#1EA35D",
+          "#24C974",
+          "#2CE683",
+          "#6EF0A8",
+          "#B8F5D4",
+          "#E8FBF2"
+        ]
+      },
+      "mint-mid": {
+        "role": "secondary",
+        "displayName": "Mid Mint",
+        "canonical": "#24C974",
+        "tonalRamp": [
+          "#0F4A2E",
+          "#1EA35D",
+          "#24C974",
+          "#2CE683",
+          "#6EF0A8",
+          "#B8F5D4",
+          "#E8FBF2",
+          "#F4FFF9"
+        ]
+      },
+      "mint-soft": {
+        "role": "secondary",
+        "displayName": "Mint Soft",
+        "canonical": "#B8F5D4",
+        "tonalRamp": [
+          "#1EA35D",
+          "#24C974",
+          "#2CE683",
+          "#6EF0A8",
+          "#B8F5D4",
+          "#D4F9E6",
+          "#E8FBF2",
+          "#F7FDF9"
+        ]
+      },
+      "mint-wash": {
+        "role": "secondary",
+        "displayName": "Mint Wash",
+        "canonical": "#E8FBF2",
+        "tonalRamp": [
+          "#24C974",
+          "#2CE683",
+          "#6EF0A8",
+          "#B8F5D4",
+          "#D4F9E6",
+          "#E8FBF2",
+          "#F4FFF9",
+          "#FBFFFC"
+        ]
+      },
+      "cream": {
+        "role": "neutral",
+        "displayName": "Cool Cream",
+        "canonical": "#F4F7FB",
+        "tonalRamp": [
+          "#05122B",
+          "#1A2E4A",
+          "#5A7394",
+          "#8BA3C0",
+          "#C5D0DE",
+          "#E8EDF5",
+          "#F4F7FB",
+          "#FFFFFF"
+        ]
+      },
+      "cream-dark": {
+        "role": "neutral",
+        "displayName": "Cream Dark",
+        "canonical": "#E8EDF5",
+        "tonalRamp": [
+          "#05122B",
+          "#1A2E4A",
+          "#5A7394",
+          "#8BA3C0",
+          "#C5D0DE",
+          "#E8EDF5",
+          "#F4F7FB",
+          "#FFFFFF"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#05122B",
+        "tonalRamp": [
+          "#020814",
+          "#05122B",
+          "#0A1A38",
+          "#1A2E4A",
+          "#2E4668",
+          "#5A7394",
+          "#8BA3C0",
+          "#E8EDF5"
+        ]
+      },
+      "red": {
+        "role": "tertiary",
+        "displayName": "Alert Red",
+        "canonical": "#E05A40",
+        "tonalRamp": [
+          "#6B2216",
+          "#A33A28",
+          "#E05A40",
+          "#EB7A65",
+          "#F3A090",
+          "#FAD4CC",
+          "#FFF0EE",
+          "#FFF8F6"
+        ]
+      },
+      "purple": {
+        "role": "tertiary",
+        "displayName": "Signal Purple",
+        "canonical": "#7B5CF0",
+        "tonalRamp": [
+          "#2E1F6B",
+          "#4A35A8",
+          "#7B5CF0",
+          "#9A82F5",
+          "#B9A8F9",
+          "#D9D0FC",
+          "#F5F0FF",
+          "#FBFAFF"
+        ]
+      },
+      "blue": {
+        "role": "tertiary",
+        "displayName": "Info Blue",
+        "canonical": "#4A6CF7",
+        "tonalRamp": [
+          "#1A2A7A",
+          "#2E45B8",
+          "#4A6CF7",
+          "#7390F9",
+          "#9BB3FB",
+          "#C4D1FD",
+          "#F0F4FF",
+          "#F8FAFF"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Dark Surface",
+        "canonical": "#05122B",
+        "tonalRamp": [
+          "#020814",
+          "#05122B",
+          "#0A1A38",
+          "#0F2244",
+          "#1A2E4A",
+          "#2E4668",
+          "#5A7394",
+          "#8BA3C0"
+        ]
+      },
+      "dark-card": {
+        "role": "neutral",
+        "displayName": "Dark Card",
+        "canonical": "#0A1A38",
+        "tonalRamp": [
+          "#020814",
+          "#05122B",
+          "#0A1A38",
+          "#0F2244",
+          "#1A2E4A",
+          "#2E4668",
+          "#5A7394",
+          "#8BA3C0"
+        ]
+      },
+      "dark-border": {
+        "role": "neutral",
+        "displayName": "Dark Border",
+        "canonical": "#1A2E4A",
+        "tonalRamp": [
+          "#05122B",
+          "#0A1A38",
+          "#0F2244",
+          "#1A2E4A",
+          "#2E4668",
+          "#5A7394",
+          "#8BA3C0",
+          "#C5D0DE"
+        ]
+      },
+      "dark-text": {
+        "role": "neutral",
+        "displayName": "Dark Text",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#8BA3C0",
+          "#A8BBD1",
+          "#C5D0DE",
+          "#D9E2EC",
+          "#E8EDF5",
+          "#F4F7FB",
+          "#FAFBFD",
+          "#FFFFFF"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Dark Muted",
+        "canonical": "#8BA3C0",
+        "tonalRamp": [
+          "#1A2E4A",
+          "#2E4668",
+          "#5A7394",
+          "#8BA3C0",
+          "#A8BBD1",
+          "#C5D0DE",
+          "#E8EDF5",
+          "#F4F7FB"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Screen titles and greetings (Poppins 32)."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Secondary screen titles (Poppins 26)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section titles (Poppins 22)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "UI copy and lists (DM Sans 16)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Controls and form labels (DM Sans 14)."
+      },
+      "chip": {
+        "displayName": "Chip",
+        "purpose": "11px floor badges and filters (DM Sans)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "fab-lift",
+        "value": "0 4px 12px rgba(44, 230, 131, 0.3)",
+        "purpose": "Primary FAB elevation only; prefer hairline borders elsewhere."
+      },
+      {
+        "name": "segment-selected",
+        "value": "0 1px 6px rgba(0, 0, 0, 0.08)",
+        "purpose": "Legacy segment lift; prefer theme SegmentedButton without custom shadow."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.33, 1, 0.68, 1)",
+        "purpose": "Default state and entrance motion (Curves.easeOutCubic)."
+      },
+      {
+        "name": "duration-short",
+        "value": "180ms",
+        "purpose": "Filter chips, segmented control, short UI transitions."
+      },
+      {
+        "name": "duration-medium",
+        "value": "250ms",
+        "purpose": "Typical control state changes."
+      },
+      {
+        "name": "reduce",
+        "value": "Duration.zero / jump-to-end",
+        "purpose": "When MediaQuery.disableAnimationsOf is true via MintMotion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "medium",
+        "value": "600px"
+      },
+      {
+        "name": "expanded",
+        "value": "840px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Mint fill CTA with navy label — primary actions only.",
+      "html": "<button class=\"ds-btn-primary\">Sign in</button>",
+      "css": ".ds-btn-primary { background: #2CE683; color: #05122B; padding: 16px 24px; border: none; border-radius: 16px; font-family: \"DM Sans\", sans-serif; font-size: 14px; font-weight: 500; line-height: 1.4; cursor: pointer; transition: background 0.18s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.18s; } .ds-btn-primary:hover { background: #24C974; } .ds-btn-primary:focus-visible { outline: 2px solid #05122B; outline-offset: 2px; } .ds-btn-primary:active { background: #1EA35D; } .ds-btn-primary:disabled { background: #B8F5D4; color: rgba(5, 18, 43, 0.6); cursor: not-allowed; }"
+    },
+    {
+      "name": "Outlined Button",
+      "kind": "button",
+      "refersTo": "button-outlined",
+      "description": "Mint outline secondary path.",
+      "html": "<button class=\"ds-btn-outlined\">Cancel</button>",
+      "css": ".ds-btn-outlined { background: transparent; color: #2CE683; padding: 16px 24px; border: 1px solid #2CE683; border-radius: 16px; font-family: \"DM Sans\", sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.18s cubic-bezier(0.33, 1, 0.68, 1), color 0.18s; } .ds-btn-outlined:hover { background: #E8FBF2; } .ds-btn-outlined:focus-visible { outline: 2px solid #24C974; outline-offset: 2px; } .ds-btn-outlined:active { background: #B8F5D4; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": null,
+      "description": "mintInputDecoration: filled white/card, mint focus ring 1.5px, always labelText.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email address</span><input class=\"ds-input\" type=\"email\" placeholder=\"you@email.com\" /></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 6px; font-family: \"DM Sans\", sans-serif; } .ds-field-label { font-size: 12px; font-weight: 500; color: rgba(5, 18, 43, 0.6); } .ds-input { background: #FFFFFF; color: #05122B; border: 1.5px solid rgba(5, 18, 43, 0.1); border-radius: 16px; padding: 14px 16px; font-size: 16px; line-height: 1.6; outline: none; transition: border-color 0.18s cubic-bezier(0.33, 1, 0.68, 1); } .ds-input::placeholder { color: rgba(5, 18, 43, 0.3); } .ds-input:hover { border-color: rgba(5, 18, 43, 0.22); } .ds-input:focus-visible { border-color: #2CE683; } .ds-input[aria-invalid=true] { border-color: #E05A40; }"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "48dp min height; selected mint fill + navy label; idle brand overlay on navy chrome.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">All</button><button class=\"ds-chip\" aria-pressed=\"false\">Expenses</button></div>",
+      "css": ".ds-chips { display: flex; gap: 8px; } .ds-chip { min-height: 48px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(244, 247, 251, 0.22); background: rgba(244, 247, 251, 0.12); color: #F4F7FB; font-family: \"DM Sans\", sans-serif; font-size: 11px; font-weight: 500; cursor: pointer; transition: background 0.18s cubic-bezier(0.33, 1, 0.68, 1), color 0.18s; } .ds-chip[aria-pressed=true] { background: #2CE683; border-color: #2CE683; color: #05122B; font-weight: 600; } .ds-chip:focus-visible { outline: 2px solid #2CE683; outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat card surface + 1px hairline; lg radius; internal padding ≥16.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card-title\">Monthly budget</h3><p class=\"ds-card-body\">of $3,500 spent</p></article>",
+      "css": ".ds-card { background: #FFFFFF; color: #05122B; border: 1px solid rgba(5, 18, 43, 0.1); border-radius: 16px; padding: 16px; font-family: \"DM Sans\", sans-serif; } .ds-card-title { margin: 0 0 8px; font-family: Poppins, sans-serif; font-size: 16px; font-weight: 400; } .ds-card-body { margin: 0; font-size: 14px; color: rgba(5, 18, 43, 0.6); line-height: 1.6; }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "nav-active",
+      "description": "Material NavigationBar with mint-wash indicator; theme-driven.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><button class=\"ds-nav-item\" aria-current=\"page\"><span class=\"ds-nav-icon\" aria-hidden=\"true\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z\"/></svg></span>Home</button><button class=\"ds-nav-item\"><span class=\"ds-nav-icon\" aria-hidden=\"true\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z\"/></svg></span>Transactions</button></nav>",
+      "css": ".ds-nav { display: flex; height: 68px; background: #FFFFFF; border-top: 1px solid rgba(5, 18, 43, 0.1); font-family: \"DM Sans\", sans-serif; } .ds-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: none; background: transparent; color: rgba(5, 18, 43, 0.3); font-size: 11px; font-weight: 400; cursor: pointer; } .ds-nav-item[aria-current=page] { color: #24C974; font-weight: 600; background: #E8FBF2; border-radius: 16px; margin: 8px 6px; } .ds-nav-item:focus-visible { outline: 2px solid #2CE683; outline-offset: -4px; } .ds-nav-icon { display: flex; }"
+    },
+    {
+      "name": "FAB",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "End-float add-transaction FAB; mint fill, navy icon, lg radius.",
+      "html": "<button class=\"ds-fab\" aria-label=\"Add transaction\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z\"/></svg></button>",
+      "css": ".ds-fab { width: 56px; height: 56px; border: none; border-radius: 16px; background: #2CE683; color: #05122B; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(44, 230, 131, 0.3); transition: background 0.18s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.18s; } .ds-fab:hover { background: #24C974; } .ds-fab:focus-visible { outline: 2px solid #05122B; outline-offset: 2px; } .ds-fab:active { background: #1EA35D; box-shadow: 0 2px 6px rgba(44, 230, 131, 0.25); }"
+    },
+    {
+      "name": "Budget Ring",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Signature Home control: navy field, mint progress arc, Poppins amount.",
+      "html": "<div class=\"ds-ring\" role=\"img\" aria-label=\"$1,240 of $3,500 spent\"><div class=\"ds-ring-track\"></div><div class=\"ds-ring-progress\"></div><div class=\"ds-ring-center\"><span class=\"ds-ring-amount\">$1,240</span><span class=\"ds-ring-caption\">of $3,500 spent</span></div></div>",
+      "css": ".ds-ring { position: relative; width: 200px; height: 200px; border-radius: 50%; background: #05122B; display: grid; place-items: center; } .ds-ring-track { position: absolute; inset: 10px; border-radius: 50%; border: 10px solid rgba(244, 247, 251, 0.12); } .ds-ring-progress { position: absolute; inset: 10px; border-radius: 50%; border: 10px solid transparent; border-top-color: #2CE683; border-right-color: #2CE683; transform: rotate(45deg); } .ds-ring-center { position: relative; text-align: center; color: #F4F7FB; } .ds-ring-amount { display: block; font-family: Poppins, sans-serif; font-size: 28px; font-weight: 400; letter-spacing: -0.3px; line-height: 1; } .ds-ring-caption { display: block; margin-top: 8px; font-family: \"DM Sans\", sans-serif; font-size: 12px; color: rgba(244, 247, 251, 0.55); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Calm Ledger Light",
+    "overview": "Mintflow is an Operate-mode personal finance app. The UI should feel like a clear monthly ledger under cool daylight: navy brand chrome for authority, mint for progress and primary action, cream paper for reading. Density stays scannable — one primary task per screen, amounts in Poppins, UI chrome in DM Sans.\n\nBrand expresses through palette, type pairing, and the budget ring — not through glassmorphism, purple glow, or dashboard-stat clutter.",
+    "keyCharacteristics": [
+      "Navy headers / mint CTAs / cream canvases",
+      "Material 3 scaffolding with Mintflow tokens (not Dynamic Color by default — brand-first static schemes)",
+      "Light and dark are first-class ThemeData schemes",
+      "Adaptive shell: bottom bar < 840dp, navigation rail ≥ 840dp",
+      "Motion is ease-out only; honor Reduce Motion / disable animations"
+    ],
+    "rules": [
+      {
+        "name": "The Mint Rarity Rule",
+        "body": "Mint owns primary actions and progress. Do not flood screens with mint fills.",
+        "section": "colors"
+      },
+      {
+        "name": "The Brand Overlay Rule",
+        "body": "On navy chrome, use onBrand / brandOverlay — never raw gray or ad-hoc white opacities for new work.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dynamic Color Rule",
+        "body": "Android wallpaper-derived schemes are intentionally out of scope; keep the static navy/mint brand unless product revisits this.",
+        "section": "colors"
+      },
+      {
+        "name": "The Eleven Point Floor",
+        "body": "No UI text below 11px. Decorative glyphs may be icon-sized, not type-sized under the floor.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do use MintflowColors.* helpers (page, card, textPrimary, onBrand, washes) instead of raw hex in screens.",
+      "Do keep touch targets ≥48dp and add tooltips/semantics on icon-only controls.",
+      "Do gate decorative motion with MintMotion / MediaQuery.disableAnimationsOf."
+    ],
+    "donts": [
+      "Don't introduce purple-on-white marketing gradients or gold accents (legacy token names map to mint).",
+      "Don't lock portrait to hide layout bugs; adapt with breakpoints.",
+      "Don't ship unlabeled GestureDetector icon hits or visual-only Label without labelText.",
+      "Don't drop type below 11px for badges — use MintflowTextStyles.chip."
+    ]
+  }
+}

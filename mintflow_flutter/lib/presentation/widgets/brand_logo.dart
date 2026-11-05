@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_theme.dart';
+
 /// Mintflow brand logo mark (M icon asset).
 class BrandLogo extends StatelessWidget {
   final double size;
@@ -26,7 +28,9 @@ class BrandLogo extends StatelessWidget {
         width: size,
         height: size,
         fit: BoxFit.cover,
-        filterQuality: FilterQuality.high,
+        filterQuality: FilterQuality.medium,
+        cacheWidth: (size * 3).round().clamp(48, 512),
+        cacheHeight: (size * 3).round().clamp(48, 512),
       ),
     );
 
@@ -43,7 +47,7 @@ class BrandLogo extends StatelessWidget {
             fontFamily: 'Poppins',
             fontSize: size * 0.55,
             fontWeight: FontWeight.w500,
-            color: wordmarkColor ?? const Color(0xFF05122B),
+            color: wordmarkColor ?? MintflowColors.green900,
             letterSpacing: -0.3,
           ),
         ),

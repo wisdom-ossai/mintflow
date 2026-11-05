@@ -4,7 +4,7 @@ import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
-import '../../widgets/label.dart';
+import '../../../core/theme/mint_inputs.dart';
 import '../../widgets/error_banner.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -107,7 +107,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           child: _success
               ? _SuccessState(onSignIn: () => context.go(MintflowRoutes.login))
               : SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    24,
+                    24,
+                    24 + MediaQuery.viewInsetsOf(context).bottom,
+                  ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -118,20 +123,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           const SizedBox(height: 4),
                         ],
 
-                        Label('New password'),
                         TextFormField(
                           controller: _passwordCtrl,
                           obscureText: _obscure1,
                           textInputAction: TextInputAction.next,
                           onChanged: (_) => setState(() {}),
-                          decoration: InputDecoration(
-                            hintText: 'Min. 8 characters',
+                          decoration: mintInputDecoration(
+                            context,
+                            label: 'New password',
+                            hint: 'Min. 8 characters',
                             suffixIcon: IconButton(
+                              tooltip: _obscure1
+                                  ? 'Show password'
+                                  : 'Hide password',
                               icon: Icon(
                                 _obscure1
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: MintflowColors.ink60,
+                                color: MintflowColors.textSecondary(context),
                                 size: 20,
                               ),
                               onPressed: () =>
@@ -170,20 +179,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ],
                         const SizedBox(height: 16),
 
-                        Label('Confirm new password'),
                         TextFormField(
                           controller: _confirmCtrl,
                           obscureText: _obscure2,
                           textInputAction: TextInputAction.done,
                           onFieldSubmitted: (_) => _resetPassword(),
-                          decoration: InputDecoration(
-                            hintText: 'Repeat your new password',
+                          decoration: mintInputDecoration(
+                            context,
+                            label: 'Confirm new password',
+                            hint: 'Repeat your new password',
                             suffixIcon: IconButton(
+                              tooltip: _obscure2
+                                  ? 'Show password'
+                                  : 'Hide password',
                               icon: Icon(
                                 _obscure2
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
-                                color: MintflowColors.ink60,
+                                color: MintflowColors.textSecondary(context),
                                 size: 20,
                               ),
                               onPressed: () =>
@@ -205,7 +218,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
-                                        color: Colors.white, strokeWidth: 2))
+                                        color: MintflowColors.cream, strokeWidth: 2))
                                 : const Text('Set new password'),
                           ),
                         ),
@@ -234,7 +247,7 @@ class _ResetTopPanel extends StatelessWidget {
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: MintflowColors.green400.withOpacity(0.1),
+                color: MintflowColors.green400.withValues(alpha: 0.1),
               ),
             )),
         SafeArea(
@@ -253,8 +266,8 @@ class _ResetTopPanel extends StatelessWidget {
                       color: MintflowColors.green400,
                       borderRadius: BorderRadius.circular(11),
                     ),
-                    child: const Icon(Icons.eco_outlined,
-                        color: Colors.white, size: 18),
+                    child: Icon(Icons.eco_outlined,
+                        color: MintflowColors.onMint(context), size: 18),
                   ),
                   const SizedBox(width: 8),
                   Text('Mintflow',
@@ -270,10 +283,10 @@ class _ResetTopPanel extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: MintflowColors.green400.withOpacity(0.2),
+                    color: MintflowColors.green400.withValues(alpha: 0.2),
                     borderRadius: MintflowRadius.lg_,
                     border: Border.all(
-                        color: MintflowColors.green400.withOpacity(0.4)),
+                        color: MintflowColors.green400.withValues(alpha: 0.4)),
                   ),
                   child: const Icon(Icons.key_outlined,
                       color: MintflowColors.green400, size: 24),
@@ -288,7 +301,7 @@ class _ResetTopPanel extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text('Choose something strong and memorable.',
                     style: MintflowTextStyles.bodySmall.copyWith(
-                        color: MintflowColors.cream.withOpacity(0.5),
+                        color: MintflowColors.onBrandMuted(context, 0.5),
                         fontWeight: FontWeight.w300)),
               ],
             ),
@@ -322,13 +335,13 @@ class _PasswordRules extends StatelessWidget {
                   Icon(
                     r.met ? Icons.check_circle : Icons.radio_button_unchecked,
                     size: 13,
-                    color: r.met ? MintflowColors.green400 : MintflowColors.ink30,
+                    color: r.met ? MintflowColors.green400 : MintflowColors.textTertiary(context),
                   ),
                   const SizedBox(width: 6),
                   Text(r.label,
                       style: MintflowTextStyles.overline.copyWith(
                         color:
-                            r.met ? MintflowColors.green600 : MintflowColors.ink60,
+                            r.met ? MintflowColors.green600 : MintflowColors.textSecondary(context),
                         fontWeight: r.met ? FontWeight.w500 : FontWeight.w400,
                         fontSize: 11,
                       )),
@@ -362,7 +375,7 @@ class _SuccessState extends StatelessWidget {
             width: 90,
             height: 90,
             decoration: BoxDecoration(
-              color: MintflowColors.green50,
+              color: MintflowColors.mintWash(context),
               borderRadius: MintflowRadius.xl_,
               border: Border.all(color: MintflowColors.green100, width: 1.5),
             ),
@@ -379,7 +392,7 @@ class _SuccessState extends StatelessWidget {
             'Sign in with your new password.',
             textAlign: TextAlign.center,
             style: MintflowTextStyles.bodyMedium
-                .copyWith(color: MintflowColors.ink60, height: 1.6),
+                .copyWith(color: MintflowColors.textSecondary(context), height: 1.6),
           ),
           const Spacer(),
           SizedBox(

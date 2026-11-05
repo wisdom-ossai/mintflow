@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
-import '../../widgets/label.dart';
+import '../../../core/theme/mint_inputs.dart';
 import '../../widgets/error_banner.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -43,6 +44,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = friendlyAuthError(e);
         _loading = false;
@@ -61,32 +63,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         // ── Form ────────────────────────────────────────────────────────────
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            padding: EdgeInsets.fromLTRB(
+              MintBreakpoints.pageGutter(context),
+              24,
+              MintBreakpoints.pageGutter(context),
+              24 + MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            child: MintAdaptiveWidth(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // Explanation
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: MintflowColors.creamDark,
+                      color: MintflowColors.softFill(context),
                       borderRadius: MintflowRadius.lg_,
-                      border: Border.all(color: MintflowColors.ink10),
+                      border: Border.all(color: MintflowColors.hairline(context)),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(Icons.info_outline,
-                            size: 16, color: MintflowColors.ink60),
+                            size: 16, color: MintflowColors.textSecondary(context)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Enter the email address you signed up with. '
                             "We'll send you a secure link to reset your password.",
                             style: MintflowTextStyles.bodySmall.copyWith(
-                              color: MintflowColors.ink60,
+                              color: MintflowColors.textSecondary(context),
                               height: 1.6,
                             ),
                           ),
@@ -101,17 +109,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     const SizedBox(height: 4),
                   ],
 
-                  Label('Email address'),
                   TextFormField(
                     controller: _emailCtrl,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
                     autofocus: true,
                     onFieldSubmitted: (_) => _sendReset(),
-                    decoration: const InputDecoration(
-                      hintText: 'you@email.com',
+                    decoration: mintInputDecoration(
+                      context,
+                      label: 'Email address',
+                      hint: 'you@email.com',
+                    ).copyWith(
                       prefixIcon: Icon(Icons.email_outlined,
-                          size: 18, color: Color(0x990F1F14)),
+                          size: 18,
+                          color: MintflowColors.textSecondary(context)),
                     ),
                     validator: (v) =>
                         (v == null || v.isEmpty || !v.contains('@'))
@@ -130,7 +141,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
+                                  color: MintflowColors.cream, strokeWidth: 2))
                           : const Text('Send reset link'),
                     ),
                   ),
@@ -140,15 +151,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   Center(
                     child: TextButton.icon(
                       onPressed: () => context.go(MintflowRoutes.login),
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                        tapTargetSize: MaterialTapTargetSize.padded,
+                      ),
                       icon: const Icon(Icons.arrow_back,
                           size: 16, color: MintflowColors.green500),
                       label: Text('Back to sign in',
                           style: MintflowTextStyles.labelMedium
-                              .copyWith(color: MintflowColors.green500)),
+                              .copyWith(color: MintflowColors.green600)),
                     ),
                   ),
                 ],
               ),
+            ),
             ),
           ),
         ),
@@ -175,7 +191,7 @@ class _ForgotTopPanel extends StatelessWidget {
               height: 160,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: MintflowColors.green400.withOpacity(0.1),
+                color: MintflowColors.green400.withValues(alpha: 0.1),
               ),
             )),
         Positioned(
@@ -186,7 +202,7 @@ class _ForgotTopPanel extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: MintflowColors.gold400.withOpacity(0.08),
+                color: MintflowColors.gold400.withValues(alpha: 0.08),
               ),
             )),
         SafeArea(
@@ -197,17 +213,21 @@ class _ForgotTopPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Back button
-                GestureDetector(
-                  onTap: () => context.pop(),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: MintflowRadius.sm_,
+                Semantics(
+                  button: true,
+                  label: 'Back',
+                  child: IconButton(
+                    tooltip: 'Back',
+                    onPressed: () => context.pop(),
+                    style: IconButton.styleFrom(
+                      backgroundColor: MintflowColors.brandOverlay(context, 0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: MintflowRadius.sm_,
+                      ),
+                      minimumSize: const Size(48, 48),
                     ),
-                    child: const Icon(Icons.arrow_back,
-                        color: Colors.white, size: 18),
+                    icon: const Icon(Icons.arrow_back,
+                        color: MintflowColors.cream, size: 20),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -217,10 +237,10 @@ class _ForgotTopPanel extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: MintflowColors.green400.withOpacity(0.2),
+                    color: MintflowColors.green400.withValues(alpha: 0.2),
                     borderRadius: MintflowRadius.lg_,
                     border: Border.all(
-                        color: MintflowColors.green400.withOpacity(0.4)),
+                        color: MintflowColors.green400.withValues(alpha: 0.4)),
                   ),
                   child: const Icon(Icons.lock_reset_outlined,
                       color: MintflowColors.green400, size: 26),
@@ -233,9 +253,9 @@ class _ForgotTopPanel extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                         height: 1.2)),
                 const SizedBox(height: 6),
-                Text('No worries — happens to the best of us.',
+                Text('We’ll email you a secure reset link.',
                     style: MintflowTextStyles.bodySmall.copyWith(
-                        color: MintflowColors.cream.withOpacity(0.5),
+                        color: MintflowColors.onBrandMuted(context, 0.5),
                         fontWeight: FontWeight.w300)),
               ],
             ),

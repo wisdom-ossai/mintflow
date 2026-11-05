@@ -5,11 +5,12 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../core/utils/revenuecat.dart';
 import '../../../core/utils/social_auth.dart';
 import '../../../data/datasources/service_locator.dart';
-import '../../widgets/label.dart';
+import '../../../core/theme/mint_inputs.dart';
 import '../../widgets/brand_logo.dart';
 import '../../widgets/error_banner.dart';
 
@@ -23,9 +24,11 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
   bool _obscure = true;
+  bool _obscureConfirm = true;
   String? _error;
 
   @override
@@ -33,6 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
     super.dispose();
   }
 
@@ -52,6 +56,7 @@ class _SignupScreenState extends State<SignupScreen> {
       AuthGate.setOnboardingComplete(false);
       if (mounted) context.go(MintflowRoutes.onboarding);
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = friendlyAuthError(e);
         _loading = false;
@@ -126,26 +131,32 @@ class _SignupScreenState extends State<SignupScreen> {
       backgroundColor: MintflowColors.page(context),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                BrandLogo(
-                  size: 40,
-                  showWordmark: true,
-                  wordmarkColor: MintflowColors.textPrimary(context),
-                ),
-                const SizedBox(height: 40),
+          padding: EdgeInsets.fromLTRB(
+            MintBreakpoints.pageGutter(context),
+            24,
+            MintBreakpoints.pageGutter(context),
+            24 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: MintAdaptiveWidth(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  BrandLogo(
+                    size: 40,
+                    showWordmark: true,
+                    wordmarkColor: MintflowColors.textPrimary(context),
+                  ),
+                  const SizedBox(height: 40),
 
-                // 7-day trial badge
-                Container(
+                  // 7-day trial badge
+                  Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: MintflowColors.green50,
+                    color: MintflowColors.mintWash(context),
                     borderRadius: MintflowRadius.md_,
                     border: Border.all(color: MintflowColors.green100),
                   ),
@@ -178,47 +189,57 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 if (_error != null) ErrorBanner(message: _error!),
 
-                Label('Full name'),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: _nameCtrl,
                   textCapitalization: TextCapitalization.words,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(hintText: 'Alex Johnson'),
+                  decoration: mintInputDecoration(
+                    context,
+                    label: 'Full name',
+                    hint: 'Alex Johnson',
+                  ),
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'Enter your name'
                       : null,
                 ),
                 const SizedBox(height: 16),
 
-                Label('Email address'),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(hintText: 'you@email.com'),
+                  decoration: mintInputDecoration(
+                    context,
+                    label: 'Email address',
+                    hint: 'you@email.com',
+                  ),
                   validator: (v) => (v == null || !v.contains('@'))
-                      ? 'Enter a valid email'
+                      ? 'Enter a valid email address'
                       : null,
                 ),
                 const SizedBox(height: 16),
 
-                Label('Password'),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: _obscure,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _signup(),
-                  decoration: InputDecoration(
-                    hintText: 'Min. 8 characters',
+                  textInputAction: TextInputAction.next,
+                  onChanged: (_) {
+                    // Re-validate confirm field when password changes.
+                    if (_confirmCtrl.text.isNotEmpty) {
+                      _formKey.currentState?.validate();
+                    }
+                  },
+                  decoration: mintInputDecoration(
+                    context,
+                    label: 'Password',
+                    hint: 'Min. 8 characters',
                     suffixIcon: IconButton(
+                      tooltip: _obscure ? 'Show password' : 'Hide password',
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: MintflowColors.ink60,
+                        color: MintflowColors.textSecondary(context),
                         size: 20,
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
@@ -227,6 +248,42 @@ class _SignupScreenState extends State<SignupScreen> {
                   validator: (v) => (v == null || v.length < 8)
                       ? 'Password must be at least 8 characters'
                       : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _confirmCtrl,
+                  obscureText: _obscureConfirm,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _signup(),
+                  decoration: mintInputDecoration(
+                    context,
+                    label: 'Confirm password',
+                    hint: 'Re-enter your password',
+                    suffixIcon: IconButton(
+                      tooltip: _obscureConfirm
+                          ? 'Show password'
+                          : 'Hide password',
+                      icon: Icon(
+                        _obscureConfirm
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: MintflowColors.textSecondary(context),
+                        size: 20,
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscureConfirm = !_obscureConfirm),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) {
+                      return 'Confirm your password';
+                    }
+                    if (v != _passwordCtrl.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 28),
 
@@ -239,7 +296,8 @@ class _SignupScreenState extends State<SignupScreen> {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                                color: MintflowColors.green900,
+                                strokeWidth: 2))
                         : const Text('Create account — free'),
                   ),
                 ),
@@ -250,65 +308,89 @@ class _SignupScreenState extends State<SignupScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text('or',
-                        style: MintflowTextStyles.labelSmall
-                            .copyWith(color: MintflowColors.ink60)),
+                        style: MintflowTextStyles.labelSmall.copyWith(
+                            color: MintflowColors.textSecondary(context))),
                   ),
                   const Expanded(child: Divider()),
                 ]),
                 const SizedBox(height: 20),
 
-                if (isAppleSignInPlatform) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: SignInWithAppleButton(
-                      onPressed: _loading ? () {} : _appleSignup,
-                      style: SignInWithAppleButtonStyle.black,
-                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                Row(
+                  children: [
+                    if (isAppleSignInPlatform) ...[
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: FilledButton.icon(
+                            onPressed: _loading ? null : _appleSignup,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: MintflowColors.cream,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            icon: const Icon(Icons.apple, size: 20),
+                            label: const Text('Apple'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: _loading ? null : _googleSignup,
+                          icon: const _SignupGoogleIcon(),
+                          label: const Text('Google'),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _loading ? null : _googleSignup,
-                    icon: const _SignupGoogleIcon(),
-                    label: const Text('Continue with Google'),
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
                 Center(
-                  child: GestureDetector(
-                    onTap: () => context.go(MintflowRoutes.login),
-                    child: RichText(
-                      text: TextSpan(
-                        style: MintflowTextStyles.bodySmall
-                            .copyWith(color: MintflowColors.ink60),
+                  child: TextButton(
+                    onPressed: () => context.go(MintflowRoutes.login),
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
+                    child: Text.rich(
+                      TextSpan(
+                        style: MintflowTextStyles.bodySmall.copyWith(
+                            color: MintflowColors.textSecondary(context)),
                         children: [
                           const TextSpan(text: 'Already have an account? '),
                           TextSpan(
-                              text: 'Sign in',
-                              style: TextStyle(
-                                color: MintflowColors.green500,
-                                fontWeight: FontWeight.w500,
-                              )),
+                            text: 'Sign in',
+                            style: TextStyle(
+                              color: MintflowColors.green600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
+                      textAlign: TextAlign.center,
+                      semanticsLabel: 'Already have an account? Sign in',
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    'By signing up you agree to our Terms & Privacy Policy.',
-                    textAlign: TextAlign.center,
-                    style: MintflowTextStyles.overline
-                        .copyWith(color: MintflowColors.ink30),
+                  Center(
+                    child: Text(
+                      'By signing up you agree to our Terms & Privacy Policy.',
+                      textAlign: TextAlign.center,
+                      style: MintflowTextStyles.overline.copyWith(
+                          color: MintflowColors.textSecondary(context)),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

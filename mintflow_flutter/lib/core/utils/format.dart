@@ -1,18 +1,26 @@
 import 'package:intl/intl.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mintflow formatting utilities
+// Mintflow formatting utilities — formatters are cached (hot-path safe).
 // ─────────────────────────────────────────────────────────────────────────────
 
 class MintflowFormat {
   MintflowFormat._();
 
+  static final NumberFormat _currency =
+      NumberFormat('#,##0.00', 'en_US');
+  static final DateFormat _date = DateFormat('MMM d, yyyy');
+  static final DateFormat _dateShort = DateFormat('MMM d');
+  static final DateFormat _monthYear = DateFormat('MMMM yyyy');
+  static final DateFormat _monthShort = DateFormat('MMM yyyy');
+  static final DateFormat _dayOfWeek = DateFormat('EEEE');
+  static final DateFormat _time = DateFormat('h:mm a');
+
   // ── Currency ──────────────────────────────────────────────────────────────
 
   static String currency(double amount,
       {String symbol = '\$', bool showSign = false}) {
-    final formatter = NumberFormat('#,##0.00', 'en_US');
-    final formatted = '$symbol${formatter.format(amount.abs())}';
+    final formatted = '$symbol${_currency.format(amount.abs())}';
     if (showSign && amount >= 0) return '+$formatted';
     if (amount < 0) return '-$formatted';
     return formatted;
@@ -33,12 +41,12 @@ class MintflowFormat {
 
   // ── Dates ─────────────────────────────────────────────────────────────────
 
-  static String date(DateTime dt) => DateFormat('MMM d, yyyy').format(dt);
-  static String dateShort(DateTime dt) => DateFormat('MMM d').format(dt);
-  static String monthYear(DateTime dt) => DateFormat('MMMM yyyy').format(dt);
-  static String monthShort(DateTime dt) => DateFormat('MMM yyyy').format(dt);
-  static String dayOfWeek(DateTime dt) => DateFormat('EEEE').format(dt);
-  static String time(DateTime dt) => DateFormat('h:mm a').format(dt);
+  static String date(DateTime dt) => _date.format(dt);
+  static String dateShort(DateTime dt) => _dateShort.format(dt);
+  static String monthYear(DateTime dt) => _monthYear.format(dt);
+  static String monthShort(DateTime dt) => _monthShort.format(dt);
+  static String dayOfWeek(DateTime dt) => _dayOfWeek.format(dt);
+  static String time(DateTime dt) => _time.format(dt);
 
   static String relativeDate(DateTime dt) {
     final now = DateTime.now();

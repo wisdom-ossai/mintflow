@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/motion.dart';
 import '../../../core/utils/revenuecat.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
@@ -26,16 +27,32 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 900));
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeIn);
-    _scale = Tween<double>(begin: 0.85, end: 1.0)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack));
+        vsync: this, duration: const Duration(milliseconds: 720));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _scale = Tween<double>(begin: 0.94, end: 1.0)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
     _ctrl.forward();
     _navigate();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _ctrl.duration =
+        MintMotion.duration(context, const Duration(milliseconds: 720));
+    if (MintMotion.reduce(context)) {
+      _ctrl.value = 1;
+    }
+  }
+
   Future<void> _navigate() async {
-    await Future.delayed(const Duration(milliseconds: 1600));
+    // One frame so MediaQuery / Reduce Motion is available.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    await MintMotion.maybeDelay(
+      context,
+      const Duration(milliseconds: 1600),
+    );
     if (!mounted) return;
 
     final hasTokens = await ServiceLocator.instance.tokens.hasTokens();
@@ -125,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(2),
                   child: LinearProgressIndicator(
-                    backgroundColor: Colors.white.withOpacity(0.12),
+                    backgroundColor: MintflowColors.brandOverlay(context),
                     color: MintflowColors.green400,
                   ),
                 ),
@@ -151,7 +168,7 @@ class _Ring extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: color.withOpacity(opacity), width: 1),
+          border: Border.all(color: color.withValues(alpha: opacity), width: 1),
         ),
       );
 }
@@ -166,7 +183,7 @@ class _Dot extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(opacity),
+          color: color.withValues(alpha: opacity),
         ),
       );
 }

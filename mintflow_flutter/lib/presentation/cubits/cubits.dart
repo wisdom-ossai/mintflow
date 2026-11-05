@@ -91,14 +91,31 @@ class TransactionLoaded extends TransactionState {
   final bool hasMore;
   final int currentPage;
   final String filter;
+  final bool isLoadingMore;
   const TransactionLoaded({
     required this.items,
     required this.hasMore,
     required this.currentPage,
     required this.filter,
+    this.isLoadingMore = false,
   });
   @override
-  List get props => [items, hasMore, currentPage, filter];
+  List get props => [items, hasMore, currentPage, filter, isLoadingMore];
+
+  TransactionLoaded copyWith({
+    List<TransactionModel>? items,
+    bool? hasMore,
+    int? currentPage,
+    String? filter,
+    bool? isLoadingMore,
+  }) =>
+      TransactionLoaded(
+        items: items ?? this.items,
+        hasMore: hasMore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage,
+        filter: filter ?? this.filter,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      );
 }
 
 class TransactionError extends TransactionState {
@@ -150,14 +167,20 @@ class TransactionCubit extends Cubit<TransactionState> {
 
   Future<void> loadMore() async {
     final current = state;
-    if (current is! TransactionLoaded || !current.hasMore) return;
-    emit(TransactionLoading(isPaginating: true));
+    if (current is! TransactionLoaded ||
+        !current.hasMore ||
+        current.isLoadingMore) {
+      return;
+    }
+    // Keep items on screen — never blank the list while paginating.
+    emit(current.copyWith(isLoadingMore: true));
     try {
       final result = await _repo.getTransactions(
         filter: _filter,
         search: _search,
         page: current.currentPage + 1,
       );
+      if (isClosed) return;
       emit(TransactionLoaded(
         items: [...current.items, ...result.items],
         hasMore: result.hasMore,
@@ -165,7 +188,7 @@ class TransactionCubit extends Cubit<TransactionState> {
         filter: _filter,
       ));
     } catch (e) {
-      emit(current); // restore previous state on pagination error
+      if (!isClosed) emit(current.copyWith(isLoadingMore: false));
     }
   }
 
@@ -252,14 +275,10 @@ class GoalError extends GoalState {
   List get props => [message];
 }
 
-class GoalSaving extends GoalState {
-  const GoalSaving();
-  @override
-  List get props => [];
-}
-
 class GoalCubit extends Cubit<GoalState> {
   final GoalRepository _repo;
+  List<SavingsGoalModel> _cached = const [];
+
   GoalCubit()
       : _repo = ServiceLocator.instance.goals,
         super(const GoalInitial());
@@ -268,20 +287,22 @@ class GoalCubit extends Cubit<GoalState> {
     emit(const GoalLoading());
     try {
       final goals = await _repo.getGoals(forceRefresh: forceRefresh);
-      emit(GoalLoaded(goals));
+      _cached = goals;
+      if (!isClosed) emit(GoalLoaded(goals));
     } catch (e) {
-      emit(GoalError(_msg(e)));
+      if (!isClosed) emit(GoalError(_msg(e)));
     }
   }
 
-  Future<void> create({
+  /// Returns an error message on failure; null on success. Does not wipe the
+  /// list — form screens own saving UI.
+  Future<String?> create({
     required String name,
     required double targetAmount,
     DateTime? targetDate,
     String? icon,
     String? color,
   }) async {
-    emit(const GoalSaving());
     try {
       await _repo.createGoal(
         name: name,
@@ -291,28 +312,55 @@ class GoalCubit extends Cubit<GoalState> {
         color: color,
       );
       await load(forceRefresh: true);
+      return null;
+    } on DioException catch (e) {
+      if (!isClosed && _cached.isNotEmpty) emit(GoalLoaded(_cached));
+      return _goalError(e);
     } catch (e) {
-      emit(GoalError(_msg(e)));
+      if (!isClosed && _cached.isNotEmpty) emit(GoalLoaded(_cached));
+      return _msg(e);
     }
   }
 
-  Future<void> contribute(String id, double amount) async {
+  Future<String?> contribute(String id, double amount) async {
     try {
       await _repo.contribute(id, amount);
       await load(forceRefresh: true);
+      return null;
+    } on DioException catch (e) {
+      if (!isClosed) emit(GoalLoaded(_cached));
+      return _goalError(e);
     } catch (e) {
-      emit(GoalError(_msg(e)));
+      if (!isClosed) emit(GoalLoaded(_cached));
+      return _msg(e);
     }
   }
 
-  Future<void> delete(String id) async {
+  Future<String?> delete(String id) async {
     try {
       await _repo.deleteGoal(id);
       await load(forceRefresh: true);
+      return null;
+    } on DioException catch (e) {
+      if (!isClosed) emit(GoalLoaded(_cached));
+      return _goalError(e);
     } catch (e) {
-      emit(GoalError(_msg(e)));
+      if (!isClosed) emit(GoalLoaded(_cached));
+      return _msg(e);
     }
   }
+}
+
+String _goalError(DioException e) {
+  final data = e.response?.data;
+  if (data is Map && data['detail'] != null) {
+    final detail = data['detail'].toString();
+    if (detail.isNotEmpty && detail.length <= 200) return detail;
+  }
+  if (e.response?.statusCode == 403) {
+    return 'Upgrade to Growth for unlimited goals.';
+  }
+  return _msg(e);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -338,22 +386,37 @@ class BillLoading extends BillState {
 class BillLoaded extends BillState {
   final List<BillModel> bills;
   final List<BillPaymentModel> payments;
-  const BillLoaded({required this.bills, required this.payments});
-  @override
-  List get props => [bills, payments];
+  final List<BillWithStatus> billsWithStatus;
+  final double totalMonthly;
+  final int paidCount;
+  final int overdueCount;
 
-  // Convenience: merge bill + payment status for current month
-  List<BillWithStatus> get billsWithStatus {
+  const BillLoaded({
+    required this.bills,
+    required this.payments,
+    required this.billsWithStatus,
+    required this.totalMonthly,
+    required this.paidCount,
+    required this.overdueCount,
+  });
+
+  factory BillLoaded.from({
+    required List<BillModel> bills,
+    required List<BillPaymentModel> payments,
+  }) {
     final now = DateTime.now();
     final lastDay = DateTime(now.year, now.month + 1, 0).day;
-    return bills.map((bill) {
+    final byBillId = <String, BillPaymentModel>{
+      for (final p in payments) p.billId: p,
+    };
+    final withStatus = bills.map((bill) {
       final day = bill.dueDay.clamp(1, lastDay);
       final dueDate = DateTime(now.year, now.month, day);
-      final payment = payments.where((p) => p.billId == bill.id).firstOrNull;
-      BillStatus status;
+      final payment = byBillId[bill.id];
+      final BillStatus status;
       if (payment?.isPaid == true) {
         status = BillStatus.paid;
-      } else if (dueDate.isBefore(DateTime.now())) {
+      } else if (dueDate.isBefore(now)) {
         status = BillStatus.overdue;
       } else {
         status = BillStatus.unpaid;
@@ -363,17 +426,24 @@ class BillLoaded extends BillState {
         payment: payment,
         status: status,
         dueDate: dueDate,
-        daysUntilDue: dueDate.difference(DateTime.now()).inDays,
+        daysUntilDue: dueDate.difference(now).inDays,
       );
     }).toList()
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+
+    return BillLoaded(
+      bills: bills,
+      payments: payments,
+      billsWithStatus: withStatus,
+      totalMonthly: bills.fold(0, (s, b) => s + (b.amount ?? 0)),
+      paidCount: withStatus.where((b) => b.status == BillStatus.paid).length,
+      overdueCount:
+          withStatus.where((b) => b.status == BillStatus.overdue).length,
+    );
   }
 
-  double get totalMonthly => bills.fold(0, (s, b) => s + (b.amount ?? 0));
-  int get paidCount =>
-      billsWithStatus.where((b) => b.status == BillStatus.paid).length;
-  int get overdueCount =>
-      billsWithStatus.where((b) => b.status == BillStatus.overdue).length;
+  @override
+  List get props => [bills, payments, billsWithStatus];
 }
 
 class BillError extends BillState {
@@ -404,6 +474,9 @@ class BillCubit extends Cubit<BillState> {
       : _repo = ServiceLocator.instance.bills,
         super(const BillInitial());
 
+  List<BillModel> _cachedBills = const [];
+  List<BillPaymentModel> _cachedPayments = const [];
+
   Future<void> load({bool forceRefresh = false}) async {
     emit(const BillLoading());
     try {
@@ -411,16 +484,18 @@ class BillCubit extends Cubit<BillState> {
         _repo.getBills(forceRefresh: forceRefresh),
         _repo.getPayments(),
       ]);
-      emit(BillLoaded(
-        bills: results[0] as List<BillModel>,
-        payments: results[1] as List<BillPaymentModel>,
-      ));
+      _cachedBills = results[0] as List<BillModel>;
+      _cachedPayments = results[1] as List<BillPaymentModel>;
+      if (!isClosed) {
+        emit(BillLoaded.from(bills: _cachedBills, payments: _cachedPayments));
+      }
     } catch (e) {
-      emit(BillError(_msg(e)));
+      if (!isClosed) emit(BillError(_msg(e)));
     }
   }
 
-  Future<void> create({
+  /// Returns error message on failure; null on success.
+  Future<String?> create({
     required String name,
     double? amount,
     required int dueDay,
@@ -434,32 +509,53 @@ class BillCubit extends Cubit<BillState> {
         isAutopay: isAutopay,
       );
       await load(forceRefresh: true);
+      return null;
     } on DioException catch (e) {
-      emit(BillError(_billError(e)));
+      if (!isClosed && _cachedBills.isNotEmpty) {
+        emit(BillLoaded.from(bills: _cachedBills, payments: _cachedPayments));
+      }
+      return _billError(e);
     } catch (e) {
-      emit(BillError(_msg(e)));
+      if (!isClosed && _cachedBills.isNotEmpty) {
+        emit(BillLoaded.from(bills: _cachedBills, payments: _cachedPayments));
+      }
+      return _msg(e);
     }
   }
 
-  Future<void> markPaid(String billId, {double? amountPaid}) async {
+  Future<String?> markPaid(String billId, {double? amountPaid}) async {
     try {
       await _repo.markPaid(billId, amountPaid: amountPaid);
       await load(forceRefresh: true);
+      return null;
     } on DioException catch (e) {
-      emit(BillError(_billError(e)));
+      if (!isClosed) {
+        emit(BillLoaded.from(bills: _cachedBills, payments: _cachedPayments));
+      }
+      return _billError(e);
     } catch (e) {
-      emit(BillError(_msg(e)));
+      if (!isClosed) {
+        emit(BillLoaded.from(bills: _cachedBills, payments: _cachedPayments));
+      }
+      return _msg(e);
     }
   }
 
-  Future<void> delete(String id) async {
+  Future<String?> delete(String id) async {
     try {
       await _repo.deleteBill(id);
       await load(forceRefresh: true);
+      return null;
     } on DioException catch (e) {
-      emit(BillError(_billError(e)));
+      if (!isClosed) {
+        emit(BillLoaded.from(bills: _cachedBills, payments: _cachedPayments));
+      }
+      return _billError(e);
     } catch (e) {
-      emit(BillError(_msg(e)));
+      if (!isClosed) {
+        emit(BillLoaded.from(bills: _cachedBills, payments: _cachedPayments));
+      }
+      return _msg(e);
     }
   }
 }
@@ -757,23 +853,13 @@ class RecurringCubit extends Cubit<RecurringState> {
 
 String _msg(Object e) {
   if (e is DioException) return _friendlyInsightError(e);
-  if (e is Exception) {
-    final s = e.toString();
-    if (s.contains('DioException')) {
-      return 'Something went wrong. Please try again.';
-    }
-    if (s.contains('message:')) {
-      return s.split('message:').last.trim();
-    }
-    return s.replaceFirst('Exception: ', '');
-  }
-  return e.toString();
+  return 'Something went wrong. Try again.';
 }
 
 String _friendlyInsightError(DioException e) {
   final status = e.response?.statusCode;
   if (status != null && status >= 500) {
-    return 'Could not load insights right now. Please try again.';
+    return 'Couldn’t load this right now. Try again shortly.';
   }
   if (e.type == DioExceptionType.connectionTimeout ||
       e.type == DioExceptionType.sendTimeout ||
@@ -781,5 +867,5 @@ String _friendlyInsightError(DioException e) {
       e.type == DioExceptionType.connectionError) {
     return 'Check your connection and try again.';
   }
-  return 'Could not load insights. Please try again.';
+  return 'Couldn’t load this. Try again.';
 }

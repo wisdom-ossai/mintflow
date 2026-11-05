@@ -6,12 +6,13 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../core/utils/revenuecat.dart';
 import '../../../core/utils/social_auth.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
-import '../../widgets/label.dart';
+import '../../../core/theme/mint_inputs.dart';
 import '../../widgets/brand_logo.dart';
 import '../../widgets/error_banner.dart';
 
@@ -67,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       await _afterAuth(result.user.id);
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = friendlyAuthError(e);
         _loading = false;
@@ -135,68 +137,102 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: MintflowColors.page(context),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                BrandLogo(
+          padding: EdgeInsets.fromLTRB(
+            MintBreakpoints.pageGutter(context),
+            24,
+            MintBreakpoints.pageGutter(context),
+            24 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: MintAdaptiveWidth(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 24),
+                  BrandLogo(
                   size: 40,
                   showWordmark: true,
                   wordmarkColor: MintflowColors.textPrimary(context),
                 ),
                 const SizedBox(height: 40),
-                Text('Welcome back',
+                Text('Welcome',
                     style: MintflowTextStyles.displayMedium.copyWith(
                         color: MintflowColors.textPrimary(context))),
                 const SizedBox(height: 6),
-                Text('Sign in to your account',
-                    style: MintflowTextStyles.bodyMedium
-                        .copyWith(color: MintflowColors.textSecondary(context))),
-                const SizedBox(height: 32),
+                Text(
+                  'See where your money goes this month — and stay on target.',
+                  style: MintflowTextStyles.bodyMedium
+                      .copyWith(color: MintflowColors.textSecondary(context)),
+                ),
+                const SizedBox(height: 24),
+
+                // Sign Up — primary path for new users (visible above the fold)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _loading
+                        ? null
+                        : () => context.go(MintflowRoutes.signup),
+                    child: const Text('Create account'),
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                Row(children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('or sign in',
+                        style: MintflowTextStyles.labelSmall.copyWith(
+                            color: MintflowColors.textSecondary(context))),
+                  ),
+                  const Expanded(child: Divider()),
+                ]),
+                const SizedBox(height: 20),
 
                 // Error banner
                 if (_error != null) ErrorBanner(message: _error!),
 
-                // Email
-                Label('Email address'),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(hintText: 'you@email.com'),
+                  decoration: mintInputDecoration(
+                    context,
+                    label: 'Email address',
+                    hint: 'you@email.com',
+                  ),
                   validator: (v) => (v == null || !v.contains('@'))
-                      ? 'Enter a valid email'
+                      ? 'Enter a valid email address'
                       : null,
                 ),
                 const SizedBox(height: 16),
 
-                // Password
-                Label('Password'),
-                const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _login(),
-                  decoration: InputDecoration(
-                    hintText: '••••••••',
+                  decoration: mintInputDecoration(
+                    context,
+                    label: 'Password',
+                    hint: '••••••••',
                     suffixIcon: IconButton(
+                      tooltip: _obscure ? 'Show password' : 'Hide password',
                       icon: Icon(
                         _obscure
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: MintflowColors.ink60,
+                        color: MintflowColors.textSecondary(context),
                         size: 20,
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
                     ),
                   ),
-                  validator: (v) =>
-                      (v == null || v.length < 6) ? 'Password too short' : null,
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? 'Enter your password'
+                      : null,
                 ),
                 const SizedBox(height: 8),
 
@@ -204,6 +240,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => context.go(MintflowRoutes.forgotPassword),
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      tapTargetSize: MaterialTapTargetSize.padded,
+                    ),
                     child: const Text('Forgot password?'),
                   ),
                 ),
@@ -219,7 +260,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                                color: MintflowColors.green900,
+                                strokeWidth: 2))
                         : const Text('Sign in'),
                   ),
                 ),
@@ -231,58 +273,50 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Text('or',
-                        style: MintflowTextStyles.labelSmall
-                            .copyWith(color: MintflowColors.ink60)),
+                        style: MintflowTextStyles.labelSmall.copyWith(
+                            color: MintflowColors.textSecondary(context))),
                   ),
                   const Expanded(child: Divider()),
                 ]),
                 const SizedBox(height: 20),
 
-                if (isAppleSignInPlatform) ...[
-                  SizedBox(
-                    width: double.infinity,
-                    child: SignInWithAppleButton(
-                      onPressed: _loading ? () {} : _appleLogin,
-                      style: SignInWithAppleButtonStyle.black,
-                      borderRadius: const BorderRadius.all(Radius.circular(12)),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
-                // Google
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _loading ? null : _googleLogin,
-                    icon: const _GoogleIcon(),
-                    label: const Text('Continue with Google'),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Sign up link
-                Center(
-                  child: GestureDetector(
-                    onTap: () => context.go(MintflowRoutes.signup),
-                    child: RichText(
-                      text: TextSpan(
-                        style: MintflowTextStyles.bodySmall
-                            .copyWith(color: MintflowColors.ink60),
-                        children: [
-                          const TextSpan(text: "Don't have an account? "),
-                          TextSpan(
-                              text: 'Sign up',
-                              style: TextStyle(
-                                color: MintflowColors.green500,
-                                fontWeight: FontWeight.w500,
-                              )),
-                        ],
+                Row(
+                  children: [
+                    if (isAppleSignInPlatform) ...[
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: FilledButton.icon(
+                            onPressed: _loading ? null : _appleLogin,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: MintflowColors.cream,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            icon: const Icon(Icons.apple, size: 20),
+                            label: const Text('Apple'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: _loading ? null : _googleLogin,
+                          icon: const _GoogleIcon(),
+                          label: const Text('Google'),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),

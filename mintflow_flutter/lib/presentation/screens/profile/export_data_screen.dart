@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
@@ -96,14 +97,19 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
             ),
           ),
           body: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(MintBreakpoints.pageGutter(context)),
             children: [
+              MintAdaptiveWidth(
+                maxWidth: MintBreakpoints.formMax,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: MintflowColors.card(context),
                   borderRadius: MintflowRadius.xl_,
-                  border: Border.all(color: MintflowColors.ink10),
+                  border: Border.all(color: MintflowColors.hairline(context)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +120,7 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: MintflowColors.blueSoft,
+                            color: MintflowColors.blueWash(context),
                             borderRadius: MintflowRadius.lg_,
                           ),
                           child: const Icon(Icons.download_outlined,
@@ -132,7 +138,7 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
                                     ? 'Download all transactions for tax prep or spreadsheets'
                                     : 'Pro feature — upgrade to export your data',
                                 style: MintflowTextStyles.bodySmall
-                                    .copyWith(color: MintflowColors.ink60),
+                                    .copyWith(color: MintflowColors.textSecondary(context)),
                               ),
                             ],
                           ),
@@ -143,7 +149,7 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
                     Text(
                       'Includes date, amount, type, merchant, category, needs/wants, and notes.',
                       style: MintflowTextStyles.bodySmall
-                          .copyWith(color: MintflowColors.ink60),
+                          .copyWith(color: MintflowColors.textSecondary(context)),
                     ),
                     const SizedBox(height: 20),
                     SizedBox(
@@ -156,7 +162,7 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
                               : MintflowColors.purple,
                           foregroundColor: canExport
                               ? MintflowColors.green900
-                              : Colors.white,
+                              : MintflowColors.card(context),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: MintflowRadius.lg_,
@@ -179,11 +185,14 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
                                   fontWeight: FontWeight.w600,
                                   color: canExport
                                       ? MintflowColors.green900
-                                      : Colors.white,
+                                      : MintflowColors.card(context),
                                 ),
                               ),
                       ),
                     ),
+                  ],
+                ),
+              ),
                   ],
                 ),
               ),

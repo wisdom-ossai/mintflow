@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/auth_errors.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../cubits/cubits.dart';
 
 class AddBillScreen extends StatefulWidget {
@@ -47,7 +46,7 @@ class _AddBillScreenState extends State<AddBillScreen> {
       return;
     }
     if (amountRaw.isNotEmpty && amount == null) {
-      setState(() => _error = 'Enter a valid amount');
+      setState(() => _error = 'Enter an amount greater than zero');
       return;
     }
 
@@ -56,41 +55,29 @@ class _AddBillScreenState extends State<AddBillScreen> {
       _error = null;
     });
 
-    try {
-      await context.read<BillCubit>().create(
-            name: name,
-            amount: amount,
-            dueDay: dueDay,
-            isAutopay: _autopay,
-          );
-      if (!mounted) return;
-      final state = context.read<BillCubit>().state;
-      if (state is BillError) {
-        setState(() {
-          _saving = false;
-          _error = state.message;
-        });
-        return;
-      }
-      if (mounted) context.pop();
-    } on DioException catch (e) {
-      if (!mounted) return;
-      if (e.response?.statusCode == 403) {
+    final err = await context.read<BillCubit>().create(
+          name: name,
+          amount: amount,
+          dueDay: dueDay,
+          isAutopay: _autopay,
+        );
+    if (!mounted) return;
+    if (err != null) {
+      final isUpgrade = err.toLowerCase().contains('upgrade') ||
+          err.toLowerCase().contains('growth') ||
+          err.toLowerCase().contains('limit');
+      if (isUpgrade) {
         context.push('${MintflowRoutes.paywall}?feature=unlimited_bills');
         setState(() => _saving = false);
         return;
       }
       setState(() {
         _saving = false;
-        _error = friendlyAuthError(e);
+        _error = err;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _saving = false;
-        _error = friendlyAuthError(e);
-      });
+      return;
     }
+    context.pop();
   }
 
   @override
@@ -107,12 +94,21 @@ class _AddBillScreenState extends State<AddBillScreen> {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.fromLTRB(
+          MintBreakpoints.pageGutter(context),
+          20,
+          MintBreakpoints.pageGutter(context),
+          20 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
         children: [
+          MintAdaptiveWidth(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
           Text(
             'Track rent, utilities, insurance, or any obligation with a monthly due day.',
             style: MintflowTextStyles.bodySmall
-                .copyWith(color: MintflowColors.ink60),
+                .copyWith(color: MintflowColors.textSecondary(context)),
           ),
           const SizedBox(height: 20),
           _Field(
@@ -120,6 +116,7 @@ class _AddBillScreenState extends State<AddBillScreen> {
             label: 'Name',
             hint: 'Rent, Electric, Car insurance…',
             textInputAction: TextInputAction.next,
+            maxLength: 80,
           ),
           const SizedBox(height: 12),
           _Field(
@@ -127,6 +124,7 @@ class _AddBillScreenState extends State<AddBillScreen> {
             label: 'Amount (optional)',
             hint: '0.00',
             prefix: '\$ ',
+            maxLength: 14,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
@@ -137,6 +135,7 @@ class _AddBillScreenState extends State<AddBillScreen> {
             controller: _dueDayCtrl,
             label: 'Due day of month',
             hint: '1–31',
+            maxLength: 2,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
@@ -147,7 +146,7 @@ class _AddBillScreenState extends State<AddBillScreen> {
             subtitle: Text(
               'Reminder only — Mintflow does not move money',
               style: MintflowTextStyles.overline
-                  .copyWith(color: MintflowColors.ink60),
+                  .copyWith(color: MintflowColors.textSecondary(context)),
             ),
             value: _autopay,
             activeTrackColor: MintflowColors.green400,
@@ -186,7 +185,10 @@ class _AddBillScreenState extends State<AddBillScreen> {
                         fontWeight: FontWeight.w600,
                         color: MintflowColors.green900,
                       ),
-                    ),
+                      ),
+            ),
+          ),
+              ],
             ),
           ),
         ],
@@ -203,6 +205,7 @@ class _Field extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
 
   const _Field({
     required this.controller,
@@ -212,6 +215,7 @@ class _Field extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.inputFormatters,
+    this.maxLength,
   });
 
   @override
@@ -221,12 +225,14 @@ class _Field extends StatelessWidget {
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       inputFormatters: inputFormatters,
+      maxLength: maxLength,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         prefixText: prefix,
+        counterText: '',
         filled: true,
-        fillColor: Colors.white,
+        fillColor: MintflowColors.card(context),
         border: OutlineInputBorder(
           borderRadius: MintflowRadius.lg_,
           borderSide: BorderSide.none,

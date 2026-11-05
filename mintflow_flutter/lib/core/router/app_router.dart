@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:mintflow_flutter/presentation/screens/auth/check_email_screen.dart';
 import 'package:mintflow_flutter/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:mintflow_flutter/presentation/screens/auth/reset_password_screen.dart';
@@ -9,6 +8,7 @@ import 'package:mintflow_flutter/presentation/screens/profile/privacy_security_s
 import 'package:mintflow_flutter/presentation/screens/subscriptions/recurring_subscriptions_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:mintflow_flutter/core/theme/app_theme.dart';
+import 'package:mintflow_flutter/core/theme/breakpoints.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_gate.dart';
@@ -245,56 +245,93 @@ class MintflowShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _tabs.indexWhere((t) => location.startsWith(t));
+    final index = currentIndex < 0 ? 0 : currentIndex;
+    final showFab = _showFab(location);
+    final expanded = MintBreakpoints.isExpanded(context);
+
+    if (expanded) {
+      return Scaffold(
+        backgroundColor: MintflowColors.page(context),
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: index,
+              onDestinationSelected: (i) => context.go(_tabs[i]),
+              backgroundColor: MintflowColors.card(context),
+              indicatorColor: MintflowColors.mintWash(context),
+              selectedIconTheme:
+                  const IconThemeData(color: MintflowColors.green500),
+              unselectedIconTheme: IconThemeData(
+                color: MintflowColors.textTertiary(context),
+              ),
+              selectedLabelTextStyle: MintflowTextStyles.labelMedium.copyWith(
+                color: MintflowColors.green500,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelTextStyle: MintflowTextStyles.labelMedium.copyWith(
+                color: MintflowColors.textTertiary(context),
+              ),
+              labelType: NavigationRailLabelType.all,
+              leading: showFab
+                  ? Padding(
+                      padding: const EdgeInsets.only(bottom: 8, top: 8),
+                      child: FloatingActionButton(
+                        heroTag: 'mintflow_rail_fab',
+                        onPressed: () => context.push(MintflowRoutes.addTx),
+                        tooltip: 'Add transaction',
+                        child: const Icon(Icons.add_rounded),
+                      ),
+                    )
+                  : null,
+              destinations: [
+                for (final item in _navItems)
+                  NavigationRailDestination(
+                    icon: Icon(item.icon),
+                    selectedIcon: Icon(item.activeIcon),
+                    label: Text(item.label),
+                  ),
+              ],
+            ),
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              color: MintflowColors.hairline(context),
+            ),
+            Expanded(child: child),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: MintflowColors.page(context),
       body: child,
-      // bottomNavigationBar: _BottomNav(
-      //   currentIndex: currentIndex < 0 ? 0 : currentIndex,
-      //   onTap: (i) => context.go(_tabs[i]),
-      // ),
-      bottomNavigationBar: _MintflowNavBar(
-        currentIndex: currentIndex < 0 ? 0 : currentIndex,
-        onTap: (i) => context.go(_tabs[i]),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: index,
+        onDestinationSelected: (i) => context.go(_tabs[i]),
+        destinations: [
+          for (final item in _navItems)
+            NavigationDestination(
+              icon: Icon(item.icon),
+              selectedIcon: Icon(item.activeIcon),
+              label: item.label,
+            ),
+        ],
       ),
-      floatingActionButton: _showFab(location)
-          ? _Fab(
+      floatingActionButton: showFab
+          ? FloatingActionButton(
+              heroTag: 'mintflow_shell_fab',
+              tooltip: 'Add transaction',
               onPressed: () => context.push(MintflowRoutes.addTx),
+              child: const Icon(Icons.add_rounded),
             )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
   bool _showFab(String loc) =>
       loc == MintflowRoutes.dashboard || loc == MintflowRoutes.transactions;
-}
-
-class _Fab extends StatelessWidget {
-  final VoidCallback onPressed;
-  const _Fab({required this.onPressed});
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: const Color(0xFF2EAD6A),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF2EAD6A).withOpacity(0.35),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            )
-          ],
-        ),
-        child: const Icon(Icons.add, color: Colors.white, size: 22),
-      ),
-    );
-  }
 }
 
 class _NavItem {
@@ -332,364 +369,3 @@ const _navItems = [
   ),
 ];
 
-class _MintflowNavBar extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
-
-  const _MintflowNavBar({
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).padding.bottom;
-    return Container(
-      decoration: BoxDecoration(
-        color: MintflowColors.card(context),
-        border: Border(
-          top: BorderSide(color: MintflowColors.hairline(context), width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(
-                MintflowColors.isDark(context) ? 0.35 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: [
-              // Left two items
-              ...[0, 1].map(
-                (i) => Expanded(
-                  child: _NavBarItem(
-                    item: _navItems[i],
-                    isActive: currentIndex == i,
-                    onTap: () => onTap(i),
-                  ),
-                ),
-              ),
-
-              // Center Add button
-              // SizedBox(
-              //   width: 72,
-              //   child: Center(
-              //     child: GestureDetector(
-              //       onTap: onAddTap,
-              //       child: _AddButton(),
-              //     ),
-              //   ),
-              // ),
-
-              // Right two items
-              ...[2, 3].map(
-                (i) => Expanded(
-                  child: _NavBarItem(
-                    item: _navItems[i],
-                    isActive: currentIndex == i,
-                    onTap: () => onTap(i),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavBarItem extends StatefulWidget {
-  final _NavItem item;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _NavBarItem({
-    required this.item,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  State<_NavBarItem> createState() => _NavBarItemState();
-}
-
-class _NavBarItemState extends State<_NavBarItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnim;
-  late Animation<double> _slideAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 350),
-    );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
-    _slideAnim = Tween<double>(begin: 0.0, end: -3.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    if (widget.isActive) _controller.forward();
-  }
-
-  @override
-  void didUpdateWidget(_NavBarItem old) {
-    super.didUpdateWidget(old);
-    if (widget.isActive != old.isActive) {
-      widget.isActive ? _controller.forward() : _controller.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, __) => Transform.translate(
-          offset: Offset(0, _slideAnim.value),
-          child: Transform.scale(
-            scale: _scaleAnim.value,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    widget.isActive ? widget.item.activeIcon : widget.item.icon,
-                    key: ValueKey(widget.isActive),
-                    size: 22,
-                    color: widget.isActive
-                        ? MintflowColors.green500
-                        : MintflowColors.textTertiary(context),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  style: MintflowTextStyles.overline.copyWith(
-                    color: widget.isActive
-                        ? MintflowColors.green500
-                        : MintflowColors.textTertiary(context),
-                    fontWeight:
-                        widget.isActive ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                  child: Text(widget.item.label),
-                ),
-                const SizedBox(height: 2),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutCubic,
-                  width: widget.isActive ? 18 : 0,
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: MintflowColors.green400,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AddButton extends StatefulWidget {
-  @override
-  State<_AddButton> createState() => _AddButtonState();
-}
-
-class _AddButtonState extends State<_AddButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _rotateAnim;
-  late Animation<double> _scaleAnim;
-
-  bool _pressed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _rotateAnim = Tween<double>(begin: 0, end: 0.125).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        setState(() => _pressed = true);
-        _controller.forward();
-      },
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        _controller.reverse();
-      },
-      onTapCancel: () {
-        setState(() => _pressed = false);
-        _controller.reverse();
-      },
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, child) => Transform.scale(
-          scale: _scaleAnim.value,
-          child: Transform.rotate(
-            angle: _rotateAnim.value * 2 * math.pi,
-            child: child,
-          ),
-        ),
-        child: Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [MintflowColors.green400, MintflowColors.green600],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: MintflowColors.green400.withOpacity(0.45),
-                blurRadius: 16,
-                spreadRadius: 0,
-                offset: const Offset(0, 6),
-              ),
-              BoxShadow(
-                color: MintflowColors.green400.withOpacity(0.2),
-                blurRadius: 4,
-                spreadRadius: -2,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
-        ),
-      ),
-    );
-  }
-}
-
-class _StubScreen extends StatelessWidget {
-  final String label;
-  final IconData icon;
-
-  const _StubScreen({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MintflowColors.page(context),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 48, color: MintflowColors.ink30),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: MintflowTextStyles.displaySmall.copyWith(
-                color: MintflowColors.ink60,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Coming soon',
-              style: MintflowTextStyles.bodyMedium.copyWith(
-                color: MintflowColors.ink30,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AddTransactionSheet extends StatelessWidget {
-  const _AddTransactionSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: MintflowColors.cream,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        24,
-        20,
-        24,
-        24 + MediaQuery.of(context).padding.bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: MintflowColors.ink10,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Add Transaction',
-            style: MintflowTextStyles.displaySmall.copyWith(
-              color: MintflowColors.ink,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'This screen is coming soon.',
-            style: MintflowTextStyles.bodyMedium.copyWith(
-              color: MintflowColors.ink60,
-            ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

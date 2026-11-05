@@ -12,7 +12,7 @@ class ErrorBanner extends StatelessWidget {
         decoration: BoxDecoration(
           color: MintflowColors.redWash(context),
           borderRadius: MintflowRadius.md_,
-          border: Border.all(color: MintflowColors.red.withOpacity(0.3)),
+          border: Border.all(color: MintflowColors.red.withValues(alpha: 0.3)),
         ),
         child: Row(children: [
           Icon(Icons.error_outline, color: MintflowColors.red, size: 16),

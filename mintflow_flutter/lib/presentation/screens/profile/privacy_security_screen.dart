@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/local_cache.dart';
 import '../../../data/datasources/service_locator.dart';
@@ -44,7 +45,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Could not open privacy policy'),
+          content: Text('Couldn’t open the privacy policy. Try again.'),
           backgroundColor: MintflowColors.red,
         ),
       );
@@ -55,21 +56,21 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: MintflowColors.card(context),
         shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
         title: Text('Sign out everywhere?',
             style: MintflowTextStyles.labelLarge),
         content: Text(
           'This ends all sessions on every device. You’ll need to sign in again here.',
           style: MintflowTextStyles.bodyMedium
-              .copyWith(color: MintflowColors.ink60),
+              .copyWith(color: MintflowColors.textSecondary(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text('Cancel',
                 style: MintflowTextStyles.labelMedium
-                    .copyWith(color: MintflowColors.ink60)),
+                    .copyWith(color: MintflowColors.textSecondary(context))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -108,20 +109,20 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: MintflowColors.card(context),
         shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
         title: Text('Delete account?', style: MintflowTextStyles.labelLarge),
         content: Text(
           'This permanently deletes your account, linked banks, and all data. This cannot be undone.',
           style: MintflowTextStyles.bodyMedium
-              .copyWith(color: MintflowColors.ink60),
+              .copyWith(color: MintflowColors.textSecondary(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text('Cancel',
                 style: MintflowTextStyles.labelMedium
-                    .copyWith(color: MintflowColors.ink60)),
+                    .copyWith(color: MintflowColors.textSecondary(context))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
@@ -144,7 +145,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            err is UserError ? err.message : 'Could not delete account',
+            err is UserError
+                ? err.message
+                : 'Couldn’t delete your account. Check your connection and try again.',
           ),
           backgroundColor: MintflowColors.red,
         ),
@@ -164,6 +167,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: MintBreakpoints.formMax),
       builder: (_) => const _ChangePasswordSheet(),
     );
   }
@@ -184,14 +188,19 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
       body: AbsorbPointer(
         absorbing: _busy,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(MintBreakpoints.pageGutter(context)),
           children: [
+            MintAdaptiveWidth(
+              maxWidth: MintBreakpoints.formMax,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
             _Card(
               children: [
                 _NavRow(
                   icon: Icons.lock_outline_rounded,
                   iconColor: MintflowColors.purple,
-                  iconBg: MintflowColors.purpleSoft,
+                  iconBg: MintflowColors.purpleWash(context),
                   label: 'Change password',
                   subtitle: 'Update your sign-in password',
                   onTap: _showChangePassword,
@@ -200,7 +209,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 _NavRow(
                   icon: Icons.devices_rounded,
                   iconColor: MintflowColors.blue,
-                  iconBg: MintflowColors.blueSoft,
+                  iconBg: MintflowColors.blueWash(context),
                   label: 'Sign out all devices',
                   subtitle: 'End every active session',
                   onTap: _logoutAll,
@@ -209,7 +218,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 _ToggleRow(
                   icon: Icons.fingerprint_rounded,
                   iconColor: MintflowColors.green500,
-                  iconBg: MintflowColors.green50,
+                  iconBg: MintflowColors.mintWash(context),
                   label: 'Biometric lock',
                   subtitle: 'Prefer Face ID / Fingerprint on this device',
                   value: _biometricEnabled,
@@ -222,8 +231,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
               children: [
                 _NavRow(
                   icon: Icons.description_outlined,
-                  iconColor: MintflowColors.ink60,
-                  iconBg: MintflowColors.creamDark,
+                  iconColor: MintflowColors.textSecondary(context),
+                  iconBg: MintflowColors.softFill(context),
                   label: 'Privacy policy',
                   onTap: _openPrivacyPolicy,
                 ),
@@ -235,7 +244,7 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 _NavRow(
                   icon: Icons.delete_outline_rounded,
                   iconColor: MintflowColors.red,
-                  iconBg: MintflowColors.redSoft,
+                  iconBg: MintflowColors.redWash(context),
                   label: 'Delete account',
                   subtitle: 'Permanently erase all data',
                   labelColor: MintflowColors.red,
@@ -249,6 +258,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                 child: CircularProgressIndicator(color: MintflowColors.green400),
               ),
             ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -336,9 +348,9 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: bottom),
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: MintflowColors.card(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: Column(
@@ -350,7 +362,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: MintflowColors.ink10,
+                  color: MintflowColors.hairline(context),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -361,7 +373,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
             Text(
               'You’ll be signed out everywhere after updating.',
               style: MintflowTextStyles.bodySmall
-                  .copyWith(color: MintflowColors.ink60),
+                  .copyWith(color: MintflowColors.textSecondary(context)),
             ),
             const SizedBox(height: 16),
             _PasswordField(
@@ -448,7 +460,7 @@ class _PasswordField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: MintflowColors.cream,
+        fillColor: MintflowColors.card(context),
         border: OutlineInputBorder(
           borderRadius: MintflowRadius.lg_,
           borderSide: BorderSide.none,
@@ -466,9 +478,9 @@ class _Card extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(children: children),
     );
@@ -479,7 +491,7 @@ class _Hairline extends StatelessWidget {
   const _Hairline();
   @override
   Widget build(BuildContext context) {
-    return const Divider(height: 1, color: MintflowColors.ink10);
+    return Divider(height: 1, color: MintflowColors.hairline(context));
   }
 }
 
@@ -504,46 +516,51 @@ class _NavRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: MintflowRadius.xl_,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: MintflowRadius.md_,
+    return Semantics(
+      button: true,
+      label: subtitle == null ? label : '$label. $subtitle',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: MintflowRadius.xl_,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: MintflowRadius.md_,
+                ),
+                child: Icon(icon, size: 18, color: iconColor),
               ),
-              child: Icon(icon, size: 18, color: iconColor),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: MintflowTextStyles.labelMedium.copyWith(
-                      color: labelColor ?? MintflowColors.ink,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (subtitle != null)
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      subtitle!,
-                      style: MintflowTextStyles.overline
-                          .copyWith(color: MintflowColors.ink60),
+                      label,
+                      style: MintflowTextStyles.labelMedium.copyWith(
+                        color:
+                            labelColor ?? MintflowColors.textPrimary(context),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                ],
+                    if (subtitle != null)
+                      Text(
+                        subtitle!,
+                        style: MintflowTextStyles.overline.copyWith(
+                            color: MintflowColors.textSecondary(context)),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.ink30, size: 18),
-          ],
+              Icon(Icons.chevron_right_rounded,
+                  color: MintflowColors.textSecondary(context), size: 18),
+            ],
+          ),
         ),
       ),
     );
@@ -598,7 +615,7 @@ class _ToggleRow extends StatelessWidget {
                 Text(
                   subtitle,
                   style: MintflowTextStyles.overline
-                      .copyWith(color: MintflowColors.ink60),
+                      .copyWith(color: MintflowColors.textSecondary(context)),
                 ),
               ],
             ),

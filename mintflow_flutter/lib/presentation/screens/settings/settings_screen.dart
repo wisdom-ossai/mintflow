@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/appearance_control.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../data/datasources/service_locator.dart';
@@ -26,10 +27,19 @@ class SettingsScreen extends StatelessWidget {
                 style: MintflowTextStyles.displaySmall
                     .copyWith(color: MintflowColors.cream)),
           ),
-          body: ListView(children: [
+          body: ListView(
+            padding: EdgeInsets.symmetric(
+              vertical: 20,
+              horizontal: MintBreakpoints.pageGutter(context),
+            ),
+            children: [
+            MintAdaptiveWidth(
+              maxWidth: MintBreakpoints.formMax,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
             // Profile card
             Container(
-              margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: MintflowColors.card(context),
@@ -47,8 +57,8 @@ class SettingsScreen extends StatelessWidget {
                   child: Center(
                       child: Text(
                     name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                    style: MintflowTextStyles.displaySmall
-                        .copyWith(color: Colors.white, fontSize: 20),
+                    style: MintflowTextStyles.displaySmall.copyWith(
+                        color: MintflowColors.onMint(context), fontSize: 20),
                   )),
                 ),
                 const SizedBox(width: 14),
@@ -62,25 +72,17 @@ class SettingsScreen extends StatelessWidget {
                             .copyWith(color: MintflowColors.textSecondary(context))),
                   ],
                 )),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: MintflowColors.purple.withOpacity(0.1),
-                    borderRadius: MintflowRadius.pill_,
-                  ),
-                  child: Text(
-                    tierLabel[0].toUpperCase() + tierLabel.substring(1),
-                    style: MintflowTextStyles.overline.copyWith(
-                        color: MintflowColors.purple,
-                        fontWeight: FontWeight.w500),
-                  ),
+                Text(
+                  tierLabel[0].toUpperCase() + tierLabel.substring(1),
+                  style: MintflowTextStyles.overline.copyWith(
+                      color: MintflowColors.textSecondary(context),
+                      fontWeight: FontWeight.w500),
                 ),
               ]),
             ),
 
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -101,7 +103,6 @@ class SettingsScreen extends StatelessWidget {
                   () => context.push(MintflowRoutes.privacySecurity)),
               _Tile(Icons.notifications_outlined, 'Notifications',
                   () => context.push(MintflowRoutes.notificationSettings)),
-              _Tile(Icons.currency_exchange, 'Currency and locale', () {}),
             ]),
             _Section('Subscription', [
               _Tile(Icons.star_outline, 'Manage plan',
@@ -111,19 +112,19 @@ class SettingsScreen extends StatelessWidget {
                   () => context.push(MintflowRoutes.exportData)),
             ]),
             _Section('About', [
-              _Tile(Icons.privacy_tip_outlined, 'Privacy policy',
+              _Tile(Icons.privacy_tip_outlined, 'Privacy & security',
                   () => context.push(MintflowRoutes.privacySecurity)),
-              _Tile(Icons.description_outlined, 'Terms of service', () {}),
-              _Tile(Icons.info_outline, 'App version', () {},
-                  trailing: '1.0.0'),
+              _Tile(Icons.info_outline, 'App version', null, trailing: '1.0.0'),
             ]),
 
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(vertical: 20),
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(48, 48),
                   foregroundColor: MintflowColors.red,
-                  side: BorderSide(color: MintflowColors.red.withOpacity(0.5)),
+                  side: BorderSide(
+                      color: MintflowColors.red.withValues(alpha: 0.5)),
                 ),
                 onPressed: () async {
                   try {
@@ -138,7 +139,11 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-          ]),
+                ],
+              ),
+            ),
+          ],
+          ),
         );
       },
     );
@@ -154,13 +159,12 @@ class _Section extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
             child: Text(title.toUpperCase(),
                 style: MintflowTextStyles.overline
                     .copyWith(color: MintflowColors.textSecondary(context))),
           ),
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
               color: MintflowColors.card(context),
               borderRadius: MintflowRadius.xl_,
@@ -188,7 +192,7 @@ class _Section extends StatelessWidget {
 class _Tile extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final String? trailing;
   const _Tile(this.icon, this.label, this.onTap, {this.trailing});
   @override
@@ -203,8 +207,10 @@ class _Tile extends StatelessWidget {
             ? Text(trailing!,
                 style: MintflowTextStyles.labelSmall
                     .copyWith(color: MintflowColors.textSecondary(context)))
-            : Icon(Icons.chevron_right,
-                size: 18, color: MintflowColors.textTertiary(context)),
+            : (onTap == null
+                ? null
+                : Icon(Icons.chevron_right,
+                    size: 18, color: MintflowColors.textTertiary(context))),
         onTap: onTap,
       );
 }

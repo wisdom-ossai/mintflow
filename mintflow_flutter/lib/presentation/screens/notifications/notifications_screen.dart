@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
+import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
@@ -38,6 +40,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }
 
   Future<void> _loadPrefs() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -64,7 +67,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'Could not load notifications: $e';
+          _error =
+              'Couldn’t load notification settings. ${friendlyAuthError(e)}';
         });
       }
     }
@@ -98,7 +102,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not update ${_titleFor(pref.type)}: $e'),
+          content: Text(
+            'Couldn’t update ${_titleFor(pref.type)}. Try again.',
+          ),
           backgroundColor: MintflowColors.red,
         ),
       );
@@ -130,56 +136,109 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Text(
-                      _error!,
-                      style: MintflowTextStyles.bodySmall.copyWith(color: MintflowColors.red),
-                      textAlign: TextAlign.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _error!,
+                          style: MintflowTextStyles.bodySmall
+                              .copyWith(color: MintflowColors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          onPressed: _loadPrefs,
+                          child: const Text('Try again'),
+                        ),
+                      ],
                     ),
                   ),
                 )
-              : ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: MintflowRadius.xl_,
-                        border: Border.all(color: MintflowColors.ink10),
-                      ),
-                      child: Column(
-                        children: _prefs
-                            .map(
-                              (p) => SwitchListTile.adaptive(
-                                value: p.enabled,
-                                onChanged: p.saving ? null : (v) => _togglePref(p, v),
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  _titleFor(p.type),
-                                  style: MintflowTextStyles.bodySmall
-                                      .copyWith(fontWeight: FontWeight.w500),
-                                ),
-                                subtitle: p.timeOfDay != null
-                                    ? Text(
-                                        'Time: ${p.timeOfDay}',
-                                        style: MintflowTextStyles.overline
-                                            .copyWith(color: MintflowColors.ink60),
-                                      )
-                                    : null,
-                                secondary: p.saving
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
-                                    : const Icon(Icons.notifications_outlined),
+              : _prefs.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'No notification preferences yet.',
+                              style: MintflowTextStyles.bodySmall.copyWith(
+                                color: MintflowColors.textSecondary(context),
                               ),
-                            )
-                            .toList(),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: _loadPrefs,
+                              child: const Text('Refresh'),
+                            ),
+                          ],
+                        ),
                       ),
+                    )
+                  : ListView(
+                      padding: EdgeInsets.all(
+                          MintBreakpoints.pageGutter(context)),
+                      children: [
+                        MintAdaptiveWidth(
+                          maxWidth: MintBreakpoints.formMax,
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: MintflowColors.card(context),
+                              borderRadius: MintflowRadius.xl_,
+                              border: Border.all(
+                                  color: MintflowColors.hairline(context)),
+                            ),
+                            child: Column(
+                              children: _prefs
+                                  .map(
+                                    (p) => SwitchListTile.adaptive(
+                                      value: p.enabled,
+                                      onChanged: p.saving
+                                          ? null
+                                          : (v) => _togglePref(p, v),
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(
+                                        _titleFor(p.type),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: MintflowTextStyles.bodySmall
+                                            .copyWith(
+                                                fontWeight: FontWeight.w500),
+                                      ),
+                                      subtitle: p.timeOfDay != null
+                                          ? Text(
+                                              'Time: ${p.timeOfDay}',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: MintflowTextStyles
+                                                  .overline
+                                                  .copyWith(
+                                                      color: MintflowColors
+                                                          .textSecondary(
+                                                              context)),
+                                            )
+                                          : null,
+                                      secondary: p.saving
+                                          ? const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                      strokeWidth: 2),
+                                            )
+                                          : const Icon(
+                                              Icons.notifications_outlined),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
     );
   }
 }

@@ -17,23 +17,19 @@ import 'presentation/cubits/cubits.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mintflow — main.dart
-// Entry point. Initializes dotenv, Firebase, RevenueCat, and Cubits.
+// Entry point. Critical path: dotenv → cache → ServiceLocator → first frame.
+// Firebase + RevenueCat + FCM defer until after the first frame.
 // Auth session = tokens in FlutterSecureStorage (FastAPI JWT).
 // ─────────────────────────────────────────────────────────────────────────────
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  // Allow all orientations; shell adapts via MintBreakpoints.
+  await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
 
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
+    const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
 
   try {
@@ -43,17 +39,18 @@ void main() async {
   }
 
   await MintflowCache.init();
+  await ServiceLocator.init();
 
+  runApp(const MintflowApp());
+}
+
+Future<void> _bootstrapDeferredServices() async {
   try {
     await Firebase.initializeApp();
   } catch (_) {
     // Firebase config may not be present in dev — non-fatal
   }
-
-  await ServiceLocator.init();
   await configureRevenueCat();
-
-  runApp(const MintflowApp());
 }
 
 class MintflowApp extends StatefulWidget {
@@ -72,6 +69,7 @@ class _MintflowAppState extends State<MintflowApp> {
   late final UserCubit _userCubit;
   late final GoalCubit _goalCubit;
   late final BillCubit _billCubit;
+  bool _deferredStarted = false;
 
   @override
   void initState() {
@@ -101,7 +99,16 @@ class _MintflowAppState extends State<MintflowApp> {
       }
     });
 
-    _registerFcmToken();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startDeferred();
+    });
+  }
+
+  Future<void> _startDeferred() async {
+    if (_deferredStarted) return;
+    _deferredStarted = true;
+    await _bootstrapDeferredServices();
+    await _registerFcmToken();
   }
 
   Future<void> _registerFcmToken() async {
@@ -154,15 +161,18 @@ class _MintflowAppState extends State<MintflowApp> {
             builder: (context, child) {
               final dark =
                   Theme.of(context).brightness == Brightness.dark;
+              // Cream pages: dark status icons. Navy AppBars set light icons
+              // via AppBarTheme.systemOverlayStyle.
               return AnnotatedRegion<SystemUiOverlayStyle>(
                 value: SystemUiOverlayStyle(
                   statusBarColor: Colors.transparent,
-                  // Navy headers stay readable; Android nav bar follows theme.
-                  statusBarIconBrightness: Brightness.light,
-                  statusBarBrightness: Brightness.dark,
+                  statusBarIconBrightness:
+                      dark ? Brightness.light : Brightness.dark,
+                  statusBarBrightness:
+                      dark ? Brightness.dark : Brightness.light,
                   systemNavigationBarColor: dark
                       ? MintflowColors.darkCard
-                      : Colors.white,
+                      : MintflowColors.cream,
                   systemNavigationBarIconBrightness:
                       dark ? Brightness.light : Brightness.dark,
                   systemNavigationBarDividerColor: Colors.transparent,

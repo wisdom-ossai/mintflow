@@ -6,6 +6,10 @@ import 'package:plaid_flutter/plaid_flutter.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
+import '../../../core/theme/mint_inputs.dart';
+import '../../../core/theme/motion.dart';
+import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
@@ -86,26 +90,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _next() {
-    if (_step < 2) {
-      setState(() => _step++);
-      _pageCtrl.animateToPage(
-        _step,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
+  void _goToStep(int step) {
+    setState(() => _step = step);
+    if (MintMotion.reduce(context)) {
+      _pageCtrl.jumpToPage(step);
+      return;
     }
+    _pageCtrl.animateToPage(
+      step,
+      duration: MintMotion.duration(
+        context,
+        const Duration(milliseconds: 300),
+      ),
+      curve: MintMotion.curve(context),
+    );
+  }
+
+  void _next() {
+    if (_step < 2) _goToStep(_step + 1);
   }
 
   void _back() {
-    if (_step > 0) {
-      setState(() => _step--);
-      _pageCtrl.animateToPage(
-        _step,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
-    }
+    if (_step > 0) _goToStep(_step - 1);
   }
 
   Future<UserModel?> _submitOnboarding() async {
@@ -130,7 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not save profile: $e'),
+            content: Text(friendlyAuthError(e)),
             backgroundColor: MintflowColors.red,
           ),
         );
@@ -179,8 +185,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Bank linked but sync failed — try again later.'),
-                backgroundColor: MintflowColors.gold500,
+                content: Text(
+                  'Bank connected, but Mintflow couldn’t sync yet. Open Linked accounts later to retry.',
+                ),
+                backgroundColor: MintflowColors.green900,
               ),
             );
           }
@@ -192,11 +200,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       _plaidExitSub = PlaidLink.onExit.listen((exit) {
         if (mounted) {
           setState(() => _loading = false);
-          final msg = exit.error?.displayMessage ??
-              exit.error?.message ??
-              'Bank connection cancelled';
+          final raw = exit.error?.displayMessage ?? exit.error?.message;
+          final msg = (raw != null && raw.trim().isNotEmpty)
+              ? raw.trim()
+              : 'Bank connection canceled.';
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(msg), backgroundColor: MintflowColors.ink60),
+            SnackBar(content: Text(msg), backgroundColor: MintflowColors.textSecondary(context)),
           );
         }
       });
@@ -210,7 +219,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open bank link: $e'),
+            content: Text(
+              'Couldn’t open bank link. Check your connection and try again.',
+            ),
             backgroundColor: MintflowColors.red,
           ),
         );
@@ -280,8 +291,9 @@ class _OnboardingHeader extends StatelessWidget {
             Row(children: [
               if (onBack != null)
                 IconButton(
+                  tooltip: 'Back',
                   icon: const Icon(Icons.arrow_back,
-                      color: Colors.white, size: 20),
+                      color: MintflowColors.cream, size: 20),
                   onPressed: onBack,
                 )
               else
@@ -294,30 +306,44 @@ class _OnboardingHeader extends StatelessWidget {
                   final active = i == step;
                   final done = i < step;
                   return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: active ? 20 : 6,
-                    height: 6,
+                    duration: MintMotion.duration(
+                      context,
+                      const Duration(milliseconds: 250),
+                    ),
+                    curve: MintMotion.curve(context),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: active ? 20 : 8,
+                    height: 8,
                     decoration: BoxDecoration(
                       color: active
                           ? MintflowColors.green400
                           : done
-                              ? MintflowColors.green400.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(3),
+                              ? MintflowColors.green400.withValues(alpha: 0.5)
+                              : MintflowColors.brandOverlay(context, 0.2),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   );
                 }),
               ),
               const Spacer(),
-              GestureDetector(
-                onTap: () {
+              TextButton(
+                onPressed: () {
                   AuthGate.setOnboardingComplete(true);
                   context.go(MintflowRoutes.dashboard);
                 },
-                child: Text('Skip',
-                    style: MintflowTextStyles.labelSmall
-                        .copyWith(color: Colors.white.withOpacity(0.5))),
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  foregroundColor: MintflowColors.onBrandMuted(context, 0.5),
+                  tapTargetSize: MaterialTapTargetSize.padded,
+                ),
+                child: Text(
+                  'Skip',
+                  semanticsLabel: 'Skip onboarding',
+                  style: MintflowTextStyles.labelSmall.copyWith(
+                    color: MintflowColors.onBrandMuted(context, 0.5),
+                  ),
+                ),
               ),
             ]),
           ]),
@@ -342,20 +368,8 @@ class _StepHeader extends StatelessWidget {
           const SizedBox(height: 6),
           Text(subtitle,
               style: MintflowTextStyles.bodyMedium
-                  .copyWith(color: MintflowColors.ink60)),
+                  .copyWith(color: MintflowColors.textSecondary(context))),
         ],
-      );
-}
-
-class _FieldLabel extends StatelessWidget {
-  final String text;
-  const _FieldLabel(this.text);
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(text.toUpperCase(),
-            style:
-                MintflowTextStyles.overline.copyWith(color: MintflowColors.ink60)),
       );
 }
 
@@ -375,7 +389,7 @@ class _NextButton extends StatelessWidget {
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2))
+                      color: MintflowColors.cream, strokeWidth: 2))
               : Text(label),
         ),
       );
@@ -396,8 +410,14 @@ class _Step1Welcome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      padding: EdgeInsets.fromLTRB(
+        MintBreakpoints.pageGutter(context),
+        24,
+        MintBreakpoints.pageGutter(context),
+        24 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: MintAdaptiveWidth(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 8),
         const _StepHeader(
           title: 'Welcome to\nMintflow',
@@ -409,7 +429,7 @@ class _Step1Welcome extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: MintflowColors.green50,
+            color: MintflowColors.mintWash(context),
             borderRadius: MintflowRadius.lg_,
             border: Border.all(color: MintflowColors.green100),
           ),
@@ -441,36 +461,44 @@ class _Step1Welcome extends StatelessWidget {
         ),
         const SizedBox(height: 28),
 
-        _FieldLabel('Your name'),
         TextFormField(
           controller: nameCtrl,
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(hintText: 'Alex Johnson'),
+          decoration: mintInputDecoration(
+            context,
+            label: 'Your name',
+            hint: 'Alex Johnson',
+          ),
         ),
         const SizedBox(height: 12),
 
-        _FieldLabel('Email'),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: MintflowColors.creamDark,
-            borderRadius: MintflowRadius.lg_,
-            border: Border.all(color: MintflowColors.ink10, width: 1.5),
-          ),
-          child: Row(children: [
-            Icon(Icons.lock_outline, size: 16, color: MintflowColors.ink60),
-            const SizedBox(width: 8),
-            Text(
-              email.isNotEmpty ? email : 'Loading…',
-              style: MintflowTextStyles.bodyMedium
-                  .copyWith(color: MintflowColors.ink60),
+        Semantics(
+          label: 'Email, ${email.isNotEmpty ? email : 'loading'}',
+          child: InputDecorator(
+            decoration: mintInputDecoration(
+              context,
+              label: 'Email',
+              fillColor: MintflowColors.softFill(context),
             ),
-          ]),
+            child: Row(children: [
+              Icon(Icons.lock_outline,
+                  size: 16, color: MintflowColors.textSecondary(context)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  email.isNotEmpty ? email : 'Loading…',
+                  style: MintflowTextStyles.bodyMedium.copyWith(
+                      color: MintflowColors.textSecondary(context)),
+                ),
+              ),
+            ]),
+          ),
         ),
         const SizedBox(height: 36),
         _NextButton(label: 'Continue', onPressed: onNext),
       ]),
+      ),
     );
   }
 }
@@ -490,8 +518,14 @@ class _Step2Target extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      padding: EdgeInsets.fromLTRB(
+        MintBreakpoints.pageGutter(context),
+        24,
+        MintBreakpoints.pageGutter(context),
+        24 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: MintAdaptiveWidth(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 8),
         const _StepHeader(
           title: 'Set your\nspending target',
@@ -499,28 +533,28 @@ class _Step2Target extends StatelessWidget {
         ),
         const SizedBox(height: 28),
 
-        _FieldLabel('Monthly income (optional)'),
         TextFormField(
           controller: incomeCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           textInputAction: TextInputAction.next,
           onChanged: (_) => onIncomeChanged(),
-          decoration: const InputDecoration(
-            prefixText: '\$ ',
-            hintText: '5,000',
-          ),
+          decoration: mintInputDecoration(
+            context,
+            label: 'Monthly income (optional)',
+            hint: '5,000',
+          ).copyWith(prefixText: '\$ '),
         ),
         const SizedBox(height: 20),
 
-        _FieldLabel('Monthly spending target'),
         TextFormField(
           controller: targetCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           textInputAction: TextInputAction.done,
-          decoration: const InputDecoration(
-            prefixText: '\$ ',
-            hintText: '3,500',
-          ),
+          decoration: mintInputDecoration(
+            context,
+            label: 'Monthly spending target',
+            hint: '3,500',
+          ).copyWith(prefixText: '\$ '),
         ),
         const SizedBox(height: 12),
 
@@ -528,7 +562,7 @@ class _Step2Target extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: MintflowColors.card(context),
             borderRadius: MintflowRadius.md_,
             border: Border.all(color: MintflowColors.green100),
           ),
@@ -549,16 +583,22 @@ class _Step2Target extends StatelessWidget {
         _NextButton(label: 'Set my target', onPressed: onNext),
         const SizedBox(height: 12),
         Center(
-            child: TextButton(
-          onPressed: onNext,
-          child: const Text("Skip for now"),
-        )),
+          child: TextButton(
+            onPressed: onNext,
+            style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              tapTargetSize: MaterialTapTargetSize.padded,
+            ),
+            child: const Text('Skip for now'),
+          ),
+        ),
       ]),
+      ),
     );
   }
 }
 
-// ── Step 3 — Connect bank ─────────────────────────────────────────────────────
+// ── Step 3 — Connect bank (optional) ─────────────────────────────────────────
 
 class _Step3Connect extends StatelessWidget {
   final bool loading;
@@ -572,62 +612,72 @@ class _Step3Connect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      padding: EdgeInsets.fromLTRB(
+        MintBreakpoints.pageGutter(context),
+        24,
+        MintBreakpoints.pageGutter(context),
+        24 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: MintAdaptiveWidth(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 8),
         const _StepHeader(
-          title: 'Connect your\naccounts',
-          subtitle: 'Bank, credit cards, or go manual.',
+          title: 'See where your\nmoney goes',
+          subtitle:
+              'Connect a bank to import transactions automatically — or skip and add them by hand. You can connect anytime from Profile.',
         ),
         const SizedBox(height: 28),
 
         // Plaid option — recommended
-        GestureDetector(
-          onTap: onConnectBank,
+        Semantics(
+          button: true,
+          label: 'Connect bank or card',
+          child: InkWell(
+          onTap: loading ? null : onConnectBank,
+          borderRadius: MintflowRadius.xl_,
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: MintflowColors.card(context),
               borderRadius: MintflowRadius.xl_,
               border: Border.all(color: MintflowColors.green400, width: 1.5),
             ),
             child: Column(children: [
               Row(children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: MintflowColors.green400,
                     borderRadius: MintflowRadius.md_,
                   ),
-                  child: const Icon(Icons.account_balance_outlined,
-                      color: Colors.white, size: 20),
+                  child: Icon(Icons.account_balance_outlined,
+                      color: MintflowColors.onBrand(context), size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Connect bank or card',
-                        style: TextStyle(
-                            fontFamily: 'DMSans',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500)),
-                    Text('Secure sync via Plaid',
-                        style: TextStyle(
-                            fontFamily: 'DMSans',
-                            fontSize: 11,
-                            color: Color(0x990F1F14))),
+                        style: MintflowTextStyles.labelMedium.copyWith(
+                          color: MintflowColors.textPrimary(context),
+                          fontWeight: FontWeight.w500,
+                        )),
+                    Text('Unlock auto-sync & AI categorization',
+                        style: MintflowTextStyles.overline.copyWith(
+                          color: MintflowColors.textSecondary(context),
+                        )),
                   ],
                 )),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: MintflowColors.green50,
+                    color: MintflowColors.mintWash(context),
                     borderRadius: MintflowRadius.pill_,
                   ),
-                  child: Text('Recommended',
+                  child: Text('Optional',
                       style: MintflowTextStyles.overline.copyWith(
                           color: MintflowColors.green600,
                           fontWeight: FontWeight.w500)),
@@ -635,56 +685,62 @@ class _Step3Connect extends StatelessWidget {
               ]),
               const SizedBox(height: 12),
               Text(
-                'Your credentials never touch Mintflow. '
-                '10,000+ US banks supported.',
+                'Your credentials never touch Mintflow — Plaid handles the '
+                'secure connection. Read-only access only.',
                 style: MintflowTextStyles.bodySmall
-                    .copyWith(color: MintflowColors.ink60),
+                    .copyWith(color: MintflowColors.textSecondary(context)),
               ),
             ]),
           ),
         ),
+        ),
         const SizedBox(height: 12),
 
         // Manual option
-        GestureDetector(
-          onTap: onManual,
+        Semantics(
+          button: true,
+          label: "I'll add manually",
+          child: InkWell(
+          onTap: loading ? null : onManual,
+          borderRadius: MintflowRadius.xl_,
           child: Container(
             padding: const EdgeInsets.all(16),
+            constraints: const BoxConstraints(minHeight: 64),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: MintflowColors.card(context),
               borderRadius: MintflowRadius.xl_,
-              border: Border.all(color: MintflowColors.ink10),
+              border: Border.all(color: MintflowColors.hairline(context)),
             ),
             child: Row(children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: MintflowColors.creamDark,
+                  color: MintflowColors.softFill(context),
                   borderRadius: MintflowRadius.md_,
                 ),
                 child: Icon(Icons.edit_outlined,
-                    color: MintflowColors.ink60, size: 20),
+                    color: MintflowColors.textSecondary(context), size: 22),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                   child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("I'll add manually",
-                      style: TextStyle(
-                          fontFamily: 'DMSans',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500)),
-                  Text('Log cash, local banks, anything',
-                      style: TextStyle(
-                          fontFamily: 'DMSans',
-                          fontSize: 11,
-                          color: Color(0x990F1F14))),
+                      style: MintflowTextStyles.labelMedium.copyWith(
+                        color: MintflowColors.textPrimary(context),
+                        fontWeight: FontWeight.w500,
+                      )),
+                  Text('Start exploring the app right away',
+                      style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.textSecondary(context),
+                      )),
                 ],
               )),
             ]),
           ),
+        ),
         ),
         const SizedBox(height: 16),
 
@@ -692,18 +748,19 @@ class _Step3Connect extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: MintflowColors.creamDark,
+            color: MintflowColors.softFill(context),
             borderRadius: MintflowRadius.md_,
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Icon(Icons.shield_outlined, size: 14, color: MintflowColors.ink60),
+            Icon(Icons.shield_outlined,
+                size: 14, color: MintflowColors.textSecondary(context)),
             const SizedBox(width: 8),
             Expanded(
                 child: Text(
               'Read-only access. Mintflow cannot move money or '
               'modify your accounts.',
               style: MintflowTextStyles.overline.copyWith(
-                  color: MintflowColors.ink60,
+                  color: MintflowColors.textSecondary(context),
                   fontSize: 11,
                   fontWeight: FontWeight.w400),
             )),
@@ -718,11 +775,17 @@ class _Step3Connect extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Center(
-            child: TextButton(
-          onPressed: loading ? null : onManual,
-          child: const Text("I'll start manually"),
-        )),
+          child: TextButton(
+            onPressed: loading ? null : onManual,
+            style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              tapTargetSize: MaterialTapTargetSize.padded,
+            ),
+            child: const Text('Maybe later'),
+          ),
+        ),
       ]),
+      ),
     );
   }
 }

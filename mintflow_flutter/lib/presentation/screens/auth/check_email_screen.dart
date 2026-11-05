@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
+import '../../../core/theme/motion.dart';
 import '../../../data/datasources/service_locator.dart';
 
 class CheckEmailScreen extends StatefulWidget {
@@ -23,10 +25,20 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
   void initState() {
     super.initState();
     _bounceCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
+        vsync: this, duration: const Duration(milliseconds: 420));
     _bounceAnim =
-        CurvedAnimation(parent: _bounceCtrl, curve: Curves.elasticOut);
+        CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeOutCubic);
     _bounceCtrl.forward();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _bounceCtrl.duration =
+        MintMotion.duration(context, const Duration(milliseconds: 420));
+    if (MintMotion.reduce(context)) {
+      _bounceCtrl.value = 1;
+    }
   }
 
   @override
@@ -80,9 +92,10 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
       backgroundColor: MintflowColors.page(context),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
+          padding: EdgeInsets.all(MintBreakpoints.pageGutter(context)),
+          child: MintAdaptiveWidth(
+            child: Column(
+              children: [
               const SizedBox(height: 12),
 
               // Animated envelope icon
@@ -92,7 +105,7 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: MintflowColors.green50,
+                    color: MintflowColors.mintWash(context),
                     borderRadius: MintflowRadius.xl_,
                     border:
                         Border.all(color: MintflowColors.green100, width: 1.5),
@@ -114,13 +127,13 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                 textAlign: TextAlign.center,
                 text: TextSpan(
                   style: MintflowTextStyles.bodyMedium
-                      .copyWith(color: MintflowColors.ink60, height: 1.6),
+                      .copyWith(color: MintflowColors.textSecondary(context), height: 1.6),
                   children: [
                     const TextSpan(text: "We've sent a reset link to\n"),
                     TextSpan(
                       text: _maskedEmail,
                       style: TextStyle(
-                        color: MintflowColors.ink,
+                        color: MintflowColors.textPrimary(context),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -138,9 +151,9 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: MintflowColors.cream,
                   borderRadius: MintflowRadius.xl_,
-                  border: Border.all(color: MintflowColors.ink10),
+                  border: Border.all(color: MintflowColors.hairline(context)),
                 ),
                 child: Column(children: [
                   _Step(
@@ -174,13 +187,17 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
               if (_resent)
                 AnimatedOpacity(
                   opacity: _resent ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
+                  duration: MintMotion.duration(
+                    context,
+                    const Duration(milliseconds: 250),
+                  ),
+                  curve: MintMotion.curve(context),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: MintflowColors.green50,
+                      color: MintflowColors.mintWash(context),
                       borderRadius: MintflowRadius.md_,
                       border: Border.all(color: MintflowColors.green100),
                     ),
@@ -222,6 +239,10 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () => context.go(MintflowRoutes.login),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                    tapTargetSize: MaterialTapTargetSize.padded,
+                  ),
                   child: const Text('Back to sign in'),
                 ),
               ),
@@ -230,9 +251,11 @@ class _CheckEmailScreenState extends State<CheckEmailScreen>
               Text(
                 'Check your spam folder if you don\'t see it.',
                 style: MintflowTextStyles.overline.copyWith(
-                    color: MintflowColors.ink30, fontWeight: FontWeight.w400),
+                    color: MintflowColors.textSecondary(context),
+                    fontWeight: FontWeight.w400),
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -252,19 +275,23 @@ class _Step extends StatelessWidget {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: active ? MintflowColors.green400 : MintflowColors.creamDark,
+              color: active
+                  ? MintflowColors.green400
+                  : MintflowColors.softFill(context),
               shape: BoxShape.circle,
             ),
             child: Center(
                 child: Text(number,
                     style: MintflowTextStyles.labelSmall.copyWith(
-                        color: active ? Colors.white : MintflowColors.ink60,
+                        color: active
+                            ? MintflowColors.onMint(context)
+                            : MintflowColors.textSecondary(context),
                         fontWeight: FontWeight.w500))),
           ),
           const SizedBox(width: 12),
           Text(text,
               style: MintflowTextStyles.bodySmall.copyWith(
-                  color: active ? MintflowColors.ink : MintflowColors.ink60)),
+                  color: active ? MintflowColors.textPrimary(context) : MintflowColors.textSecondary(context))),
         ]),
       );
 }
@@ -273,6 +300,6 @@ class _StepDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(left: 13),
-        child: Container(width: 1.5, height: 12, color: MintflowColors.ink10),
+        child: Container(width: 1.5, height: 12, color: MintflowColors.hairline(context)),
       );
 }

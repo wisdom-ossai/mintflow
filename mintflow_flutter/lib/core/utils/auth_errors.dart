@@ -13,20 +13,20 @@ String friendlyAuthError(Object error) {
     return _fromDio(error);
   }
   if (error is GoogleSignInCanceled) {
-    return 'Google sign-in was cancelled.';
+    return 'Google sign-in was canceled.';
   }
   if (error is SignInWithAppleAuthorizationException) {
     if (error.code == AuthorizationErrorCode.canceled) {
-      return 'Sign in was cancelled.';
+      return 'Apple sign-in was canceled.';
     }
-    return 'Apple sign-in failed. Please try again.';
+    return 'Apple sign-in didn’t finish. Try again.';
   }
   if (error is PlatformException) {
     final code = error.code.toLowerCase();
     if (code.contains('canceled') || code.contains('cancelled')) {
-      return 'Google sign-in was cancelled.';
+      return 'Google sign-in was canceled.';
     }
-    return 'Google sign-in failed. Please try again.';
+    return 'Google sign-in didn’t finish. Try again.';
   }
   return _fromNetworkOrUnknown(error);
 }
@@ -55,19 +55,19 @@ String _fromDio(DioException e) {
     if (detail != null && detail.isNotEmpty && detail.length <= 160) {
       return detail;
     }
-    return 'Please check your details and try again.';
+    return 'Check your details and try again.';
   }
   if (status == 422) {
     if (detail != null && detail.isNotEmpty && detail.length <= 160) {
       return detail;
     }
-    return 'Please check your details and try again.';
+    return 'Check your details and try again.';
   }
   if (status == 429) {
-    return 'Too many attempts. Please wait a moment and try again.';
+    return 'Too many attempts. Wait a moment, then try again.';
   }
   if (status != null && status >= 500) {
-    return 'Something went wrong on our side. Please try again shortly.';
+    return 'Mintflow hit a problem on our side. Try again shortly.';
   }
 
   if (detail != null &&
@@ -106,7 +106,7 @@ String _fromNetworkOrUnknown(Object error) {
       _looksLikeNetwork(text)) {
     return _networkMessage;
   }
-  return 'Something went wrong. Please try again.';
+  return 'Something went wrong. Try again.';
 }
 
 bool _looksLikeNetwork(String text) {

@@ -9,9 +9,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/appearance_control.dart';
+import '../../../core/theme/breakpoints.dart';
+import '../../../core/theme/mint_inputs.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
+import '../../widgets/semantic_tap.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Profile + Settings Screen
@@ -62,8 +65,8 @@ class _ProfileScreenState extends State<ProfileScreen>
       duration: const Duration(milliseconds: 500),
     );
 
-    _avatarScale = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _headerController, curve: Curves.easeOutBack),
+    _avatarScale = Tween<double>(begin: 0.92, end: 1.0).animate(
+      CurvedAnimation(parent: _headerController, curve: Curves.easeOutCubic),
     );
     _headerFade = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
@@ -88,9 +91,17 @@ class _ProfileScreenState extends State<ProfileScreen>
       CurvedAnimation(parent: _sectionsController, curve: Curves.easeOutCubic),
     );
 
-    _headerController.forward();
-    Future.delayed(const Duration(milliseconds: 350), () {
-      if (mounted) _sectionsController.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _headerController.value = 1;
+        _sectionsController.value = 1;
+      } else {
+        _headerController.forward();
+        Future.delayed(const Duration(milliseconds: 280), () {
+          if (mounted) _sectionsController.forward();
+        });
+      }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await context.read<UserCubit>().load();
@@ -159,6 +170,202 @@ class _ProfileScreenState extends State<ProfileScreen>
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final gutter = MintBreakpoints.pageGutter(context);
+    final expanded = MintBreakpoints.isExpanded(context);
+
+    final financialSection = <Widget>[
+      const _SectionLabel(label: 'Financial Profile'),
+      const SizedBox(height: 10),
+      _FinancialProfileCard(
+        monthlyBudget: _monthlyBudget,
+        monthlySavings: _monthlySavings,
+        budgetMethod: _budgetMethod,
+        loading: _financialLoading,
+        onEditBudget: () => _editMonthlyBudget(context),
+        onEditSavings: () => _editSavingsGoal(context),
+        onEditMethod: () => _editBudgetMethod(context),
+      ),
+    ];
+
+    final notificationsSection = <Widget>[
+      const _SectionLabel(label: 'Notifications'),
+      const SizedBox(height: 8),
+      _SettingsCard(
+        children: [
+          _ToggleRow(
+            icon: Icons.notifications_outlined,
+            iconColor: MintflowColors.green500,
+            iconBg: MintflowColors.mintWash(context),
+            label: 'Push notifications',
+            subtitle: 'On this device · sync coming soon',
+            value: _notificationsEnabled,
+            onChanged: (v) => setState(() => _notificationsEnabled = v),
+          ),
+          _Divider(),
+          _ToggleRow(
+            icon: Icons.bar_chart_outlined,
+            iconColor: MintflowColors.blue,
+            iconBg: MintflowColors.blueWash(context),
+            label: 'Weekly report',
+            subtitle: 'On this device · sync coming soon',
+            value: _weeklyReport,
+            onChanged: (v) => setState(() => _weeklyReport = v),
+          ),
+          _Divider(),
+          _ToggleRow(
+            icon: Icons.warning_amber_rounded,
+            iconColor: MintflowColors.gold500,
+            iconBg: MintflowColors.goldWash(context),
+            label: 'Budget alerts',
+            subtitle: 'Notify when near limit',
+            value: _budgetAlerts,
+            onChanged: (v) => setState(() => _budgetAlerts = v),
+          ),
+        ],
+      ),
+    ];
+
+    final preferencesSection = <Widget>[
+      const _SectionLabel(label: 'Preferences'),
+      const SizedBox(height: 10),
+      _SettingsCard(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Appearance',
+                  style: MintflowTextStyles.labelMedium.copyWith(
+                    color: MintflowColors.textPrimary(context),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Light, dark, or match this device',
+                  style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.textSecondary(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const AppearanceControl(),
+              ],
+            ),
+          ),
+          _Divider(),
+          _SelectRow(
+            icon: Icons.language_outlined,
+            iconColor: MintflowColors.blue,
+            iconBg: MintflowColors.blueWash(context),
+            label: 'Language',
+            value: _selectedLanguage,
+            onTap: () => _showLanguagePicker(context),
+          ),
+          _Divider(),
+          _SelectRow(
+            icon: Icons.attach_money_rounded,
+            iconColor: MintflowColors.gold500,
+            iconBg: MintflowColors.goldWash(context),
+            label: 'Currency',
+            value: _selectedCurrency,
+            onTap: () => _showCurrencyPicker(context),
+          ),
+        ],
+      ),
+    ];
+
+    final accountAndDanger = <Widget>[
+      _SettingsCard(
+        children: [
+          _ActionRow(
+            icon: Icons.account_balance_outlined,
+            iconColor: MintflowColors.green500,
+            iconBg: MintflowColors.mintWash(context),
+            label: 'Linked accounts',
+            subtitle: _linkedAccountCount == 0
+                ? 'None connected'
+                : '$_linkedAccountCount connected',
+            onTap: () async {
+              await context.push(MintflowRoutes.linkedAccounts);
+              if (mounted) await _loadLinkedAccountCount();
+            },
+          ),
+          _Divider(),
+          _ActionRow(
+            icon: Icons.subscriptions_outlined,
+            iconColor: MintflowColors.purple,
+            iconBg: MintflowColors.purpleWash(context),
+            label: 'Subscriptions',
+            subtitle: 'Detected from your banks',
+            onTap: () =>
+                context.push(MintflowRoutes.recurringSubscriptions),
+          ),
+          _Divider(),
+          _ActionRow(
+            icon: Icons.receipt_long_outlined,
+            iconColor: MintflowColors.blue,
+            iconBg: MintflowColors.blueWash(context),
+            label: 'Bills',
+            subtitle: 'Rent, utilities, due dates',
+            onTap: () => context.push(MintflowRoutes.bills),
+          ),
+          _Divider(),
+          _ActionRow(
+            icon: Icons.savings_outlined,
+            iconColor: MintflowColors.green500,
+            iconBg: MintflowColors.mintWash(context),
+            label: 'Goals',
+            subtitle: 'Save toward a named target',
+            onTap: () => context.push(MintflowRoutes.goals),
+          ),
+          _Divider(),
+          _ActionRow(
+            icon: Icons.download_outlined,
+            iconColor: MintflowColors.blue,
+            iconBg: MintflowColors.blueWash(context),
+            label: 'Export data',
+            subtitle: 'CSV (Pro)',
+            onTap: () => context.push(MintflowRoutes.exportData),
+          ),
+          _Divider(),
+          _ActionRow(
+            icon: Icons.security_outlined,
+            iconColor: MintflowColors.purple,
+            iconBg: MintflowColors.purpleWash(context),
+            label: 'Privacy & security',
+            onTap: () => context.push(MintflowRoutes.privacySecurity),
+          ),
+        ],
+      ),
+      const SizedBox(height: 24),
+      _SettingsCard(
+        children: [
+          _DangerRow(
+            icon: Icons.logout_rounded,
+            label: 'Sign out',
+            onTap: () => _showSignOutDialog(context),
+          ),
+          _Divider(),
+          _DangerRow(
+            icon: Icons.delete_outline_rounded,
+            label: 'Delete account',
+            isDestructive: true,
+            onTap: () => _showDeleteDialog(context),
+          ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Center(
+        child: Text(
+          'Mintflow v1.0.0',
+          style: MintflowTextStyles.overline.copyWith(
+            color: MintflowColors.textTertiary(context),
+          ),
+        ),
+      ),
+    ];
 
     return Scaffold(
       backgroundColor: MintflowColors.green900,
@@ -196,253 +403,56 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-                      child: Column(
+                      padding: EdgeInsets.fromLTRB(gutter, 24, gutter, 32),
+                      child: MintAdaptiveWidth(
+                        maxWidth: MintBreakpoints.contentMax,
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Financial profile
-                          _SectionLabel(label: 'Financial Profile'),
-                          const SizedBox(height: 10),
-                          _FinancialProfileCard(
-                            monthlyBudget: _monthlyBudget,
-                            monthlySavings: _monthlySavings,
-                            budgetMethod: _budgetMethod,
-                            loading: _financialLoading,
-                            onEditBudget: () => _editMonthlyBudget(context),
-                            onEditSavings: () => _editSavingsGoal(context),
-                            onEditMethod: () => _editBudgetMethod(context),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Notifications settings (local for now)
-                          // TODO: sync toggles to PUT /notifications/preferences
-                          _SectionLabel(label: 'Notifications'),
-                          const SizedBox(height: 10),
-                          _SettingsCard(
-                            children: [
-                              _ToggleRow(
-                                icon: Icons.notifications_outlined,
-                                iconColor: MintflowColors.green500,
-                                iconBg: MintflowColors.green50,
-                                label: 'Push notifications',
-                                subtitle: 'Alerts, tips & reminders',
-                                value: _notificationsEnabled,
-                                onChanged: (v) => setState(
-                                  () => _notificationsEnabled = v,
+                          if (expanded) ...[
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      ...financialSection,
+                                      const SizedBox(height: 24),
+                                      ...notificationsSection,
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              _Divider(),
-                              _ToggleRow(
-                                icon: Icons.bar_chart_outlined,
-                                iconColor: MintflowColors.blue,
-                                iconBg: MintflowColors.blueSoft,
-                                label: 'Weekly report',
-                                subtitle: 'Summary every Sunday',
-                                value: _weeklyReport,
-                                onChanged: (v) =>
-                                    setState(() => _weeklyReport = v),
-                              ),
-                              _Divider(),
-                              _ToggleRow(
-                                icon: Icons.warning_amber_rounded,
-                                iconColor: MintflowColors.gold500,
-                                iconBg: MintflowColors.gold50,
-                                label: 'Budget alerts',
-                                subtitle: 'Notify when near limit',
-                                value: _budgetAlerts,
-                                onChanged: (v) =>
-                                    setState(() => _budgetAlerts = v),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Preferences
-                          _SectionLabel(label: 'Preferences'),
-                          const SizedBox(height: 10),
-                          _SettingsCard(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Appearance',
-                                      style: MintflowTextStyles.labelMedium
-                                          .copyWith(
-                                        color: MintflowColors.textPrimary(
-                                            context),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Light, dark, or match this device',
-                                      style: MintflowTextStyles.overline
-                                          .copyWith(
-                                        color: MintflowColors.textSecondary(
-                                            context),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    const AppearanceControl(),
-                                  ],
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      ...preferencesSection,
+                                      const SizedBox(height: 24),
+                                      const _SectionLabel(label: 'Account'),
+                                      const SizedBox(height: 10),
+                                      ...accountAndDanger,
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              _Divider(),
-                              _SelectRow(
-                                icon: Icons.language_outlined,
-                                iconColor: MintflowColors.blue,
-                                iconBg: MintflowColors.blueSoft,
-                                label: 'Language',
-                                value: _selectedLanguage,
-                                onTap: () => _showLanguagePicker(context),
-                              ),
-                              _Divider(),
-                              _SelectRow(
-                                icon: Icons.attach_money_rounded,
-                                iconColor: MintflowColors.gold500,
-                                iconBg: MintflowColors.gold50,
-                                label: 'Currency',
-                                value: _selectedCurrency,
-                                onTap: () => _showCurrencyPicker(context),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Account
-                          _SectionLabel(label: 'Account'),
-                          const SizedBox(height: 10),
-                          _SettingsCard(
-                            children: [
-                              _ActionRow(
-                                icon: Icons.account_balance_outlined,
-                                iconColor: MintflowColors.green500,
-                                iconBg: MintflowColors.green50,
-                                label: 'Linked accounts',
-                                subtitle: _linkedAccountCount == 0
-                                    ? 'None connected'
-                                    : '$_linkedAccountCount connected',
-                                onTap: () async {
-                                  await context
-                                      .push(MintflowRoutes.linkedAccounts);
-                                  if (mounted) await _loadLinkedAccountCount();
-                                },
-                              ),
-                              _Divider(),
-                              _ActionRow(
-                                icon: Icons.subscriptions_outlined,
-                                iconColor: MintflowColors.purple,
-                                iconBg: MintflowColors.purpleSoft,
-                                label: 'Subscriptions',
-                                subtitle: 'Detected from your banks',
-                                onTap: () => context.push(
-                                    MintflowRoutes.recurringSubscriptions),
-                              ),
-                              _Divider(),
-                              _ActionRow(
-                                icon: Icons.receipt_long_outlined,
-                                iconColor: MintflowColors.blue,
-                                iconBg: MintflowColors.blueSoft,
-                                label: 'Bills',
-                                subtitle: 'Rent, utilities, due dates',
-                                onTap: () =>
-                                    context.push(MintflowRoutes.bills),
-                              ),
-                              _Divider(),
-                              _ActionRow(
-                                icon: Icons.download_outlined,
-                                iconColor: MintflowColors.blue,
-                                iconBg: MintflowColors.blueSoft,
-                                label: 'Export data',
-                                subtitle: 'CSV (Pro)',
-                                onTap: () =>
-                                    context.push(MintflowRoutes.exportData),
-                              ),
-                              _Divider(),
-                              _ActionRow(
-                                icon: Icons.security_outlined,
-                                iconColor: MintflowColors.purple,
-                                iconBg: MintflowColors.purpleSoft,
-                                label: 'Privacy & security',
-                                onTap: () => context
-                                    .push(MintflowRoutes.privacySecurity),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Support
-                          _SectionLabel(label: 'Support'),
-                          const SizedBox(height: 10),
-                          _SettingsCard(
-                            children: [
-                              _ActionRow(
-                                icon: Icons.help_outline_rounded,
-                                iconColor: MintflowColors.green500,
-                                iconBg: MintflowColors.green50,
-                                label: 'Help center',
-                                onTap: () => _showStub(context, 'Help center'),
-                              ),
-                              _Divider(),
-                              _ActionRow(
-                                icon: Icons.chat_bubble_outline_rounded,
-                                iconColor: MintflowColors.blue,
-                                iconBg: MintflowColors.blueSoft,
-                                label: 'Send feedback',
-                                onTap: () =>
-                                    _showStub(context, 'Send feedback'),
-                              ),
-                              _Divider(),
-                              _ActionRow(
-                                icon: Icons.description_outlined,
-                                iconColor: MintflowColors.ink60,
-                                iconBg: MintflowColors.creamDark,
-                                label: 'Terms & Privacy policy',
-                                onTap: () => _showStub(
-                                    context, 'Terms & Privacy policy'),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Danger zone
-                          _SettingsCard(
-                            children: [
-                              _DangerRow(
-                                icon: Icons.logout_rounded,
-                                label: 'Sign out',
-                                onTap: () => _showSignOutDialog(context),
-                              ),
-                              _Divider(),
-                              _DangerRow(
-                                icon: Icons.delete_outline_rounded,
-                                label: 'Delete account',
-                                isDestructive: true,
-                                onTap: () => _showDeleteDialog(context),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // App version
-                          Center(
-                            child: Text(
-                              'Mintflow v1.0.0',
-                              style: MintflowTextStyles.overline.copyWith(
-                                color: MintflowColors.textTertiary(context),
-                              ),
+                              ],
                             ),
-                          ),
+                          ] else ...[
+                            ...financialSection,
+                            const SizedBox(height: 24),
+                            ...notificationsSection,
+                            const SizedBox(height: 24),
+                            ...preferencesSection,
+                            const SizedBox(height: 24),
+                            const _SectionLabel(label: 'Account'),
+                            const SizedBox(height: 10),
+                            ...accountAndDanger,
+                          ],
                         ],
+                        ),
                       ),
                     ),
                   ),
@@ -634,6 +644,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: MintBreakpoints.formMax),
       builder: (_) => _AmountEditSheet(
         title: title,
         subtitle: subtitle,
@@ -653,6 +664,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: MintBreakpoints.formMax),
       builder: (_) => _OptionSheet(
         title: title,
         options: options,
@@ -661,18 +673,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           onSelect(v);
           Navigator.pop(context);
         },
-      ),
-    );
-  }
-
-  void _showStub(BuildContext context, String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$label — coming soon'),
-        backgroundColor: MintflowColors.green900,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
-        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -711,7 +711,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         SnackBar(
           content: Text(err is UserError
               ? err.message
-              : 'Could not delete account'),
+              : 'Couldn’t delete your account. Check your connection and try again.'),
           backgroundColor: MintflowColors.red,
         ),
       );
@@ -729,12 +729,24 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _showSignOutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => _MintflowDialog(
-        title: 'Sign out?',
-        message: 'You\'ll need to log in again to access your account.',
-        confirmLabel: 'Sign out',
-        isDestructive: false,
-        onConfirm: () => _logout(),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text(
+          'You\'ll need to log in again to access your account.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _logout();
+            },
+            child: const Text('Sign out'),
+          ),
+        ],
       ),
     );
   }
@@ -742,13 +754,27 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => _MintflowDialog(
-        title: 'Delete account?',
-        message:
-            'This will permanently erase all your data. This action cannot be undone.',
-        confirmLabel: 'Delete account',
-        isDestructive: true,
-        onConfirm: () => _deleteAccount(),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete account?'),
+        content: const Text(
+          'This will permanently erase all your data. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: MintflowColors.red,
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _deleteAccount();
+            },
+            child: const Text('Delete account'),
+          ),
+        ],
       ),
     );
   }
@@ -802,7 +828,7 @@ class _ProfileHeader extends StatelessWidget {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: MintflowColors.green400.withOpacity(0.07),
+                color: MintflowColors.green400.withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -814,7 +840,7 @@ class _ProfileHeader extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: MintflowColors.gold400.withOpacity(0.05),
+                color: MintflowColors.gold400.withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -851,27 +877,32 @@ class _ProfileHeader extends StatelessWidget {
                             child: Text(
                               initials,
                               style: MintflowTextStyles.displaySmall.copyWith(
-                                color: Colors.white,
+                                color: MintflowColors.onMint(context),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ),
-                        Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: MintflowColors.gold400,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: MintflowColors.green900,
-                              width: 2,
+                        Semantics(
+                          button: true,
+                          label: 'Edit profile photo',
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: MintflowColors.gold400,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: MintflowColors.green900,
+                                width: 2,
+                              ),
                             ),
-                          ),
-                          child: const Icon(
-                            Icons.edit_rounded,
-                            size: 12,
-                            color: Colors.white,
+                            child: Icon(
+                              Icons.edit_rounded,
+                              size: 14,
+                              color: MintflowColors.onMint(context),
+                            ),
                           ),
                         ),
                       ],
@@ -888,7 +919,7 @@ class _ProfileHeader extends StatelessWidget {
                   Text(
                     email,
                     style: MintflowTextStyles.bodySmall.copyWith(
-                      color: MintflowColors.cream.withOpacity(0.5),
+                      color: MintflowColors.onBrandMuted(context, 0.5),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -909,7 +940,7 @@ class _ProfileHeader extends StatelessWidget {
                       Container(
                         width: 1,
                         height: 32,
-                        color: Colors.white.withOpacity(0.1),
+                        color: MintflowColors.brandOverlay(context, 0.1),
                       ),
                       Expanded(
                         child: _HeaderStat(
@@ -920,7 +951,7 @@ class _ProfileHeader extends StatelessWidget {
                       Container(
                         width: 1,
                         height: 32,
-                        color: Colors.white.withOpacity(0.1),
+                        color: MintflowColors.brandOverlay(context, 0.1),
                       ),
                       Expanded(
                         child: _HeaderStat(
@@ -956,9 +987,9 @@ class _HeaderBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: MintflowRadius.pill_,
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -996,7 +1027,7 @@ class _HeaderStat extends StatelessWidget {
         Text(
           label,
           style: MintflowTextStyles.overline.copyWith(
-            color: MintflowColors.cream.withOpacity(0.45),
+            color: MintflowColors.onBrandMuted(context, 0.45),
           ),
           textAlign: TextAlign.center,
         ),
@@ -1042,7 +1073,7 @@ class _FinancialProfileCard extends StatelessWidget {
         _InfoRow(
           icon: Icons.wallet_outlined,
           iconColor: MintflowColors.green500,
-          iconBg: MintflowColors.green50,
+          iconBg: MintflowColors.mintWash(context),
           label: 'Monthly budget',
           value: loading ? '…' : budgetValue,
           onTap: onEditBudget,
@@ -1051,7 +1082,7 @@ class _FinancialProfileCard extends StatelessWidget {
         _InfoRow(
           icon: Icons.savings_outlined,
           iconColor: MintflowColors.gold500,
-          iconBg: MintflowColors.gold50,
+          iconBg: MintflowColors.goldWash(context),
           label: 'Savings goal',
           value: loading ? '…' : savingsValue,
           onTap: onEditSavings,
@@ -1060,7 +1091,7 @@ class _FinancialProfileCard extends StatelessWidget {
         _InfoRow(
           icon: Icons.category_outlined,
           iconColor: MintflowColors.blue,
-          iconBg: MintflowColors.blueSoft,
+          iconBg: MintflowColors.blueWash(context),
           label: 'Budget method',
           value: budgetMethod,
           onTap: onEditMethod,
@@ -1085,7 +1116,7 @@ class _SettingsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: MintflowColors.card(context),
         borderRadius: MintflowRadius.lg_,
-        border: Border.all(color: MintflowColors.stroke(context)),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(children: children),
     );
@@ -1191,7 +1222,10 @@ class _ToggleRow extends StatelessWidget {
               ],
             ),
           ),
-          _MintflowSwitch(value: value, onChanged: onChanged),
+          Switch.adaptive(
+            value: value,
+            onChanged: onChanged,
+          ),
         ],
       ),
     );
@@ -1217,9 +1251,9 @@ class _SelectRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return SemanticTap(
+      label: '$label, $value',
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -1270,9 +1304,9 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return SemanticTap(
+      label: 'Edit $label, $value',
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -1324,9 +1358,10 @@ class _ActionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    final semantic = subtitle == null ? label : '$label, $subtitle';
+    return SemanticTap(
+      label: semantic,
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -1380,9 +1415,9 @@ class _DangerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final color =
         isDestructive ? MintflowColors.red : MintflowColors.textSecondary(context);
-    return GestureDetector(
+    return SemanticTap(
+      label: label,
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -1409,102 +1444,6 @@ class _DangerRow extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Custom Mintflow Switch
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _MintflowSwitch extends StatefulWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _MintflowSwitch({required this.value, required this.onChanged});
-
-  @override
-  State<_MintflowSwitch> createState() => _MintflowSwitchState();
-}
-
-class _MintflowSwitchState extends State<_MintflowSwitch>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _thumbAnim;
-  late Animation<Color?> _trackAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
-      value: widget.value ? 1.0 : 0.0,
-    );
-    _thumbAnim = Tween<double>(begin: 2, end: 22).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    _trackAnim = ColorTween(
-      begin: MintflowColors.ink10,
-      end: MintflowColors.green400,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-  }
-
-  @override
-  void didUpdateWidget(_MintflowSwitch old) {
-    super.didUpdateWidget(old);
-    if (widget.value != old.value) {
-      widget.value ? _controller.forward() : _controller.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        widget.onChanged(!widget.value);
-      },
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, __) => Container(
-          width: 46,
-          height: 26,
-          decoration: BoxDecoration(
-            color: _trackAnim.value,
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: _thumbAnim.value,
-                top: 2,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -1564,7 +1503,7 @@ class _OptionSheet extends StatelessWidget {
             decoration: BoxDecoration(
               color: MintflowColors.card(context),
               borderRadius: MintflowRadius.lg_,
-              border: Border.all(color: MintflowColors.stroke(context)),
+              border: Border.all(color: MintflowColors.hairline(context)),
             ),
             child: Column(
               children: options.map((opt) {
@@ -1572,9 +1511,10 @@ class _OptionSheet extends StatelessWidget {
                 final isLast = opt == options.last;
                 return Column(
                   children: [
-                    GestureDetector(
+                    SemanticTap(
+                      label: opt,
+                      selected: isSelected,
                       onTap: () => onSelect(opt),
-                      behavior: HitTestBehavior.opaque,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -1613,79 +1553,6 @@ class _OptionSheet extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Mintflow Dialog
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _MintflowDialog extends StatelessWidget {
-  final String title;
-  final String message;
-  final String confirmLabel;
-  final bool isDestructive;
-  final VoidCallback onConfirm;
-
-  const _MintflowDialog({
-    required this.title,
-    required this.message,
-    required this.confirmLabel,
-    required this.isDestructive,
-    required this.onConfirm,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: MintflowColors.card(context),
-      shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: MintflowTextStyles.displaySmall.copyWith(
-                color: MintflowColors.textPrimary(context),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: MintflowTextStyles.bodyMedium.copyWith(
-                color: MintflowColors.textSecondary(context),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isDestructive
-                          ? MintflowColors.red
-                          : MintflowColors.green400,
-                    ),
-                    onPressed: onConfirm,
-                    child: Text(confirmLabel),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1737,7 +1604,7 @@ class _AmountEditSheetState extends State<_AmountEditSheet> {
     final raw = _ctrl.text.replaceAll(',', '').trim();
     final amount = double.tryParse(raw);
     if (amount == null || amount < 0) {
-      setState(() => _error = 'Enter a valid amount');
+      setState(() => _error = 'Enter an amount greater than zero');
       return;
     }
     Navigator.pop(context, amount);
@@ -1789,6 +1656,7 @@ class _AmountEditSheetState extends State<_AmountEditSheet> {
             TextField(
               controller: _ctrl,
               autofocus: true,
+              maxLength: 14,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
@@ -1796,10 +1664,14 @@ class _AmountEditSheetState extends State<_AmountEditSheet> {
               ],
               style: MintflowTextStyles.amountSmall
                   .copyWith(color: MintflowColors.textPrimary(context)),
-              decoration: InputDecoration(
+              decoration: mintInputDecoration(
+                context,
+                label: widget.title,
+                hint: '0',
+              ).copyWith(
                 prefixText: '\$ ',
-                hintText: '0',
                 errorText: _error,
+                counterText: '',
               ),
               onSubmitted: (_) => _submit(),
             ),

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
+import '../../../core/theme/motion.dart';
 import '../../../core/utils/revenuecat.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,39 +113,44 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _loadOfferings() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
     });
     if (!revenueCatConfigured) {
+      if (!mounted) return;
       setState(() {
         _rcConfigured = false;
         _loading = false;
         _error =
-            'RevenueCat is not configured. Set REVENUECAT_API_KEY to enable purchases.';
+            'Subscriptions aren’t available in this build yet. Try again later.';
       });
       return;
     }
     try {
       final offerings = await Purchases.getOfferings();
+      if (!mounted) return;
       setState(() {
         _offerings = offerings;
         _rcConfigured = true;
         _loading = false;
       });
-    } on PlatformException catch (e) {
-      setState(() {
-        _rcConfigured = false;
-        _loading = false;
-        _error = e.message ??
-            'Subscriptions are not configured yet. Add REVENUECAT_API_KEY.';
-      });
-    } catch (e) {
+    } on PlatformException catch (_) {
+      if (!mounted) return;
       setState(() {
         _rcConfigured = false;
         _loading = false;
         _error =
-            'RevenueCat is not configured. Set REVENUECAT_API_KEY to enable purchases.';
+            'Couldn’t load plans from the App Store or Google Play. Try again shortly.';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _rcConfigured = false;
+        _loading = false;
+        _error =
+            'Couldn’t load subscription plans. Check your connection and try again.';
       });
     }
   }
@@ -176,6 +183,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _purchase() async {
+    if (_purchasing) return;
     if (_selected == 'seed') {
       context.pop();
       return;
@@ -183,7 +191,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (!_rcConfigured) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_error ?? 'Purchases unavailable'),
+          content: Text(
+            _error ??
+                'Purchases aren’t available right now. Try again later.',
+          ),
           backgroundColor: MintflowColors.red,
         ),
       );
@@ -193,8 +204,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (package == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No store package found for this plan yet.'),
-          backgroundColor: MintflowColors.gold500,
+          content: Text(
+            'This plan isn’t ready to buy yet. Pick another plan or try again later.',
+          ),
+          backgroundColor: MintflowColors.green900,
         ),
       );
       return;
@@ -205,7 +218,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Welcome aboard — subscription active.'),
+            content: Text('You’re subscribed. Welcome aboard.'),
             backgroundColor: MintflowColors.green500,
           ),
         );
@@ -216,16 +229,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
       if (code != PurchasesErrorCode.purchaseCancelledError && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.message ?? 'Purchase failed'),
+            content: Text(
+              e.message?.trim().isNotEmpty == true
+                  ? e.message!
+                  : 'Purchase didn’t finish. Try again.',
+            ),
             backgroundColor: MintflowColors.red,
           ),
         );
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Purchase failed: $e'),
+          const SnackBar(
+            content: Text('Purchase didn’t finish. Try again.'),
             backgroundColor: MintflowColors.red,
           ),
         );
@@ -236,10 +253,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _restore() async {
+    if (_purchasing) return;
     if (!_rcConfigured || !revenueCatConfigured) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_error ?? 'Purchases unavailable'),
+          content: Text(
+            _error ??
+                'Purchases aren’t available right now. Try again later.',
+          ),
           backgroundColor: MintflowColors.red,
         ),
       );
@@ -257,11 +278,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
         );
         context.go(MintflowRoutes.dashboard);
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Restore failed: $e'),
+          const SnackBar(
+            content: Text(
+              'Couldn’t restore purchases. Check your store account and try again.',
+            ),
             backgroundColor: MintflowColors.red,
           ),
         );
@@ -284,193 +307,272 @@ class _PaywallScreenState extends State<PaywallScreen> {
   String get _featureHeadline {
     final f = widget.feature;
     if (f == null || f.isEmpty) return 'Unlock your full financial picture';
-    return _featureCopy[f] ?? 'Upgrade to unlock $f';
+    return _featureCopy[f] ?? 'Upgrade to unlock this feature';
+  }
+
+  Widget _planTile(_Plan plan) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: MintflowRadius.xl_,
+      child: InkWell(
+        borderRadius: MintflowRadius.xl_,
+        onTap: _purchasing ? null : () => setState(() => _selected = plan.id),
+        child: Semantics(
+          button: true,
+          selected: _selected == plan.id,
+          label: '${plan.name} plan, ${_priceLabel(plan)}',
+          child: _PlanCard(
+            plan: plan,
+            selected: _selected == plan.id,
+            price: _priceLabel(plan),
+            annual: _annual,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final gutter = MintBreakpoints.pageGutter(context);
+    // 3-up only at expanded — medium widths crush plan columns.
+    final multiCol = MintBreakpoints.isExpanded(context);
+
     return Scaffold(
       backgroundColor: MintflowColors.page(context),
       body: CustomScrollView(slivers: [
         SliverAppBar(
           pinned: true,
           backgroundColor: MintflowColors.green900,
+          foregroundColor: MintflowColors.onBrand(context),
           leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
+            tooltip: 'Close',
+            icon: Icon(Icons.close, color: MintflowColors.onBrand(context)),
             onPressed: () => context.pop(),
           ),
-          flexibleSpace: FlexibleSpaceBar(
-            background: SafeArea(
+        ),
+        SliverToBoxAdapter(
+          child: ColoredBox(
+            color: MintflowColors.green900,
+            child: MintAdaptiveWidth(
+              maxWidth: MintBreakpoints.contentMax,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 52, 20, 20),
+                padding: EdgeInsets.fromLTRB(gutter, 8, gutter, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('UPGRADE FLOWRA',
-                        style: MintflowTextStyles.overline.copyWith(
-                            color: MintflowColors.cream.withOpacity(0.5))),
-                    const SizedBox(height: 4),
-                    Text(_featureHeadline,
-                        style: MintflowTextStyles.displaySmall
-                            .copyWith(color: MintflowColors.cream)),
-                    const SizedBox(height: 8),
                     Text(
-                      widget.feature != null
-                          ? 'Feature: ${widget.feature}'
-                          : '7-day Pro trial available — no card required',
-                      style: MintflowTextStyles.bodySmall.copyWith(
-                          color: MintflowColors.cream.withOpacity(0.5),
-                          fontWeight: FontWeight.w300),
+                      _featureHeadline,
+                      style: MintflowTextStyles.displaySmall
+                          .copyWith(color: MintflowColors.cream),
                     ),
+                    if (widget.feature == null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        '7-day Pro trial — cancel anytime',
+                        style: MintflowTextStyles.bodySmall.copyWith(
+                          color: MintflowColors.onBrandMuted(context, 0.5),
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
-          expandedHeight: 180,
         ),
         SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              if (_loading)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
-                )
-              else ...[
-                if (!_rcConfigured && _error != null)
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: MintflowColors.gold50,
-                      borderRadius: MintflowRadius.lg_,
-                      border: Border.all(color: MintflowColors.gold400),
-                    ),
-                    child: Text(
-                      _error!,
-                      style: MintflowTextStyles.bodySmall
-                          .copyWith(color: MintflowColors.ink),
-                    ),
-                  ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: MintflowColors.creamDark,
-                    borderRadius: MintflowRadius.lg_,
-                  ),
-                  padding: const EdgeInsets.all(3),
-                  child: Row(children: [
-                    Expanded(
-                        child: GestureDetector(
-                      onTap: () => setState(() => _annual = false),
-                      child: _BillingTab(
-                          label: 'Monthly', active: !_annual, badge: null),
-                    )),
-                    Expanded(
-                        child: GestureDetector(
-                      onTap: () => setState(() => _annual = true),
-                      child: _BillingTab(
-                          label: 'Annual',
-                          active: _annual,
-                          badge: 'Save 30%'),
-                    )),
-                  ]),
-                ),
-                const SizedBox(height: 16),
-                ..._plans.map((plan) => GestureDetector(
-                      onTap: () => setState(() => _selected = plan.id),
-                      child: _PlanCard(
-                        plan: plan,
-                        selected: _selected == plan.id,
-                        price: _priceLabel(plan),
-                        annual: _annual,
+          child: MintAdaptiveWidth(
+            maxWidth: MintBreakpoints.contentMax,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(gutter, 24, gutter, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_loading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else ...[
+                    if (!_rcConfigured && _error != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: MintflowColors.goldWash(context),
+                          borderRadius: MintflowRadius.lg_,
+                          border: Border.all(color: MintflowColors.gold400),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _error!,
+                              style: MintflowTextStyles.bodySmall.copyWith(
+                                  color: MintflowColors.textPrimary(context)),
+                            ),
+                            if (revenueCatConfigured) ...[
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: _purchasing ? null : _loadOfferings,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: MintflowColors.green600,
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(48, 48),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text('Try again'),
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                    )),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _purchasing ? null : _purchase,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _selected == 'growth'
-                          ? MintflowColors.purple
-                          : MintflowColors.green400,
-                    ),
-                    child: _purchasing
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : Text(
-                            _selected == 'seed'
-                                ? 'Continue with free'
-                                : _selected == 'growth'
-                                    ? 'Start Growth — ${_priceLabel(_selectedPlan)}'
-                                    : 'Start Pro — ${_priceLabel(_selectedPlan)}',
+                      const SizedBox(height: 24),
+                    ],
+                    // Billing period group
+                    SizedBox(
+                      width: double.infinity,
+                      child: SegmentedButton<bool>(
+                        segments: const [
+                          ButtonSegment(
+                            value: false,
+                            label: Text('Monthly'),
                           ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: (_purchasing || !_rcConfigured) ? null : _restore,
-                  child: const Text('Restore purchases'),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Cancel anytime. Billed ${_annual ? "annually" : "monthly"}. '
-                  'Apple/Google manage payments. No hidden fees.',
-                  textAlign: TextAlign.center,
-                  style: MintflowTextStyles.overline.copyWith(
-                      color: MintflowColors.ink60, fontWeight: FontWeight.w400),
-                ),
-                const SizedBox(height: 60),
-              ],
-            ]),
+                          ButtonSegment(
+                            value: true,
+                            label: Text('Annual'),
+                            tooltip: 'Save 30% vs monthly',
+                          ),
+                        ],
+                        selected: {_annual},
+                        onSelectionChanged: _purchasing
+                            ? null
+                            : (selection) {
+                                setState(() => _annual = selection.first);
+                              },
+                        showSelectedIcon: false,
+                      ),
+                    ),
+                    if (_annual) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Save 30% with annual billing',
+                        style: MintflowTextStyles.overline.copyWith(
+                          color: MintflowColors.green500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    // Plan comparison group
+                    if (multiCol)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var i = 0; i < _plans.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 12),
+                            Expanded(child: _planTile(_plans[i])),
+                          ],
+                        ],
+                      )
+                    else
+                      ...[
+                        for (var i = 0; i < _plans.length; i++)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              bottom: i == _plans.length - 1 ? 0 : 12,
+                            ),
+                            child: _planTile(_plans[i]),
+                          ),
+                      ],
+                    // Clear sticky CTA cluster (button + restore + legal).
+                    const SizedBox(height: 160),
+                  ],
+                ],
+              ),
+            ),
           ),
         ),
       ]),
+      bottomNavigationBar: _loading
+          ? null
+          : Material(
+              color: MintflowColors.page(context),
+              elevation: 0,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: MintflowColors.hairline(context)),
+                  ),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: MintAdaptiveWidth(
+                    maxWidth: MintBreakpoints.formMax,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _purchasing ? null : _purchase,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(48, 52),
+                                backgroundColor: MintflowColors.green400,
+                                foregroundColor: MintflowColors.onMint(context),
+                              ),
+                              child: _purchasing
+                                  ? SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: MintflowColors.onMint(context),
+                                      ),
+                                    )
+                                  : Text(
+                                      _selected == 'seed'
+                                          ? 'Continue with free'
+                                          : _selected == 'growth'
+                                              ? 'Start Growth — ${_priceLabel(_selectedPlan)}'
+                                              : 'Start Pro — ${_priceLabel(_selectedPlan)}',
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          TextButton(
+                            onPressed: (_purchasing || !_rcConfigured)
+                                ? null
+                                : _restore,
+                            child: const Text('Restore purchases'),
+                          ),
+                          Text(
+                            'Cancel anytime. Billed ${_annual ? "annually" : "monthly"}. '
+                            'Apple/Google manage payments. No hidden fees.',
+                            textAlign: TextAlign.center,
+                            style: MintflowTextStyles.overline.copyWith(
+                              color: MintflowColors.textSecondary(context),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
     );
   }
-}
-
-class _BillingTab extends StatelessWidget {
-  final String label;
-  final bool active;
-  final String? badge;
-  const _BillingTab({required this.label, required this.active, this.badge});
-  @override
-  Widget build(BuildContext context) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        decoration: BoxDecoration(
-          color: active ? Colors.white : Colors.transparent,
-          borderRadius: MintflowRadius.md_,
-        ),
-        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(label,
-              textAlign: TextAlign.center,
-              style: MintflowTextStyles.labelMedium.copyWith(
-                  color: active ? MintflowColors.ink : MintflowColors.ink60)),
-          if (badge != null) ...[
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: MintflowColors.green400,
-                borderRadius: MintflowRadius.pill_,
-              ),
-              child: Text(badge!,
-                  style: MintflowTextStyles.overline
-                      .copyWith(color: Colors.white, fontSize: 9)),
-            ),
-          ],
-        ]),
-      );
 }
 
 class _PlanCard extends StatelessWidget {
@@ -485,20 +587,22 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color borderColor = selected
-        ? (plan.highlighted ? MintflowColors.purple : MintflowColors.green400)
-        : MintflowColors.ink10;
-    final Color bgColor =
-        selected && plan.highlighted ? MintflowColors.purpleSoft : Colors.white;
-
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.only(bottom: 10),
+      duration: MintMotion.duration(
+        context,
+        const Duration(milliseconds: 200),
+      ),
+      curve: MintMotion.curve(context),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
+        border: Border.all(
+          color: selected
+              ? MintflowColors.green400
+              : MintflowColors.hairline(context),
+          width: selected ? 1.5 : 1,
+        ),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -507,49 +611,65 @@ class _PlanCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Text(plan.name,
+                Flexible(
+                  child: Text(
+                    plan.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: MintflowTextStyles.labelLarge.copyWith(
-                        color: plan.highlighted && selected
-                            ? MintflowColors.purple
-                            : MintflowColors.ink)),
+                        color: MintflowColors.textPrimary(context)),
+                  ),
+                ),
                 if (plan.highlighted) ...[
                   const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: MintflowColors.purple,
-                      borderRadius: MintflowRadius.pill_,
-                    ),
-                    child: Text('Most popular',
-                        style: MintflowTextStyles.overline
-                            .copyWith(color: Colors.white)),
-                  ),
+                  Text('Popular',
+                      style: MintflowTextStyles.chip.copyWith(
+                          color: MintflowColors.green600,
+                          fontWeight: FontWeight.w600)),
                 ],
               ]),
-              Text(plan.sub,
-                  style: MintflowTextStyles.overline.copyWith(
-                      color: plan.highlighted && selected
-                          ? MintflowColors.purple.withOpacity(0.7)
-                          : MintflowColors.ink60)),
+              Text(
+                plan.sub,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.textSecondary(context)),
+              ),
             ],
           )),
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(price,
-                style: MintflowTextStyles.amountSmall.copyWith(
-                    color: plan.highlighted && selected
-                        ? MintflowColors.purple
-                        : MintflowColors.ink,
-                    fontSize: 18)),
-            if (annual && plan.monthlyPrice > 0)
-              Text('(\$${(plan.annualPrice / 12).toStringAsFixed(2)}/mo)',
-                  style: MintflowTextStyles.overline
-                      .copyWith(color: MintflowColors.ink60)),
-          ]),
+          const SizedBox(width: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 140),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  price,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: MintflowTextStyles.amountSmall.copyWith(
+                      color: MintflowColors.textPrimary(context), fontSize: 18),
+                ),
+                if (annual && plan.monthlyPrice > 0)
+                  Text(
+                    '(\$${(plan.annualPrice / 12).toStringAsFixed(2)}/mo)',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.textSecondary(context)),
+                  ),
+              ],
+            ),
+          ),
         ]),
         AnimatedSize(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
+          duration: MintMotion.duration(
+            context,
+            const Duration(milliseconds: 250),
+          ),
+          curve: MintMotion.curve(context),
           child: selected
               ? Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -557,21 +677,19 @@ class _PlanCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: plan.features
                         .map((f) => Padding(
-                              padding: const EdgeInsets.only(bottom: 5),
+                              padding: const EdgeInsets.only(bottom: 8),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.check,
-                                      size: 14,
-                                      color: plan.highlighted
-                                          ? MintflowColors.purple
-                                          : MintflowColors.green400),
+                                  const Icon(Icons.check,
+                                      size: 14, color: MintflowColors.green400),
                                   const SizedBox(width: 8),
                                   Expanded(
                                       child: Text(f,
                                           style: MintflowTextStyles.bodySmall
                                               .copyWith(
-                                                  color: MintflowColors.ink60,
+                                                  color: MintflowColors
+                                                      .textSecondary(context),
                                                   height: 1.4))),
                                 ],
                               ),

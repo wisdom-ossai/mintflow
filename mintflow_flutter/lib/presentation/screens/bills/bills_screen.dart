@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
@@ -16,6 +17,8 @@ class BillsScreen extends StatefulWidget {
 }
 
 class _BillsScreenState extends State<BillsScreen> {
+  String? _busyBillId;
+
   @override
   void initState() {
     super.initState();
@@ -24,77 +27,238 @@ class _BillsScreenState extends State<BillsScreen> {
     });
   }
 
+  Future<void> _openAdd() async {
+    await context.push(MintflowRoutes.addBill);
+    if (mounted) {
+      context.read<BillCubit>().load(forceRefresh: true);
+    }
+  }
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _markPaid(BillWithStatus item) async {
+    if (_busyBillId != null) return;
+    setState(() => _busyBillId = item.bill.id);
+    final err = await context.read<BillCubit>().markPaid(
+          item.bill.id,
+          amountPaid: item.bill.amount,
+        );
+    if (!mounted) return;
+    setState(() => _busyBillId = null);
+    if (err != null) _snack(err);
+  }
+
+  Future<void> _deleteBill(BillModel bill) async {
+    if (_busyBillId != null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: MintflowColors.card(context),
+        shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
+        title: Text('Delete bill?', style: MintflowTextStyles.labelLarge),
+        content: Text(
+          '“${bill.name}” will be removed. Payment history for this bill is deleted.',
+          style: MintflowTextStyles.bodyMedium
+              .copyWith(color: MintflowColors.textSecondary(context)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete',
+                style: MintflowTextStyles.labelMedium
+                    .copyWith(color: MintflowColors.red)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() => _busyBillId = bill.id);
+    final err = await context.read<BillCubit>().delete(bill.id);
+    if (!mounted) return;
+    setState(() => _busyBillId = null);
+    if (err != null) _snack(err);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MintflowColors.page(context),
-      appBar: AppBar(
-        backgroundColor: MintflowColors.green900,
-        foregroundColor: MintflowColors.cream,
-        title: Text(
-          'Bills',
-          style: MintflowTextStyles.displaySmall
-              .copyWith(color: MintflowColors.cream),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await context.push(MintflowRoutes.addBill);
-          if (mounted) {
-            context.read<BillCubit>().load(forceRefresh: true);
-          }
-        },
-        backgroundColor: MintflowColors.green400,
-        foregroundColor: MintflowColors.green900,
-        icon: const Icon(Icons.add_rounded),
-        label: Text(
-          'Add bill',
-          style: MintflowTextStyles.labelMedium.copyWith(
-            fontWeight: FontWeight.w600,
-            color: MintflowColors.green900,
+    return BlocBuilder<BillCubit, BillState>(
+      buildWhen: (prev, next) => prev != next,
+      builder: (context, state) {
+        final showFab = state is BillLoaded && state.bills.isNotEmpty;
+        return Scaffold(
+          backgroundColor: MintflowColors.page(context),
+          appBar: AppBar(
+            backgroundColor: MintflowColors.green900,
+            foregroundColor: MintflowColors.cream,
+            title: Text(
+              'Bills',
+              style: MintflowTextStyles.displaySmall
+                  .copyWith(color: MintflowColors.cream),
+            ),
           ),
-        ),
-      ),
-      body: BlocBuilder<BillCubit, BillState>(
-        builder: (context, state) {
-          if (state is BillLoading || state is BillInitial) {
-            return const Center(
-              child: CircularProgressIndicator(color: MintflowColors.green400),
-            );
-          }
-          if (state is BillError) {
-            return _ErrorBody(
-              message: state.message,
-              onRetry: () =>
-                  context.read<BillCubit>().load(forceRefresh: true),
-            );
-          }
-          if (state is BillLoaded) {
-            return RefreshIndicator(
-              color: MintflowColors.green400,
-              onRefresh: () =>
-                  context.read<BillCubit>().load(forceRefresh: true),
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-                children: [
-                  _SummaryHeader(loaded: state),
-                  const SizedBox(height: 16),
-                  if (state.bills.isEmpty)
-                    const _EmptyBills()
-                  else
-                    ...state.billsWithStatus.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _BillCard(item: item),
-                      ),
+          floatingActionButton: showFab
+              ? FloatingActionButton.extended(
+                  onPressed: _openAdd,
+                  backgroundColor: MintflowColors.green400,
+                  foregroundColor: MintflowColors.green900,
+                  icon: const Icon(Icons.add_rounded),
+                  label: Text(
+                    'Add bill',
+                    style: MintflowTextStyles.labelMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: MintflowColors.green900,
                     ),
-                ],
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+                  ),
+                )
+              : null,
+          body: Builder(
+            builder: (context) {
+              if (state is BillLoading || state is BillInitial) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                      color: MintflowColors.green400),
+                );
+              }
+              if (state is BillError) {
+                return _ErrorBody(
+                  message: state.message,
+                  onRetry: () =>
+                      context.read<BillCubit>().load(forceRefresh: true),
+                );
+              }
+              if (state is BillLoaded) {
+                final items = state.billsWithStatus;
+                final width = MintBreakpoints.widthOf(context);
+                final gutter = MintBreakpoints.pageGutter(context);
+                final contentW = (width - 2 * gutter)
+                    .clamp(0.0, MintBreakpoints.contentMax);
+                final sidePad = (width - contentW) / 2;
+                final multiCol =
+                    MintBreakpoints.isExpanded(context) && items.length > 1;
+                final bottom = showFab ? 100.0 : 20.0;
+
+                return RefreshIndicator(
+                  color: MintflowColors.green400,
+                  onRefresh: () =>
+                      context.read<BillCubit>().load(forceRefresh: true),
+                  child: state.bills.isEmpty
+                      ? ListView(
+                          padding: EdgeInsets.fromLTRB(
+                              sidePad, 20, sidePad, bottom),
+                          children: [_EmptyBills(onAdd: _openAdd)],
+                        )
+                      : CustomScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          slivers: [
+                            SliverPadding(
+                              padding: EdgeInsets.fromLTRB(
+                                  sidePad, 20, sidePad, 16),
+                              sliver: SliverToBoxAdapter(
+                                child: _SummaryHeader(loaded: state),
+                              ),
+                            ),
+                            SliverPadding(
+                              padding: EdgeInsets.fromLTRB(
+                                  sidePad, 0, sidePad, bottom),
+                              sliver: SliverList(
+                                delegate: multiCol
+                                    ? SliverChildBuilderDelegate(
+                                        (context, index) {
+                                          final i = index * 2;
+                                          final left = items[i];
+                                          final right =
+                                              i + 1 < items.length
+                                                  ? items[i + 1]
+                                                  : null;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 10),
+                                            child: Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Expanded(
+                                                  child: _BillCard(
+                                                    key: ValueKey(
+                                                        left.bill.id),
+                                                    item: left,
+                                                    busy: _busyBillId ==
+                                                        left.bill.id,
+                                                    onMarkPaid: () =>
+                                                        _markPaid(left),
+                                                    onDelete: () =>
+                                                        _deleteBill(
+                                                            left.bill),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: right == null
+                                                      ? const SizedBox
+                                                          .shrink()
+                                                      : _BillCard(
+                                                          key: ValueKey(
+                                                              right
+                                                                  .bill.id),
+                                                          item: right,
+                                                          busy: _busyBillId ==
+                                                              right.bill.id,
+                                                          onMarkPaid: () =>
+                                                              _markPaid(
+                                                                  right),
+                                                          onDelete: () =>
+                                                              _deleteBill(
+                                                                  right
+                                                                      .bill),
+                                                        ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                        childCount:
+                                            (items.length + 1) ~/ 2,
+                                      )
+                                    : SliverChildBuilderDelegate(
+                                        (context, index) {
+                                          final item = items[index];
+                                          return Padding(
+                                            key: ValueKey(item.bill.id),
+                                            padding: const EdgeInsets.only(
+                                                bottom: 10),
+                                            child: _BillCard(
+                                              item: item,
+                                              busy: _busyBillId ==
+                                                  item.bill.id,
+                                              onMarkPaid: () =>
+                                                  _markPaid(item),
+                                              onDelete: () =>
+                                                  _deleteBill(item.bill),
+                                            ),
+                                          );
+                                        },
+                                        childCount: items.length,
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -158,7 +322,17 @@ class _SummaryHeader extends StatelessWidget {
 
 class _BillCard extends StatelessWidget {
   final BillWithStatus item;
-  const _BillCard({required this.item});
+  final bool busy;
+  final VoidCallback onMarkPaid;
+  final VoidCallback onDelete;
+
+  const _BillCard({
+    super.key,
+    required this.item,
+    required this.busy,
+    required this.onMarkPaid,
+    required this.onDelete,
+  });
 
   Color get _statusColor {
     switch (item.status) {
@@ -191,9 +365,9 @@ class _BillCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(
         children: [
@@ -203,7 +377,7 @@ class _BillCard extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: MintflowColors.blueSoft,
+                  color: MintflowColors.blueWash(context),
                   borderRadius: MintflowRadius.md_,
                 ),
                 child: const Icon(Icons.receipt_long_outlined,
@@ -214,16 +388,24 @@ class _BillCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(bill.name, style: MintflowTextStyles.labelLarge),
+                    Text(
+                      bill.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: MintflowTextStyles.labelLarge,
+                    ),
                     Text(
                       'Due day ${bill.dueDay}'
                       '${bill.isAutopay ? ' · Autopay' : ''}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: MintflowTextStyles.overline
-                          .copyWith(color: MintflowColors.ink60),
+                          .copyWith(color: MintflowColors.textSecondary(context)),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -249,18 +431,22 @@ class _BillCard extends StatelessWidget {
             children: [
               if (item.status != BillStatus.paid)
                 TextButton(
-                  onPressed: () => context
-                      .read<BillCubit>()
-                      .markPaid(bill.id, amountPaid: bill.amount),
-                  child: Text(
-                    'Mark paid',
-                    style: MintflowTextStyles.labelMedium
-                        .copyWith(color: MintflowColors.green600),
-                  ),
+                  onPressed: busy ? null : onMarkPaid,
+                  child: busy
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          'Mark paid',
+                          style: MintflowTextStyles.labelMedium
+                              .copyWith(color: MintflowColors.green600),
+                        ),
                 ),
               const Spacer(),
               TextButton(
-                onPressed: () => _confirmDelete(context, bill),
+                onPressed: busy ? null : onDelete,
                 child: Text(
                   'Delete',
                   style: MintflowTextStyles.labelMedium
@@ -273,50 +459,20 @@ class _BillCard extends StatelessWidget {
       ),
     );
   }
-
-  Future<void> _confirmDelete(BuildContext context, BillModel bill) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: MintflowRadius.xl_),
-        title: Text('Delete bill?', style: MintflowTextStyles.labelLarge),
-        content: Text(
-          '“${bill.name}” will be removed. Payment history for this bill is deleted.',
-          style: MintflowTextStyles.bodyMedium
-              .copyWith(color: MintflowColors.ink60),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete',
-                style: MintflowTextStyles.labelMedium
-                    .copyWith(color: MintflowColors.red)),
-          ),
-        ],
-      ),
-    );
-    if (ok == true && context.mounted) {
-      await context.read<BillCubit>().delete(bill.id);
-    }
-  }
 }
 
 class _EmptyBills extends StatelessWidget {
-  const _EmptyBills();
+  final VoidCallback onAdd;
+  const _EmptyBills({required this.onAdd});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: MintflowColors.card(context),
         borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.ink10),
+        border: Border.all(color: MintflowColors.hairline(context)),
       ),
       child: Column(
         children: [
@@ -326,10 +482,18 @@ class _EmptyBills extends StatelessWidget {
           Text('No bills yet', style: MintflowTextStyles.labelLarge),
           const SizedBox(height: 6),
           Text(
-            'Add rent, utilities, or insurance with a due day. Seed includes 3; Growth is unlimited.',
+            'Rent, utilities, insurance — with a due day. Seed includes 3.',
             textAlign: TextAlign.center,
             style: MintflowTextStyles.bodySmall
-                .copyWith(color: MintflowColors.ink60),
+                .copyWith(color: MintflowColors.textSecondary(context)),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onAdd,
+              child: const Text('Add your first bill'),
+            ),
           ),
         ],
       ),
@@ -356,7 +520,7 @@ class _ErrorBody extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: MintflowTextStyles.bodyMedium
-                  .copyWith(color: MintflowColors.ink60),
+                  .copyWith(color: MintflowColors.textSecondary(context)),
             ),
             const SizedBox(height: 16),
             if (isUpgrade)
@@ -365,12 +529,13 @@ class _ErrorBody extends StatelessWidget {
                     .push('${MintflowRoutes.paywall}?feature=unlimited_bills'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MintflowColors.purple,
-                  foregroundColor: Colors.white,
+                  foregroundColor: MintflowColors.cream,
                 ),
-                child: const Text('Upgrade'),
+                child: const Text('See Growth plans'),
               )
             else
-              TextButton(onPressed: onRetry, child: const Text('Retry')),
+              TextButton(
+                  onPressed: onRetry, child: const Text('Try again')),
           ],
         ),
       ),

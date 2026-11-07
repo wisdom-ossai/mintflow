@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/format.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Insights Screen — wired to InsightCubit
@@ -233,8 +232,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: () => context.push(
-                            '${MintflowRoutes.paywall}?feature=ai_insights'),
+                        onPressed: () => openUpgradeFlow(
+                          context,
+                          feature: 'ai_insights',
+                        ),
                         child: const Text('See Growth plans'),
                       ),
                     ],

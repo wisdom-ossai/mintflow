@@ -36,6 +36,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
       monthlyPrice: 0,
       annualPrice: 0,
       sub: 'Free forever',
+      teasers: [
+        'Manual transaction entry',
+        'Monthly spending target',
+        '1 goal · 3 bills',
+      ],
       features: [
         'Manual transaction entry',
         'Up to 50 transactions/month',
@@ -52,7 +57,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
       name: 'Growth',
       monthlyPrice: 6.99,
       annualPrice: 59,
-      sub: 'Most popular',
+      sub: 'Bank sync + AI insights',
+      teasers: [
+        'Bank sync via Plaid',
+        'AI categorization',
+        'Unlimited goals & bills',
+      ],
       features: [
         'Everything in Seed',
         'Bank sync via Plaid',
@@ -71,7 +81,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
       name: 'Pro',
       monthlyPrice: 12.99,
       annualPrice: 99,
-      sub: 'For the financially serious',
+      sub: 'Debt tools & exports',
+      teasers: [
+        'AI debt payoff plan',
+        'Unlimited bank accounts',
+        'Receipt scan (OCR)',
+      ],
       features: [
         'Everything in Growth',
         'Unlimited bank accounts',
@@ -97,6 +112,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     'receipt_ocr': 'Receipt scanning is available on Pro.',
     'csv_export': 'CSV export requires Pro.',
     'unlimited_accounts': 'Unlimited accounts require Pro.',
+    'credit_utilization': 'Credit utilization tracking is a Pro feature.',
   };
 
   @override
@@ -310,6 +326,47 @@ class _PaywallScreenState extends State<PaywallScreen> {
     return _featureCopy[f] ?? 'Upgrade to unlock this feature';
   }
 
+  /// Last line of defense — never show Restore-only sticky UI.
+  bool get _unavailableBody => !_loading && !_rcConfigured;
+
+  void _exitPaywall() {
+    if (Navigator.of(context).canPop()) {
+      context.pop();
+    } else {
+      context.go(MintflowRoutes.dashboard);
+    }
+  }
+
+  /// Paid Start only when store package is ready — Seed free-exit always works.
+  bool get _paidPurchaseReady =>
+      _rcConfigured && _packageFor(_selected) != null;
+
+  bool get _ctaIsRetry =>
+      _selected != 'seed' && !_rcConfigured && revenueCatConfigured;
+
+  bool get _ctaEnabled {
+    if (_purchasing) return false;
+    if (_selected == 'seed') return true;
+    if (_ctaIsRetry) return true;
+    return _paidPurchaseReady;
+  }
+
+  VoidCallback? get _ctaAction {
+    if (!_ctaEnabled) return null;
+    if (_ctaIsRetry) return _loadOfferings;
+    return _purchase;
+  }
+
+  String get _ctaLabel {
+    if (_selected == 'seed') return 'Continue with free';
+    if (_ctaIsRetry) return 'Try again';
+    if (!_rcConfigured) return 'Purchases unavailable';
+    if (_packageFor(_selected) == null) return 'Plan not available yet';
+    final price = _priceLabel(_selectedPlan);
+    if (_selected == 'growth') return 'Start Growth — $price';
+    return 'Start Pro — $price';
+  }
+
   Widget _planTile(_Plan plan) {
     return Material(
       color: Colors.transparent,
@@ -348,7 +405,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           leading: IconButton(
             tooltip: 'Close',
             icon: Icon(Icons.close, color: MintflowColors.onBrand(context)),
-            onPressed: () => context.pop(),
+            onPressed: _exitPaywall,
           ),
         ),
         SliverToBoxAdapter(
@@ -366,16 +423,16 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       style: MintflowTextStyles.displaySmall
                           .copyWith(color: MintflowColors.cream),
                     ),
-                    if (widget.feature == null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        '7-day Pro trial — cancel anytime',
-                        style: MintflowTextStyles.bodySmall.copyWith(
-                          color: MintflowColors.onBrandMuted(context, 0.5),
-                          fontWeight: FontWeight.w300,
-                        ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _unavailableBody
+                          ? 'We’ll bring you back when upgrades are ready'
+                          : '7-day Pro trial — cancel anytime',
+                      style: MintflowTextStyles.bodySmall.copyWith(
+                        color: MintflowColors.onBrandMuted(context, 0.5),
+                        fontWeight: FontWeight.w300,
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
@@ -395,43 +452,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       padding: EdgeInsets.symmetric(vertical: 32),
                       child: Center(child: CircularProgressIndicator()),
                     )
+                  else if (_unavailableBody)
+                    _UnavailableState(
+                      message: _error ??
+                          'Upgrades aren’t available right now. You can go back and keep using Flowra.',
+                      canRetry: revenueCatConfigured,
+                      onRetry: _purchasing ? null : _loadOfferings,
+                      onGoBack: _exitPaywall,
+                    )
                   else ...[
-                    if (!_rcConfigured && _error != null) ...[
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: MintflowColors.goldWash(context),
-                          borderRadius: MintflowRadius.lg_,
-                          border: Border.all(color: MintflowColors.gold400),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _error!,
-                              style: MintflowTextStyles.bodySmall.copyWith(
-                                  color: MintflowColors.textPrimary(context)),
-                            ),
-                            if (revenueCatConfigured) ...[
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: _purchasing ? null : _loadOfferings,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: MintflowColors.green600,
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(48, 48),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text('Try again'),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
                     // Billing period group
                     SizedBox(
                       width: double.infinity,
@@ -497,7 +526,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         ),
       ]),
-      bottomNavigationBar: _loading
+      // Never show sticky Restore-only footer when purchases are unavailable.
+      bottomNavigationBar: (_loading || _unavailableBody)
           ? null
           : Material(
               color: MintflowColors.page(context),
@@ -513,7 +543,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                   child: MintAdaptiveWidth(
                     maxWidth: MintBreakpoints.formMax,
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(gutter, 12, gutter, 8),
+                      padding: EdgeInsets.fromLTRB(gutter, 16, gutter, 12),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -521,11 +551,17 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed: _purchasing ? null : _purchase,
+                              onPressed: _ctaAction,
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(48, 52),
                                 backgroundColor: MintflowColors.green400,
                                 foregroundColor: MintflowColors.onMint(context),
+                                disabledBackgroundColor: MintflowColors
+                                    .green400
+                                    .withValues(alpha: 0.4),
+                                disabledForegroundColor: MintflowColors
+                                    .onMint(context)
+                                    .withValues(alpha: 0.7),
                               ),
                               child: _purchasing
                                   ? SizedBox(
@@ -537,30 +573,31 @@ class _PaywallScreenState extends State<PaywallScreen> {
                                       ),
                                     )
                                   : Text(
-                                      _selected == 'seed'
-                                          ? 'Continue with free'
-                                          : _selected == 'growth'
-                                              ? 'Start Growth — ${_priceLabel(_selectedPlan)}'
-                                              : 'Start Pro — ${_priceLabel(_selectedPlan)}',
+                                      _ctaLabel,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.center,
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           TextButton(
-                            onPressed: (_purchasing || !_rcConfigured)
-                                ? null
-                                : _restore,
+                            onPressed: _purchasing ? null : _restore,
+                            style: TextButton.styleFrom(
+                              foregroundColor:
+                                  MintflowColors.textSecondary(context),
+                              disabledForegroundColor:
+                                  MintflowColors.textTertiary(context),
+                            ),
                             child: const Text('Restore purchases'),
                           ),
+                          const SizedBox(height: 4),
                           Text(
-                            'Cancel anytime. Billed ${_annual ? "annually" : "monthly"}. '
+                            'Billed ${_annual ? "annually" : "monthly"}. '
                             'Apple/Google manage payments. No hidden fees.',
                             textAlign: TextAlign.center,
                             style: MintflowTextStyles.overline.copyWith(
-                              color: MintflowColors.textSecondary(context),
+                              color: MintflowColors.textTertiary(context),
                               fontWeight: FontWeight.w400,
                             ),
                           ),
@@ -571,6 +608,70 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 ),
               ),
             ),
+    );
+  }
+}
+
+class _UnavailableState extends StatelessWidget {
+  final String message;
+  final bool canRetry;
+  final VoidCallback? onRetry;
+  final VoidCallback onGoBack;
+
+  const _UnavailableState({
+    required this.message,
+    required this.canRetry,
+    required this.onRetry,
+    required this.onGoBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: MintflowColors.goldWash(context),
+              borderRadius: MintflowRadius.lg_,
+              border: Border.all(color: MintflowColors.gold400),
+            ),
+            child: Text(
+              message,
+              style: MintflowTextStyles.bodySmall.copyWith(
+                color: MintflowColors.textPrimary(context),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onGoBack,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(48, 52),
+                backgroundColor: MintflowColors.green400,
+                foregroundColor: MintflowColors.onMint(context),
+              ),
+              child: const Text('Go back'),
+            ),
+          ),
+          if (canRetry) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: MintflowColors.green600,
+              ),
+              child: const Text('Try again'),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -649,7 +750,7 @@ class _PlanCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.end,
                   style: MintflowTextStyles.amountSmall.copyWith(
-                      color: MintflowColors.textPrimary(context), fontSize: 18),
+                      color: MintflowColors.textPrimary(context)),
                 ),
                 if (annual && plan.monthlyPrice > 0)
                   Text(
@@ -664,42 +765,72 @@ class _PlanCard extends StatelessWidget {
             ),
           ),
         ]),
-        AnimatedSize(
-          duration: MintMotion.duration(
-            context,
-            const Duration(milliseconds: 250),
-          ),
-          curve: MintMotion.curve(context),
-          child: selected
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: plan.features
-                        .map((f) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(Icons.check,
-                                      size: 14, color: MintflowColors.green400),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                      child: Text(f,
-                                          style: MintflowTextStyles.bodySmall
-                                              .copyWith(
-                                                  color: MintflowColors
-                                                      .textSecondary(context),
-                                                  height: 1.4))),
-                                ],
-                              ),
-                            ))
-                        .toList(),
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: AnimatedSize(
+            duration: MintMotion.duration(
+              context,
+              const Duration(milliseconds: 250),
+            ),
+            curve: MintMotion.curve(context),
+            alignment: Alignment.topLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final f in selected ? plan.features : plan.teasers)
+                  _PlanFeatureLine(text: f, emphasized: selected),
+                if (!selected)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      'Tap for full list',
+                      style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.textTertiary(context),
+                      ),
+                    ),
                   ),
-                )
-              : const SizedBox.shrink(),
+              ],
+            ),
+          ),
         ),
       ]),
+    );
+  }
+}
+
+class _PlanFeatureLine extends StatelessWidget {
+  final String text;
+  final bool emphasized;
+  const _PlanFeatureLine({required this.text, required this.emphasized});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.check,
+            size: 14,
+            color: emphasized
+                ? MintflowColors.green400
+                : MintflowColors.textTertiary(context),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: MintflowTextStyles.bodySmall.copyWith(
+                color: emphasized
+                    ? MintflowColors.textSecondary(context)
+                    : MintflowColors.textTertiary(context),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -707,14 +838,17 @@ class _PlanCard extends StatelessWidget {
 class _Plan {
   final String id, name, sub;
   final double monthlyPrice, annualPrice;
+  final List<String> teasers;
   final List<String> features;
   final bool highlighted;
-  const _Plan(
-      {required this.id,
-      required this.name,
-      required this.sub,
-      required this.monthlyPrice,
-      required this.annualPrice,
-      required this.features,
-      required this.highlighted});
+  const _Plan({
+    required this.id,
+    required this.name,
+    required this.sub,
+    required this.monthlyPrice,
+    required this.annualPrice,
+    required this.teasers,
+    required this.features,
+    required this.highlighted,
+  });
 }

@@ -15,6 +15,7 @@ import '../../../core/auth/auth_gate.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../widgets/semantic_tap.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Profile + Settings Screen
@@ -279,6 +280,23 @@ class _ProfileScreenState extends State<ProfileScreen>
     final accountAndDanger = <Widget>[
       _SettingsCard(
         children: [
+          BlocBuilder<UserCubit, UserState>(
+            builder: (context, userState) {
+              final user = userState is UserLoaded ? userState.user : null;
+              final tier = user?.effectiveTier.name ?? 'seed';
+              final tierLabel =
+                  tier[0].toUpperCase() + tier.substring(1);
+              return _ActionRow(
+                icon: Icons.star_outline,
+                iconColor: MintflowColors.gold500,
+                iconBg: MintflowColors.goldWash(context),
+                label: 'Manage plan',
+                subtitle: tierLabel,
+                onTap: () => openUpgradeFlow(context),
+              );
+            },
+          ),
+          _Divider(),
           _ActionRow(
             icon: Icons.account_balance_outlined,
             iconColor: MintflowColors.green500,
@@ -381,6 +399,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                 fade: _headerFade,
                 slide: _headerSlide,
                 user: user,
+                onOpenSettings: () =>
+                    context.push(MintflowRoutes.settings),
+                onManagePlan: () => openUpgradeFlow(context),
               );
             },
           ),
@@ -790,12 +811,16 @@ class _ProfileHeader extends StatelessWidget {
   final Animation<double> fade;
   final Animation<Offset> slide;
   final UserModel? user;
+  final VoidCallback onOpenSettings;
+  final VoidCallback onManagePlan;
 
   const _ProfileHeader({
     required this.top,
     required this.avatarScale,
     required this.fade,
     required this.slide,
+    required this.onOpenSettings,
+    required this.onManagePlan,
     this.user,
   });
 
@@ -817,7 +842,7 @@ class _ProfileHeader extends StatelessWidget {
 
     return Container(
       color: MintflowColors.green900,
-      padding: EdgeInsets.fromLTRB(20, top + 20, 20, 28),
+      padding: EdgeInsets.fromLTRB(20, top + 8, 20, 28),
       child: Stack(
         children: [
           Positioned(
@@ -850,6 +875,17 @@ class _ProfileHeader extends StatelessWidget {
               position: slide,
               child: Column(
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      tooltip: 'Settings',
+                      onPressed: onOpenSettings,
+                      icon: Icon(
+                        Icons.settings_outlined,
+                        color: MintflowColors.cream,
+                      ),
+                    ),
+                  ),
                   ScaleTransition(
                     scale: avatarScale,
                     child: Stack(
@@ -946,6 +982,7 @@ class _ProfileHeader extends StatelessWidget {
                         child: _HeaderStat(
                           value: tierLabel,
                           label: 'Plan',
+                          onTap: onManagePlan,
                         ),
                       ),
                       Container(
@@ -1009,12 +1046,17 @@ class _HeaderBadge extends StatelessWidget {
 class _HeaderStat extends StatelessWidget {
   final String value;
   final String label;
+  final VoidCallback? onTap;
 
-  const _HeaderStat({required this.value, required this.label});
+  const _HeaderStat({
+    required this.value,
+    required this.label,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final column = Column(
       children: [
         Text(
           value,
@@ -1032,6 +1074,12 @@ class _HeaderStat extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
       ],
+    );
+    if (onTap == null) return column;
+    return SemanticTap(
+      label: '$label, $value',
+      onTap: onTap,
+      child: column,
     );
   }
 }

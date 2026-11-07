@@ -9,6 +9,7 @@ import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 /// Savings goals — first-use empty state guides activation. No mock amounts.
 class GoalsScreen extends StatefulWidget {
@@ -532,8 +533,10 @@ class _ErrorBody extends StatelessWidget {
             const SizedBox(height: 16),
             if (isUpgrade)
               ElevatedButton(
-                onPressed: () => context.push(
-                    '${MintflowRoutes.paywall}?feature=unlimited_goals'),
+                onPressed: () => openUpgradeFlow(
+                  context,
+                  feature: 'unlimited_goals',
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: MintflowColors.purple,
                   foregroundColor: MintflowColors.cream,

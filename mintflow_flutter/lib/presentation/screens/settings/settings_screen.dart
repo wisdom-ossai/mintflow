@@ -8,6 +8,7 @@ import '../../../core/router/app_router.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -97,17 +98,26 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             _Section('Account', [
-              _Tile(Icons.person_outline, 'Edit profile',
-                  () => context.push(MintflowRoutes.profile)),
+              _Tile(Icons.person_outline, 'Edit profile', () {
+                if (Navigator.of(context).canPop()) {
+                  context.pop();
+                } else {
+                  context.go(MintflowRoutes.profile);
+                }
+              }),
               _Tile(Icons.lock_outline, 'Change password',
                   () => context.push(MintflowRoutes.privacySecurity)),
               _Tile(Icons.notifications_outlined, 'Notifications',
                   () => context.push(MintflowRoutes.notificationSettings)),
             ]),
             _Section('Subscription', [
-              _Tile(Icons.star_outline, 'Manage plan',
-                  () => context.push(MintflowRoutes.paywall),
-                  trailing: tierLabel[0].toUpperCase() + tierLabel.substring(1)),
+              _Tile(
+                Icons.star_outline,
+                'Manage plan',
+                () => openUpgradeFlow(context),
+                trailing:
+                    tierLabel[0].toUpperCase() + tierLabel.substring(1),
+              ),
               _Tile(Icons.download_outlined, 'Export data (CSV)',
                   () => context.push(MintflowRoutes.exportData)),
             ]),

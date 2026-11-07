@@ -3,16 +3,15 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 class ExportDataScreen extends StatefulWidget {
   const ExportDataScreen({super.key});
@@ -29,7 +28,7 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
     final user = userState is UserLoaded ? userState.user : null;
     if (user == null || !user.hasFeature('csv_export')) {
       if (mounted) {
-        context.push('${MintflowRoutes.paywall}?feature=csv_export');
+        await openUpgradeFlow(context, feature: 'csv_export');
       }
       return;
     }
@@ -56,7 +55,7 @@ class _ExportDataScreenState extends State<ExportDataScreen> {
     } on DioException catch (e) {
       if (!mounted) return;
       if (e.response?.statusCode == 403) {
-        context.push('${MintflowRoutes.paywall}?feature=csv_export');
+        await openUpgradeFlow(context, feature: 'csv_export');
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(

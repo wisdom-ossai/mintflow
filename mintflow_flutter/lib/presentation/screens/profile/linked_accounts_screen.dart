@@ -3,10 +3,8 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:plaid_flutter/plaid_flutter.dart';
 
-import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/auth_errors.dart';
@@ -15,6 +13,7 @@ import '../../../data/datasources/local_cache.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 class LinkedAccountsScreen extends StatefulWidget {
   const LinkedAccountsScreen({super.key});
@@ -81,7 +80,7 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
     final user = _user;
     if (user == null || !user.hasFeature('bank_sync')) {
       if (mounted) {
-        context.push('${MintflowRoutes.paywall}?feature=bank_sync');
+        await openUpgradeFlow(context, feature: 'bank_sync');
       }
       return;
     }
@@ -90,7 +89,7 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
     // Soft client gate — server enforces the real cap.
     if (!user.hasFeature('unlimited_accounts') && plaidCount >= 2) {
       if (mounted) {
-        context.push('${MintflowRoutes.paywall}?feature=unlimited_accounts');
+        await openUpgradeFlow(context, feature: 'unlimited_accounts');
       }
       return;
     }
@@ -166,7 +165,7 @@ class _LinkedAccountsScreenState extends State<LinkedAccountsScreen> {
         final feature = detail.toLowerCase().contains('unlimited')
             ? 'unlimited_accounts'
             : 'bank_sync';
-        context.push('${MintflowRoutes.paywall}?feature=$feature');
+        await openUpgradeFlow(context, feature: feature);
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(

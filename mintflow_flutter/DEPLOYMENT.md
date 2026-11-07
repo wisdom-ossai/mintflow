@@ -298,7 +298,7 @@ Track every dollar. Hit your savings goals. Pay off debt faster.
 
 Mintflow is the personal finance app that goes beyond tracking — it coaches you.
 
-WHAT FLOWRA DOES:
+WHAT MINTFLOW DOES:
 • Automatically imports transactions from 10,000+ US banks via Plaid
 • Categorizes every expense using AI — needs vs wants
 • Tracks your monthly spending against a budget

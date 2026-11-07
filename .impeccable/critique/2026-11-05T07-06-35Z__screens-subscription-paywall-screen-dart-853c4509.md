@@ -5,12 +5,13 @@ max_score: 32
 na_heuristics: 7,10
 p0_count: 0
 p1_count: 1
-target_identity: "file:/Users/user/Desktop/flowra/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart"
+target_identity: "file:/Users/user/Desktop/mintflow/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart"
 target_fingerprint: "sha256:0e25016af6569fffb39980300b130e3d040d5b229fc5b80bc72a3f73655c81c3"
-target_path: /Users/user/Desktop/flowra/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart
+target_path: /Users/user/Desktop/mintflow/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart
 timestamp: 2026-11-05T07-06-35Z
 slug: screens-subscription-paywall-screen-dart-853c4509
 ---
+
 # Critique — Paywall (`paywall_screen.dart`) — post harden/distill/clarify/polish
 
 Method: design review only (detector not applicable, native platform)
@@ -18,19 +19,19 @@ Mode: Persuade · Target: mintflow_flutter/lib/presentation/screens/subscription
 
 ## Design Health Score
 
-| # | Heuristic | Score | Key Issue |
-|---|-----------|-------|-----------|
-| 1 | Visibility of System Status | 3 | CTA/loading clear; plan select still border-only |
-| 2 | Match System / Real World | 4 | Benefit subs + garden tiers read clearly |
-| 3 | User Control and Freedom | 4 | Close + Seed free exit |
-| 4 | Consistency and Standards | 3 | formMax sticky vs contentMax plans; dual “Try again” when RC fails |
-| 5 | Error Prevention | 4 | Paid Start gated until package ready |
-| 6 | Recognition Rather Than Recall | 3 | 3 teasers always visible; full list on select |
-| 7 | Flexibility and Efficiency | n/a | Persuade |
-| 8 | Aesthetic and Minimalist Design | 4 | Sticky hierarchy + muted restore/legal |
-| 9 | Error Recovery | 3 | Plain recovery; store errors still somewhat generic |
-| 10 | Help and Documentation | n/a | Persuade |
-| **Total** | | **28/32** | **Good** |
+| #         | Heuristic                       | Score     | Key Issue                                                          |
+| --------- | ------------------------------- | --------- | ------------------------------------------------------------------ |
+| 1         | Visibility of System Status     | 3         | CTA/loading clear; plan select still border-only                   |
+| 2         | Match System / Real World       | 4         | Benefit subs + garden tiers read clearly                           |
+| 3         | User Control and Freedom        | 4         | Close + Seed free exit                                             |
+| 4         | Consistency and Standards       | 3         | formMax sticky vs contentMax plans; dual “Try again” when RC fails |
+| 5         | Error Prevention                | 4         | Paid Start gated until package ready                               |
+| 6         | Recognition Rather Than Recall  | 3         | 3 teasers always visible; full list on select                      |
+| 7         | Flexibility and Efficiency      | n/a       | Persuade                                                           |
+| 8         | Aesthetic and Minimalist Design | 4         | Sticky hierarchy + muted restore/legal                             |
+| 9         | Error Recovery                  | 3         | Plain recovery; store errors still somewhat generic                |
+| 10        | Help and Documentation          | n/a       | Persuade                                                           |
+| **Total** |                                 | **28/32** | **Good**                                                           |
 
 ## Design Specificity Verdict
 
@@ -53,21 +54,25 @@ Previous P1s are largely closed. Remaining risk is factual: the always-on “7-d
 ## Priority Issues
 
 ### [P1] Trial copy always says “Pro” regardless of selection
+
 - **Why:** Default is Growth; gated Growth features still show “7-day Pro trial,” which can over-promise or confuse entitlement.
 - **Fix:** “7-day trial — cancel anytime” or tier-aware trial line.
 - **Suggested command:** `/impeccable clarify`
 
 ### [P2] Fallback prices can disagree with store strings
+
 - **Why:** Cards may show list `$6.99/mo` while CTA uses store `priceString` (or the reverse while packages resolve).
 - **Fix:** Prefer store strings everywhere once offerings load; gray/skeleton prices until then.
 - **Suggested command:** `/impeccable harden`
 
 ### [P2] Fixed 160px scroll clearance under sticky bar
+
 - **Why:** Large Dynamic Type or localization can clip last plan or leave a gap.
 - **Fix:** Measure sticky height or pad with `MediaQuery.viewPadding` + estimated cluster.
 - **Suggested command:** `/impeccable adapt`
 
 ### [P3] Annual savings said twice (tooltip + green tip)
+
 - **Fix:** Keep the visible tip; drop redundant tooltip or vice versa.
 - **Suggested command:** `/impeccable distill`
 

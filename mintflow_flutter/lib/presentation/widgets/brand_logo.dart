@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 
-/// Mintflow brand logo mark (M icon asset).
+/// Mintflow brand logo mark.
 class BrandLogo extends StatelessWidget {
   final double size;
   final bool showWordmark;

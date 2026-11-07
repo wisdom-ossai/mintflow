@@ -72,7 +72,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         'Unlimited bill tracker',
         'Monthly AI insights',
         'Spending trends',
-        'Category budgets',
+        'Needs vs wants tracking',
       ],
       highlighted: true,
     ),
@@ -95,7 +95,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         'Receipt scan (OCR)',
         'Custom categories',
         'CSV data export',
-        'Rollover budgets',
+        'Priority support',
       ],
       highlighted: false,
     ),
@@ -341,8 +341,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
   bool get _paidPurchaseReady =>
       _rcConfigured && _packageFor(_selected) != null;
 
+  /// Reload offerings when the selected paid plan has no store package yet.
+  /// Avoids a dead primary CTA where only Restore works.
   bool get _ctaIsRetry =>
-      _selected != 'seed' && !_rcConfigured && revenueCatConfigured;
+      _selected != 'seed' &&
+      revenueCatConfigured &&
+      (!_rcConfigured || _packageFor(_selected) == null);
 
   bool get _ctaEnabled {
     if (_purchasing) return false;
@@ -361,7 +365,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (_selected == 'seed') return 'Continue with free';
     if (_ctaIsRetry) return 'Try again';
     if (!_rcConfigured) return 'Purchases unavailable';
-    if (_packageFor(_selected) == null) return 'Plan not available yet';
     final price = _priceLabel(_selectedPlan);
     if (_selected == 'growth') return 'Start Growth — $price';
     return 'Start Pro — $price';
@@ -452,15 +455,26 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       padding: EdgeInsets.symmetric(vertical: 32),
                       child: Center(child: CircularProgressIndicator()),
                     )
-                  else if (_unavailableBody)
-                    _UnavailableState(
-                      message: _error ??
-                          'Upgrades aren’t available right now. You can go back and keep using Flowra.',
-                      canRetry: revenueCatConfigured,
-                      onRetry: _purchasing ? null : _loadOfferings,
-                      onGoBack: _exitPaywall,
-                    )
                   else ...[
+                    if (_unavailableBody) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: MintflowColors.goldWash(context),
+                          borderRadius: MintflowRadius.lg_,
+                          border: Border.all(color: MintflowColors.gold400),
+                        ),
+                        child: Text(
+                          _error ??
+                              'Couldn’t load store prices yet. You can still compare plans and try again.',
+                          style: MintflowTextStyles.bodySmall.copyWith(
+                            color: MintflowColors.textPrimary(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                     // Billing period group
                     SizedBox(
                       width: double.infinity,
@@ -496,7 +510,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                     ],
                     const SizedBox(height: 24),
-                    // Plan comparison group
+                    // Plan comparison group — always shown so See plans lands here
                     if (multiCol)
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,8 +540,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         ),
       ]),
-      // Never show sticky Restore-only footer when purchases are unavailable.
-      bottomNavigationBar: (_loading || _unavailableBody)
+      // Sticky plan CTA — MintAdaptiveWidth now shrink-wraps height so this
+      // stays a true bottom bar (plans remain visible above).
+      bottomNavigationBar: _loading
           ? null
           : Material(
               color: MintflowColors.page(context),
@@ -555,7 +570,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(48, 52),
                                 backgroundColor: MintflowColors.green400,
-                                foregroundColor: MintflowColors.onMint(context),
+                                foregroundColor:
+                                    MintflowColors.onMint(context),
                                 disabledBackgroundColor: MintflowColors
                                     .green400
                                     .withValues(alpha: 0.4),
@@ -608,70 +624,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 ),
               ),
             ),
-    );
-  }
-}
-
-class _UnavailableState extends StatelessWidget {
-  final String message;
-  final bool canRetry;
-  final VoidCallback? onRetry;
-  final VoidCallback onGoBack;
-
-  const _UnavailableState({
-    required this.message,
-    required this.canRetry,
-    required this.onRetry,
-    required this.onGoBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: MintflowColors.goldWash(context),
-              borderRadius: MintflowRadius.lg_,
-              border: Border.all(color: MintflowColors.gold400),
-            ),
-            child: Text(
-              message,
-              style: MintflowTextStyles.bodySmall.copyWith(
-                color: MintflowColors.textPrimary(context),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onGoBack,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(48, 52),
-                backgroundColor: MintflowColors.green400,
-                foregroundColor: MintflowColors.onMint(context),
-              ),
-              child: const Text('Go back'),
-            ),
-          ),
-          if (canRetry) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: onRetry,
-              style: TextButton.styleFrom(
-                foregroundColor: MintflowColors.green600,
-              ),
-              child: const Text('Try again'),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }

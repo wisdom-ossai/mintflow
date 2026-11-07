@@ -70,7 +70,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       case 'positive':
         return MintflowColors.mintWash(context);
       case 'recommendation':
-        return MintflowColors.purpleWash(context);
+        return MintflowColors.blueWash(context);
       default:
         return MintflowColors.wantWash(context);
     }
@@ -81,7 +81,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       case 'positive':
         return MintflowColors.green500;
       case 'recommendation':
-        return MintflowColors.purple;
+        return MintflowColors.blue;
       default:
         return MintflowColors.wantLabel(context);
     }

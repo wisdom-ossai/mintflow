@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../../core/router/app_router.dart';
 import '../../core/theme/app_theme.dart';
@@ -152,16 +150,31 @@ String _paywallPath(String? feature) {
   return '${MintflowRoutes.paywall}?feature=$feature';
 }
 
-/// Opens a soft-gate / browse sheet for every paywall-bound journey.
+/// Opens upgrade UI.
 ///
-/// When RevenueCat is not configured, does **not** navigate to an empty
-/// paywall — shows unavailable copy and a clear exit instead.
+/// Browse / Manage plan goes straight to the paywall plan picker. Feature
+/// gates still use a soft-gate sheet first (See plans → paywall).
+///
+/// When RevenueCat is not configured, the soft gate does **not** navigate to
+/// an empty paywall — it shows unavailable copy and a clear exit instead.
 Future<void> openUpgradeFlow(
   BuildContext context, {
   String? feature,
   bool replaceRoute = false,
-}) {
-  return showModalBottomSheet<void>(
+}) async {
+  final browse = feature == null || feature.trim().isEmpty;
+  if (browse) {
+    if (!context.mounted) return;
+    final path = MintflowRoutes.paywall;
+    if (replaceRoute) {
+      context.go(path);
+    } else {
+      context.push(path);
+    }
+    return;
+  }
+
+  await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: MintflowColors.card(context),
@@ -175,7 +188,7 @@ Future<void> openUpgradeFlow(
   );
 }
 
-class _UpgradeSoftGateSheet extends StatefulWidget {
+class _UpgradeSoftGateSheet extends StatelessWidget {
   final String? feature;
   final bool replaceRoute;
 
@@ -184,82 +197,31 @@ class _UpgradeSoftGateSheet extends StatefulWidget {
     required this.replaceRoute,
   });
 
-  @override
-  State<_UpgradeSoftGateSheet> createState() => _UpgradeSoftGateSheetState();
-}
-
-class _UpgradeSoftGateSheetState extends State<_UpgradeSoftGateSheet> {
-  bool _restoring = false;
-
-  _UpgradeCopy get _copy => _copyFor(widget.feature);
+  _UpgradeCopy get _copy => _copyFor(feature);
 
   bool get _rcReady => revenueCatConfigured;
 
-  bool get _isBrowse =>
-      widget.feature == null || widget.feature!.trim().isEmpty;
-
-  Future<void> _seePlans() async {
+  void _seePlans(BuildContext context) {
     if (!_rcReady) return;
-    final path = _paywallPath(widget.feature);
+    final path = _paywallPath(feature);
     final router = GoRouter.of(context);
-    final replace = widget.replaceRoute;
+    // Pop the sheet first, then navigate after the frame so go_router
+    // doesn't lose the paywall push during the modal dismiss animation.
     Navigator.of(context).pop();
-    if (replace) {
-      router.go(path);
-    } else {
-      router.push(path);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (replaceRoute) {
+        router.go(path);
+      } else {
+        router.push(path);
+      }
+    });
   }
 
-  Future<void> _exitUnavailable() async {
+  void _exitUnavailable(BuildContext context) {
     final router = GoRouter.of(context);
-    final replace = widget.replaceRoute;
     Navigator.of(context).pop();
-    if (replace) {
+    if (replaceRoute) {
       router.go(MintflowRoutes.dashboard);
-    }
-  }
-
-  Future<void> _restore() async {
-    if (!_rcReady || _restoring) return;
-    final router = GoRouter.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    setState(() => _restoring = true);
-    try {
-      await Purchases.restorePurchases();
-      if (!mounted) return;
-      Navigator.of(context).pop();
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Purchases restored.'),
-          backgroundColor: MintflowColors.green500,
-        ),
-      );
-      router.go(MintflowRoutes.dashboard);
-    } on PlatformException catch (e) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            e.message?.trim().isNotEmpty == true
-                ? e.message!
-                : 'Couldn’t restore purchases. Check your store account and try again.',
-          ),
-          backgroundColor: MintflowColors.red,
-        ),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Couldn’t restore purchases. Check your store account and try again.',
-          ),
-          backgroundColor: MintflowColors.red,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _restoring = false);
     }
   }
 
@@ -295,9 +257,7 @@ class _UpgradeSoftGateSheetState extends State<_UpgradeSoftGateSheet> {
             ),
             const SizedBox(height: 8),
             Text(
-              _isBrowse
-                  ? 'Choose Seed, Growth, or Pro when you’re ready.'
-                  : 'Included on ${_copy.tier}. 7-day Pro trial — cancel anytime.',
+              'Included on ${_copy.tier}. 7-day Pro trial — cancel anytime.',
               style: MintflowTextStyles.bodySmall.copyWith(
                 color: MintflowColors.textSecondary(context),
               ),
@@ -338,9 +298,9 @@ class _UpgradeSoftGateSheetState extends State<_UpgradeSoftGateSheet> {
                   border: Border.all(color: MintflowColors.gold400),
                 ),
                 child: Text(
-                  widget.replaceRoute
+                  replaceRoute
                       ? 'Upgrades aren’t available in this build yet. You can keep going with manual tracking and upgrade later.'
-                      : 'Upgrades aren’t available right now. You can go back and keep using Flowra — try again later.',
+                      : 'Upgrades aren’t available right now. You can go back and keep using Mintflow — try again later.',
                   style: MintflowTextStyles.bodySmall.copyWith(
                     color: MintflowColors.textPrimary(context),
                   ),
@@ -352,7 +312,7 @@ class _UpgradeSoftGateSheetState extends State<_UpgradeSoftGateSheet> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _restoring ? null : _seePlans,
+                  onPressed: () => _seePlans(context),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(48, 52),
                     backgroundColor: MintflowColors.green400,
@@ -365,53 +325,32 @@ class _UpgradeSoftGateSheetState extends State<_UpgradeSoftGateSheet> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _restoring ? null : _exitUnavailable,
+                  onPressed: () => _exitUnavailable(context),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(48, 52),
                     backgroundColor: MintflowColors.green400,
                     foregroundColor: MintflowColors.onMint(context),
                   ),
                   child: Text(
-                    widget.replaceRoute ? 'Continue to app' : 'Go back',
+                    replaceRoute ? 'Continue to app' : 'Go back',
                   ),
                 ),
               ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: _restoring
-                  ? null
-                  : () {
-                      final router = GoRouter.of(context);
-                      final replace = widget.replaceRoute;
-                      Navigator.of(context).pop();
-                      if (replace) {
-                        router.go(MintflowRoutes.dashboard);
-                      }
-                    },
+              onPressed: () {
+                final router = GoRouter.of(context);
+                Navigator.of(context).pop();
+                if (replaceRoute) {
+                  router.go(MintflowRoutes.dashboard);
+                }
+              },
               child: Text(
                 _rcReady
                     ? 'Not now'
-                    : (widget.replaceRoute ? 'Not now' : 'Dismiss'),
+                    : (replaceRoute ? 'Not now' : 'Dismiss'),
               ),
             ),
-            if (_rcReady) ...[
-              TextButton(
-                onPressed: _restoring ? null : _restore,
-                style: TextButton.styleFrom(
-                  foregroundColor: MintflowColors.textSecondary(context),
-                ),
-                child: _restoring
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: MintflowColors.textSecondary(context),
-                        ),
-                      )
-                    : const Text('Restore purchases'),
-              ),
-            ],
           ],
         ),
       ),

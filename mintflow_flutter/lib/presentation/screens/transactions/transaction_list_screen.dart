@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
+import '../../../core/theme/motion.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_state.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Transaction List Screen — wired to TransactionCubit
@@ -19,24 +24,32 @@ class TransactionListScreen extends StatefulWidget {
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
   String _filter = 'All';
-  final _filters = ['All', 'Expenses', 'Income', 'Needs', 'Wants'];
   final _searchCtrl = TextEditingController();
   bool _showSearch = false;
   String? _selectedId;
 
+  static const _filters = <_TxFilter>[
+    _TxFilter(id: 'All', api: 'all'),
+    _TxFilter(id: 'Expenses', api: 'expenses'),
+    _TxFilter(id: 'Income', api: 'income'),
+    _TxFilter(id: 'Needs', api: 'needs'),
+    _TxFilter(id: 'Wants', api: 'wants'),
+  ];
+
   String get _apiFilter {
-    switch (_filter) {
-      case 'Expenses':
-        return 'expenses';
-      case 'Income':
-        return 'income';
-      case 'Needs':
-        return 'needs';
-      case 'Wants':
-        return 'wants';
-      default:
-        return 'all';
+    for (final f in _filters) {
+      if (f.id == _filter) return f.api;
     }
+    return 'all';
+  }
+
+  void _onFilterSelected(String id) {
+    if (_filter == id) return;
+    setState(() {
+      _filter = id;
+      _selectedId = null;
+    });
+    context.read<TransactionCubit>().applyFilter(_apiFilter);
   }
 
   @override
@@ -74,85 +87,33 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     return null;
   }
 
-  PreferredSizeWidget _appBarBottom(BuildContext context) {
+  PreferredSizeWidget? _appBarBottom(BuildContext context) {
+    if (!_showSearch) return null;
     return PreferredSize(
-      preferredSize: Size.fromHeight(_showSearch ? 116 : 64),
-      child: Column(
-        children: [
-          if (_showSearch)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: TextField(
-                controller: _searchCtrl,
-                style: TextStyle(color: MintflowColors.onBrand(context)),
-                decoration: InputDecoration(
-                  labelText: 'Search merchants',
-                  hintText: 'Starbucks, Amazon…',
-                  hintStyle: TextStyle(
-                      color: MintflowColors.onBrandMuted(context)),
-                  labelStyle: TextStyle(
-                      color: MintflowColors.onBrandMuted(context)),
-                  filled: true,
-                  fillColor: MintflowColors.brandOverlay(context),
-                  border: OutlineInputBorder(
-                    borderRadius: MintflowRadius.lg_,
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
-                ),
-                onSubmitted: (q) =>
-                    context.read<TransactionCubit>().search(q),
-              ),
+      preferredSize: const Size.fromHeight(68),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: TextField(
+          controller: _searchCtrl,
+          style: TextStyle(color: MintflowColors.onBrand(context)),
+          decoration: InputDecoration(
+            labelText: 'Search merchants',
+            hintText: 'Starbucks, Amazon…',
+            hintStyle:
+                TextStyle(color: MintflowColors.onBrandMuted(context)),
+            labelStyle:
+                TextStyle(color: MintflowColors.onBrandMuted(context)),
+            filled: true,
+            fillColor: MintflowColors.brandOverlay(context),
+            border: OutlineInputBorder(
+              borderRadius: MintflowRadius.lg_,
+              borderSide: BorderSide.none,
             ),
-          Container(
-            color: MintflowColors.green900,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: SizedBox(
-              height: 48,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _filters.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (ctx, i) {
-                  final f = _filters[i];
-                  final active = _filter == f;
-                  return ChoiceChip(
-                    label: Text(f),
-                    selected: active,
-                    showCheckmark: false,
-                    selectedColor: MintflowColors.green400,
-                    backgroundColor: MintflowColors.brandOverlay(ctx),
-                    side: BorderSide.none,
-                    labelStyle: MintflowTextStyles.chip.copyWith(
-                      color: active
-                          ? MintflowColors.green900
-                          : MintflowColors.onBrand(ctx),
-                      fontWeight:
-                          active ? FontWeight.w600 : FontWeight.w500,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 8),
-                    onSelected: (_) {
-                      setState(() {
-                        _filter = f;
-                        _selectedId = null;
-                      });
-                      final api = switch (f) {
-                        'Expenses' => 'expenses',
-                        'Income' => 'income',
-                        'Needs' => 'needs',
-                        'Wants' => 'wants',
-                        _ => 'all',
-                      };
-                      context.read<TransactionCubit>().applyFilter(api);
-                    },
-                  );
-                },
-              ),
-            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
-        ],
+          onSubmitted: (q) => context.read<TransactionCubit>().search(q),
+        ),
       ),
     );
   }
@@ -190,6 +151,14 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           ],
           bottom: _appBarBottom(context),
         ),
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _TxFilterHeaderDelegate(
+            selected: _filter,
+            filters: _filters,
+            onSelected: _onFilterSelected,
+          ),
+        ),
         if (state is TransactionLoading && !state.isPaginating)
           const SliverFillRemaining(
             child: Center(child: CircularProgressIndicator()),
@@ -197,38 +166,35 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         else if (state is TransactionError)
           SliverFillRemaining(
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(state.message,
-                      style: MintflowTextStyles.bodyMedium
-                          .copyWith(color: MintflowColors.textSecondary(context))),
-                  const SizedBox(height: 12),
-                        TextButton(
-                    onPressed: () => context
-                        .read<TransactionCubit>()
-                        .load(filter: _apiFilter),
-                    child: const Text('Try again'),
-                  ),
-                ],
+              child: ErrorState(
+                message: state.message,
+                onRetry: () => context
+                    .read<TransactionCubit>()
+                    .load(filter: _apiFilter),
+                compact: true,
               ),
             ),
           )
         else if (state is TransactionLoaded) ...[
           if (state.items.isEmpty)
             SliverFillRemaining(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
+              child: EmptyState(
+                icon: Icons.receipt_long_outlined,
+                title: _filter == 'All' && _searchCtrl.text.trim().isEmpty
+                    ? 'No transactions yet'
+                    : 'No matches',
+                message: _filter == 'All' &&
+                        _searchCtrl.text.trim().isEmpty
+                    ? 'Tap + to add one, or link a bank from Profile.'
+                    : 'Clear search or choose All to see more.',
+                actionLabel:
                     _filter == 'All' && _searchCtrl.text.trim().isEmpty
-                        ? 'No transactions yet. Tap + to add one, or link a bank from Profile.'
-                        : 'No transactions match this filter. Clear search or choose All.',
-                    textAlign: TextAlign.center,
-                    style: MintflowTextStyles.bodyMedium
-                        .copyWith(color: MintflowColors.textSecondary(context)),
-                  ),
-                ),
+                        ? 'Add transaction'
+                        : null,
+                onAction: _filter == 'All' &&
+                        _searchCtrl.text.trim().isEmpty
+                    ? () => context.push(MintflowRoutes.addTx)
+                    : null,
               ),
             )
           else
@@ -378,6 +344,390 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _TxFilter {
+  final String id;
+  final String api;
+  const _TxFilter({required this.id, required this.api});
+}
+
+/// Pinned filter strip — theme tokens so light/dark both stay readable.
+class _TxFilterHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String selected;
+  final List<_TxFilter> filters;
+  final ValueChanged<String> onSelected;
+
+  _TxFilterHeaderDelegate({
+    required this.selected,
+    required this.filters,
+    required this.onSelected,
+  });
+
+  static const double _height = 56;
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Material(
+      color: MintflowColors.page(context),
+      elevation: overlapsContent ? 0.5 : 0,
+      shadowColor: MintflowColors.ink.withValues(alpha: 0.12),
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: MintflowColors.hairline(context)),
+          ),
+        ),
+        child: _TxFilterTabs(
+          selected: selected,
+          filters: filters,
+          onSelected: onSelected,
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _TxFilterHeaderDelegate oldDelegate) =>
+      selected != oldDelegate.selected ||
+      filters != oldDelegate.filters ||
+      onSelected != oldDelegate.onSelected;
+}
+
+/// Underline text tabs with scroll + visible overflow disclosure ("More").
+class _TxFilterTabs extends StatefulWidget {
+  final String selected;
+  final List<_TxFilter> filters;
+  final ValueChanged<String> onSelected;
+
+  const _TxFilterTabs({
+    required this.selected,
+    required this.filters,
+    required this.onSelected,
+  });
+
+  @override
+  State<_TxFilterTabs> createState() => _TxFilterTabsState();
+}
+
+class _TxFilterTabsState extends State<_TxFilterTabs> {
+  final _scroll = ScrollController();
+  final _menuCtrl = MenuController();
+  bool _overflow = false;
+  bool _atStart = true;
+  bool _atEnd = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_syncScrollAffordance);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncScrollAffordance());
+  }
+
+  @override
+  void didUpdateWidget(covariant _TxFilterTabs oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncScrollAffordance());
+  }
+
+  @override
+  void dispose() {
+    _scroll.removeListener(_syncScrollAffordance);
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _syncScrollAffordance() {
+    if (!_scroll.hasClients) return;
+    final pos = _scroll.position;
+    final overflow = pos.maxScrollExtent > 1;
+    final atStart = pos.pixels <= pos.minScrollExtent + 1;
+    final atEnd = pos.pixels >= pos.maxScrollExtent - 1;
+    if (overflow == _overflow && atStart == _atStart && atEnd == _atEnd) {
+      return;
+    }
+    setState(() {
+      _overflow = overflow;
+      _atStart = atStart;
+      _atEnd = atEnd;
+    });
+  }
+
+  Future<void> _scrollBy(double delta) async {
+    if (!_scroll.hasClients) return;
+    final target = (_scroll.offset + delta).clamp(
+      _scroll.position.minScrollExtent,
+      _scroll.position.maxScrollExtent,
+    );
+    await _scroll.animateTo(
+      target,
+      duration: MintMotion.duration(
+        context,
+        const Duration(milliseconds: 280),
+      ),
+      curve: MintMotion.curve(context),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gutter = MintBreakpoints.pageGutter(context);
+    final page = MintflowColors.page(context);
+
+    return Semantics(
+      container: true,
+      label: 'Transaction filters',
+      child: SizedBox(
+        height: 56,
+        child: Row(
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  NotificationListener<ScrollMetricsNotification>(
+                    onNotification: (_) {
+                      _syncScrollAffordance();
+                      return false;
+                    },
+                    child: ListView.separated(
+                      controller: _scroll,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.only(
+                        left: gutter,
+                        right: _overflow ? 8 : gutter,
+                      ),
+                      itemCount: widget.filters.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 4),
+                      itemBuilder: (context, i) {
+                        final f = widget.filters[i];
+                        return _TxUnderlineTab(
+                          label: f.id,
+                          selected: widget.selected == f.id,
+                          onTap: () => widget.onSelected(f.id),
+                        );
+                      },
+                    ),
+                  ),
+                  if (_overflow && !_atStart)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: gutter + 20,
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                page,
+                                page.withValues(alpha: 0),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (_overflow && !_atEnd)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: 28,
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                page.withValues(alpha: 0),
+                                page,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (_overflow) ...[
+              if (!_atStart)
+                IconButton(
+                  tooltip: 'Previous filters',
+                  onPressed: () => _scrollBy(-140),
+                  icon: Icon(
+                    Icons.chevron_left_rounded,
+                    color: MintflowColors.textSecondary(context),
+                  ),
+                ),
+              MenuAnchor(
+                controller: _menuCtrl,
+                alignmentOffset: const Offset(0, 4),
+                style: MenuStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    MintflowColors.card(context),
+                  ),
+                  shape: WidgetStatePropertyAll(
+                    RoundedRectangleBorder(
+                      borderRadius: MintflowRadius.lg_,
+                      side: BorderSide(
+                        color: MintflowColors.hairline(context),
+                      ),
+                    ),
+                  ),
+                ),
+                menuChildren: [
+                  for (final f in widget.filters)
+                    MenuItemButton(
+                      onPressed: () {
+                        widget.onSelected(f.id);
+                        _menuCtrl.close();
+                      },
+                      trailingIcon: widget.selected == f.id
+                          ? Icon(
+                              Icons.check_rounded,
+                              size: 18,
+                              color: MintflowColors.green600,
+                            )
+                          : null,
+                      child: Text(
+                        f.id,
+                        style: MintflowTextStyles.labelMedium.copyWith(
+                          color: MintflowColors.textPrimary(context),
+                          fontWeight: widget.selected == f.id
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                ],
+                builder: (context, controller, child) {
+                  final hiddenHint = !_atEnd ? 'More filters' : 'All filters';
+                  return Padding(
+                    padding: EdgeInsets.only(right: gutter - 8),
+                    child: Semantics(
+                      button: true,
+                      label: hiddenHint,
+                      child: TextButton(
+                        onPressed: () {
+                          if (controller.isOpen) {
+                            controller.close();
+                          } else {
+                            controller.open();
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: MintflowColors.green600,
+                          minimumSize: const Size(48, 48),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'More',
+                              style: MintflowTextStyles.labelMedium.copyWith(
+                                color: MintflowColors.green600,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            Icon(
+                              controller.isOpen
+                                  ? Icons.expand_less_rounded
+                                  : Icons.expand_more_rounded,
+                              size: 20,
+                              color: MintflowColors.green600,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TxUnderlineTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TxUnderlineTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = selected
+        ? MintflowColors.textPrimary(context)
+        : MintflowColors.textSecondary(context);
+    final duration = MintMotion.duration(
+      context,
+      const Duration(milliseconds: 200),
+    );
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: MintflowRadius.md_,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: MintflowTextStyles.labelMedium.copyWith(
+                    color: fg,
+                    fontWeight:
+                        selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                AnimatedContainer(
+                  duration: duration,
+                  curve: MintMotion.curve(context),
+                  height: 3,
+                  width: selected ? 28 : 0,
+                  decoration: BoxDecoration(
+                    color: MintflowColors.green400,
+                    borderRadius: MintflowRadius.pill_,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -17,7 +17,6 @@ import '../../presentation/screens/auth/login_screen.dart';
 import '../../presentation/screens/auth/signup_screen.dart';
 import '../../presentation/screens/auth/onboarding_screen.dart';
 import '../../presentation/screens/dashboard/dashboard_screen.dart';
-import '../../presentation/screens/notifications/in_app_notifications_screen.dart';
 import '../../presentation/screens/notifications/notifications_screen.dart';
 import '../../presentation/screens/transactions/transaction_list_screen.dart';
 import '../../presentation/screens/transactions/add_transaction_screen.dart';
@@ -160,33 +159,8 @@ GoRouter buildRouter() {
             ],
           ),
           GoRoute(
-            path: MintflowRoutes.goals,
-            builder: (_, __) => const GoalsScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                parentNavigatorKey: _rootNavigatorKey,
-                builder: (_, __) => const AddGoalScreen(),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: MintflowRoutes.bills,
-            builder: (_, __) => const BillsScreen(),
-            routes: [
-              GoRoute(
-                path: 'add',
-                parentNavigatorKey: _rootNavigatorKey,
-                builder: (_, __) => const AddBillScreen(),
-              ),
-            ],
-          ),
-          GoRoute(
               path: MintflowRoutes.insights,
               builder: (_, __) => const InsightsScreen()),
-          GoRoute(
-              path: MintflowRoutes.settings,
-              builder: (_, __) => const SettingsScreen()),
           GoRoute(
               path: MintflowRoutes.profile,
               builder: (_, __) => const ProfileScreen()),
@@ -194,15 +168,48 @@ GoRouter buildRouter() {
       ),
 
       // ── Full-screen overlays (no bottom nav) ──────────────────────────────
+      // Goals / Bills / Settings are secondary destinations — root overlays so
+      // the shell tab selection never lies about the current location.
+      GoRoute(
+        path: MintflowRoutes.goals,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (_, __) => const GoalsScreen(),
+        routes: [
+          GoRoute(
+            path: 'add',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (_, __) => const AddGoalScreen(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: MintflowRoutes.bills,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (_, __) => const BillsScreen(),
+        routes: [
+          GoRoute(
+            path: 'add',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (_, __) => const AddBillScreen(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: MintflowRoutes.settings,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (_, __) => const SettingsScreen(),
+      ),
       GoRoute(
         path: MintflowRoutes.paywall,
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (_, state) => PaywallScreen(
           feature: state.uri.queryParameters['feature'],
         ),
       ),
+      // Inbox stub hidden — route redirects to real notification prefs.
       GoRoute(
         path: MintflowRoutes.notifications,
-        builder: (_, __) => const InAppNotificationsScreen(),
+        redirect: (_, __) => MintflowRoutes.notificationSettings,
       ),
       GoRoute(
         path: MintflowRoutes.notificationSettings,
@@ -319,11 +326,25 @@ class MintflowShell extends StatelessWidget {
         ],
       ),
       floatingActionButton: showFab
-          ? FloatingActionButton(
-              heroTag: 'mintflow_shell_fab',
-              tooltip: 'Add transaction',
-              onPressed: () => context.push(MintflowRoutes.addTx),
-              child: const Icon(Icons.add_rounded),
+          ? Container(
+              decoration: BoxDecoration(
+                borderRadius: MintflowRadius.lg_,
+                boxShadow: [
+                  BoxShadow(
+                    color: MintflowColors.green400.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton(
+                heroTag: 'mintflow_shell_fab',
+                tooltip: 'Add transaction',
+                elevation: 0,
+                highlightElevation: 0,
+                onPressed: () => context.push(MintflowRoutes.addTx),
+                child: const Icon(Icons.add_rounded),
+              ),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

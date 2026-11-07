@@ -277,7 +277,7 @@ All design decisions are in `lib/core/theme/app_theme.dart`:
 ## Clean up the repo for stale file
 
 ````
-cd /Users/user/Desktop/flowra/mintflow_flutter
+cd /Users/user/Desktop/mintflow/mintflow_flutter
 flutter clean
 rm -rf macos/Pods macos/Podfile.lock ~/Library/Caches/CocoaPods
 flutter pub get

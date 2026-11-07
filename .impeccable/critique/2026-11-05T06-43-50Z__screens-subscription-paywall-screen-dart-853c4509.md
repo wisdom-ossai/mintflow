@@ -5,13 +5,14 @@ max_score: 32
 na_heuristics: 7,10
 p0_count: 0
 p1_count: 2
-target_identity: "file:/Users/user/Desktop/flowra/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart"
+target_identity: "file:/Users/user/Desktop/mintflow/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart"
 target_fingerprint: "sha256:e93882799b8e5d926b23a544c19254e30a9df2160b061922180bd8e7102164ce"
-target_path: /Users/user/Desktop/flowra/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart
+target_path: /Users/user/Desktop/minflow/mintflow_flutter/lib/presentation/screens/subscription/paywall_screen.dart
 timestamp: 2026-11-05T06-43-50Z
 slug: screens-subscription-paywall-screen-dart-853c4509
 closed: true
 ---
+
 # Critique — Paywall (`paywall_screen.dart`)
 
 Method: design review only (detector not applicable, native platform)
@@ -19,19 +20,19 @@ Mode: Persuade · Target: mintflow_flutter/lib/presentation/screens/subscription
 
 ## Design Health Score
 
-| # | Heuristic | Score | Key Issue |
-|---|-----------|-------|-----------|
-| 1 | Visibility of System Status | 3 | Loading/purchase spinners + snackbars; plan select lacks stronger confirmation beyond border |
-| 2 | Match System / Real World | 3 | Seed/Growth/Pro garden metaphor fits; “Most popular” duplicated as sub + chip |
-| 3 | User Control and Freedom | 4 | Close + Seed “Continue with free” are clear exits |
-| 4 | Consistency and Standards | 3 | Tokens/Material solid; sticky formMax vs contentMax plans is intentional but sharp |
-| 5 | Error Prevention | 2 | Start stays tappable when RC unavailable → snackbar after intent |
-| 6 | Recognition Rather Than Recall | 2 | Features only on selected plan — comparing tiers forces memory |
-| 7 | Flexibility and Efficiency | n/a | Persuade surface |
-| 8 | Aesthetic and Minimalist Design | 3 | Clean navy/mint; sticky cluster packs CTA + restore + legal tightly |
-| 9 | Error Recovery | 3 | Plain-language banners/snackbars + Try again; store errors sometimes generic |
-| 10 | Help and Documentation | n/a | Persuade surface (legal line is IAP disclosure, not help) |
-| **Total** | | **24/32** | **Good** |
+| #         | Heuristic                       | Score     | Key Issue                                                                                    |
+| --------- | ------------------------------- | --------- | -------------------------------------------------------------------------------------------- |
+| 1         | Visibility of System Status     | 3         | Loading/purchase spinners + snackbars; plan select lacks stronger confirmation beyond border |
+| 2         | Match System / Real World       | 3         | Seed/Growth/Pro garden metaphor fits; “Most popular” duplicated as sub + chip                |
+| 3         | User Control and Freedom        | 4         | Close + Seed “Continue with free” are clear exits                                            |
+| 4         | Consistency and Standards       | 3         | Tokens/Material solid; sticky formMax vs contentMax plans is intentional but sharp           |
+| 5         | Error Prevention                | 2         | Start stays tappable when RC unavailable → snackbar after intent                             |
+| 6         | Recognition Rather Than Recall  | 2         | Features only on selected plan — comparing tiers forces memory                               |
+| 7         | Flexibility and Efficiency      | n/a       | Persuade surface                                                                             |
+| 8         | Aesthetic and Minimalist Design | 3         | Clean navy/mint; sticky cluster packs CTA + restore + legal tightly                          |
+| 9         | Error Recovery                  | 3         | Plain-language banners/snackbars + Try again; store errors sometimes generic                 |
+| 10        | Help and Documentation          | n/a       | Persuade surface (legal line is IAP disclosure, not help)                                    |
+| **Total** |                                 | **24/32** | **Good**                                                                                     |
 
 ## Design Specificity Verdict
 
@@ -54,26 +55,31 @@ Decision path is clear after the layout pass: headline → period → plans → 
 ## Priority Issues
 
 ### [P1] Start remains active when purchases aren’t available
+
 - **Why:** User commits intent, then hits a red snackbar — breaks high-stakes trust.
 - **Fix:** Disable primary CTA (or swap to “Try again”) when `!_rcConfigured`; keep restore disabled as today.
 - **Suggested command:** `/impeccable harden`
 
 ### [P1] Plan comparison requires recall
+
 - **Why:** Only the selected card expands features (7–9 bullets). Switching Seed ↔ Growth forces remembering prior lists.
 - **Fix:** Show a short “includes” teaser on unselected cards (3 bullets) or a compare strip; keep full list on selected.
 - **Suggested command:** `/impeccable distill` or `/impeccable layout`
 
 ### [P2] High-stakes arrivals lose trial reassurance
+
 - **Why:** Trial line only when `feature == null`. Gated-feature users (highest intent) see urgency without the cancel-anytime cushion.
 - **Fix:** Always show a one-line trust cue under the headline (trial and/or cancel anytime).
 - **Suggested command:** `/impeccable clarify`
 
 ### [P2] Sticky footer hierarchy is flat
+
 - **Why:** 4px between Start and Restore; legal sits in the same cluster — tertiary actions compete with the peak.
 - **Fix:** 8–12px above restore; mute restore further; keep legal as true fine print.
 - **Suggested command:** `/impeccable polish`
 
 ### [P3] “Most popular” said twice on Growth
+
 - **Why:** `plan.sub` and Popular chip repeat the same claim.
 - **Fix:** Sub → benefit line (“Bank sync + AI insights”); keep one Popular mark.
 - **Suggested command:** `/impeccable clarify`

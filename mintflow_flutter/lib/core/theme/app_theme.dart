@@ -94,12 +94,12 @@ class MintflowColors {
   static Color redWash(BuildContext context) =>
       isDark(context) ? red.withValues(alpha: 0.16) : redSoft;
 
-  /// Need/want tag wash — warm amber family (not mint; semantic category cue).
+  /// Need/want tag wash — cool blue family (no gold accents per Calm Ledger).
   static Color wantWash(BuildContext context) =>
-      isDark(context) ? const Color(0xFF3D2E14) : const Color(0xFFFFF8E6);
+      isDark(context) ? blue.withValues(alpha: 0.16) : blueSoft;
 
   static Color wantLabel(BuildContext context) =>
-      isDark(context) ? const Color(0xFFE8C47A) : const Color(0xFF9A6200);
+      isDark(context) ? const Color(0xFFA8B8FF) : blue;
 
   /// Icons / text drawn on navy brand chrome (headers, splash, navy app bars).
   static Color onBrand(BuildContext context) => cream;
@@ -124,7 +124,7 @@ class MintflowTextStyles {
   static const String _poppins = 'Poppins';
   static const String _sans = 'DMSans';
 
-  // Display — serif for headlines
+  // Display — Poppins for headlines and amounts
   static const displayLarge = TextStyle(
     fontFamily: _poppins,
     fontSize: 32,
@@ -353,9 +353,9 @@ class MintflowTheme {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: MintflowColors.green400,
           foregroundColor: MintflowColors.green900,
-          elevation: 2,
-          focusElevation: 3,
-          highlightElevation: 3,
+          elevation: 4,
+          focusElevation: 6,
+          highlightElevation: 6,
           shape: RoundedRectangleBorder(borderRadius: MintflowRadius.lg_),
         ),
         progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -483,7 +483,8 @@ class MintflowTheme {
               .copyWith(color: MintflowColors.ink),
           secondaryLabelStyle: MintflowTextStyles.labelMedium
               .copyWith(color: MintflowColors.green900),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          labelPadding: const EdgeInsets.symmetric(horizontal: 4),
           shape: RoundedRectangleBorder(
             borderRadius: MintflowRadius.pill_,
             side: BorderSide(color: MintflowColors.ink10),
@@ -598,9 +599,9 @@ class MintflowTheme {
         floatingActionButtonTheme: FloatingActionButtonThemeData(
           backgroundColor: MintflowColors.green400,
           foregroundColor: MintflowColors.green900,
-          elevation: 2,
-          focusElevation: 3,
-          highlightElevation: 3,
+          elevation: 4,
+          focusElevation: 6,
+          highlightElevation: 6,
           shape: RoundedRectangleBorder(borderRadius: MintflowRadius.lg_),
         ),
         progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -728,7 +729,8 @@ class MintflowTheme {
               .copyWith(color: MintflowColors.darkText),
           secondaryLabelStyle: MintflowTextStyles.labelMedium
               .copyWith(color: MintflowColors.green900),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          labelPadding: const EdgeInsets.symmetric(horizontal: 4),
           shape: RoundedRectangleBorder(
             borderRadius: MintflowRadius.pill_,
             side: BorderSide(color: MintflowColors.darkBorder),

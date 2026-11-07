@@ -409,7 +409,7 @@ class _NextButton extends StatelessWidget {
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      color: MintflowColors.cream, strokeWidth: 2))
+                      color: MintflowColors.green900, strokeWidth: 2))
               : Text(label),
         ),
       );
@@ -672,7 +672,7 @@ class _Step3Connect extends StatelessWidget {
                     borderRadius: MintflowRadius.md_,
                   ),
                   child: Icon(Icons.account_balance_outlined,
-                      color: MintflowColors.onBrand(context), size: 22),
+                      color: MintflowColors.onMint(context), size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

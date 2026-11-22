@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
 import '../../../core/theme/mint_inputs.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 /// Creates a real savings goal — name + target is the activation aha.
 class AddGoalScreen extends StatefulWidget {
@@ -94,8 +94,8 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
           err.toLowerCase().contains('growth') ||
           err.toLowerCase().contains('limit');
       if (isUpgrade) {
-        context.push('${MintflowRoutes.paywall}?feature=unlimited_goals');
-        setState(() => _saving = false);
+        await openUpgradeFlow(context, feature: 'unlimited_goals');
+        if (mounted) setState(() => _saving = false);
         return;
       }
       setState(() {

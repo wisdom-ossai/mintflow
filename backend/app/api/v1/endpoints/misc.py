@@ -687,6 +687,7 @@ async def get_notification_prefs(
     | `ai_nudge` | enabled | Growth |
     | `salary_detected` | enabled | Growth |
     | `card_payment_due` | enabled | Growth |
+    | `bill_due` | enabled | Free |
     | `subscription_renewal` | enabled | Growth |
     | `high_utilization` | enabled | Pro |
     """

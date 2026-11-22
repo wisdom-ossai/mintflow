@@ -407,6 +407,76 @@ class BillRepository {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// DebtRepository
+// ═══════════════════════════════════════════════════════════════════════════
+
+class DebtRepository {
+  final MintflowApiClient _api;
+  DebtRepository(this._api);
+
+  Future<DebtPlanModel?> getPlan({bool forceRefresh = false}) async {
+    if (!forceRefresh) {
+      final cached = MintflowCache.get<Map>(CacheKeys.debtPlan);
+      if (cached != null) {
+        return DebtPlanModel.fromJson(Map<String, dynamic>.from(cached));
+      }
+    }
+    final plan = await _api.getDebtPlan();
+    if (plan != null) {
+      await MintflowCache.set(
+        CacheKeys.debtPlan,
+        _planToMap(plan),
+        ttl: const Duration(hours: 6),
+      );
+    }
+    return plan;
+  }
+
+  Future<DebtPlanModel> generate({
+    required String strategy,
+    required double monthlyExtraPayment,
+  }) async {
+    final plan = await _api.generateDebtPlan(
+      strategy: strategy,
+      monthlyExtraPayment: monthlyExtraPayment,
+    );
+    await MintflowCache.set(
+      CacheKeys.debtPlan,
+      _planToMap(plan),
+      ttl: const Duration(hours: 6),
+    );
+    return plan;
+  }
+
+  Map<String, dynamic> _planToMap(DebtPlanModel p) => {
+        'id': p.id,
+        'user_id': p.userId,
+        'strategy': p.strategy.name,
+        'monthly_extra_payment': p.monthlyExtraPayment.toString(),
+        'generated_at': p.generatedAt.toIso8601String(),
+        'content': {
+          'freedom_date': p.freedomDate.toIso8601String(),
+          'total_interest_saved': p.totalInterestSaved.toString(),
+          'total_interest_with_minimums': p.totalInterestWithMinimums.toString(),
+          'narrative': p.aiNarrative,
+          'allocations': p.allocations
+              .map((a) => {
+                    'account_id': a.accountId,
+                    'account_name': a.accountName,
+                    'balance': a.balance.toString(),
+                    'apr': a.apr.toString(),
+                    'minimum_payment': a.minimumPayment.toString(),
+                    'total_payment': a.totalPayment.toString(),
+                    'projected_payoff_date':
+                        a.projectedPayoffDate.toIso8601String(),
+                    'payoff_order': a.payoffOrder,
+                  })
+              .toList(),
+        },
+      };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // InsightRepository
 // ═══════════════════════════════════════════════════════════════════════════
 

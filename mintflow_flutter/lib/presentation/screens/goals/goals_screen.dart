@@ -9,6 +9,9 @@ import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_state.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 /// Savings goals — first-use empty state guides activation. No mock amounts.
 class GoalsScreen extends StatefulWidget {
@@ -331,43 +334,14 @@ class _EmptyGoals extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: MintflowColors.card(context),
-        borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.hairline(context)),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.savings_outlined,
-              size: 40, color: MintflowColors.green500),
-          const SizedBox(height: 12),
-          Text(
-            'No goals yet',
-            style: MintflowTextStyles.labelLarge.copyWith(
-              color: MintflowColors.textPrimary(context),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Name a target and an amount. Seed includes 1 goal.',
-            textAlign: TextAlign.center,
-            style: MintflowTextStyles.bodySmall.copyWith(
-              color: MintflowColors.textSecondary(context),
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onAdd,
-              child: const Text('Create your first goal'),
-            ),
-          ),
-        ],
-      ),
+    return EmptyState(
+      icon: Icons.savings_outlined,
+      title: 'No goals yet',
+      message: 'Name a target and an amount. Seed includes 1 goal.',
+      iconColor: MintflowColors.green500,
+      iconBg: MintflowColors.mintWash(context),
+      actionLabel: 'Add goal',
+      onAction: onAdd,
     );
   }
 }
@@ -516,9 +490,12 @@ class _ErrorBody extends StatelessWidget {
     final isUpgrade = message.toLowerCase().contains('upgrade') ||
         message.toLowerCase().contains('growth') ||
         message.toLowerCase().contains('limit');
+    if (!isUpgrade) {
+      return ErrorState(message: message, onRetry: onRetry);
+    }
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(MintflowSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -529,22 +506,14 @@ class _ErrorBody extends StatelessWidget {
                 color: MintflowColors.textSecondary(context),
               ),
             ),
-            const SizedBox(height: 16),
-            if (isUpgrade)
-              ElevatedButton(
-                onPressed: () => context.push(
-                    '${MintflowRoutes.paywall}?feature=unlimited_goals'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MintflowColors.purple,
-                  foregroundColor: MintflowColors.cream,
-                ),
-                child: const Text('See Growth plans'),
-              )
-            else
-              TextButton(
-                onPressed: onRetry,
-                child: const Text('Try again'),
+            const SizedBox(height: MintflowSpacing.lg),
+            ElevatedButton(
+              onPressed: () => openUpgradeFlow(
+                context,
+                feature: 'unlimited_goals',
               ),
+              child: const Text('See Growth plans'),
+            ),
           ],
         ),
       ),

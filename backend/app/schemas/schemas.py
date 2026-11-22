@@ -10,7 +10,7 @@ from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.models.models import (
-    AccountType, BudgetPeriod, InsightPeriod,
+    AccountType, BudgetPeriod, DebtStrategy, GoalStatus, InsightPeriod,
     NotificationType, SubscriptionTier,
     TransactionSource, TransactionType,
 )
@@ -135,6 +135,8 @@ class AccountCreate(BaseModel):
     outstanding_balance: Optional[Decimal] = None
     statement_day: Optional[int] = Field(None, ge=1, le=31)
     due_day: Optional[int] = Field(None, ge=1, le=31)
+    apr: Optional[Decimal] = Field(None, ge=0, le=100)
+    minimum_payment: Optional[Decimal] = Field(None, ge=0)
 
     @field_validator("credit_limit", "outstanding_balance")
     @classmethod
@@ -156,6 +158,8 @@ class AccountRead(BaseModel):
     credit_utilization_pct: Optional[float]
     statement_day: Optional[int]
     due_day: Optional[int]
+    apr: Optional[Decimal] = None
+    minimum_payment: Optional[Decimal] = None
     is_active: bool
     last_synced_at: Optional[datetime]
     created_at: datetime
@@ -484,3 +488,77 @@ class BillPaymentRead(BaseModel):
     bill: Optional[BillRead] = None
 
     model_config = {"from_attributes": True}
+
+
+# ─── Savings Goals ─────────────────────────────────────────────────────────
+
+class GoalCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    target_amount: Decimal = Field(gt=0)
+    current_amount: Optional[Decimal] = Field(default=Decimal("0"), ge=0)
+    target_date: Optional[datetime] = None
+    linked_account_id: Optional[str] = None
+    icon: Optional[str] = Field(None, max_length=50)
+    color: Optional[str] = Field(None, max_length=7)
+
+
+class GoalUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    target_amount: Optional[Decimal] = Field(None, gt=0)
+    target_date: Optional[datetime] = None
+    linked_account_id: Optional[str] = None
+    icon: Optional[str] = Field(None, max_length=50)
+    color: Optional[str] = Field(None, max_length=7)
+    status: Optional[GoalStatus] = None
+
+
+class GoalContribute(BaseModel):
+    amount: Decimal = Field(gt=0)
+
+
+class GoalRead(BaseModel):
+    id: str
+    user_id: str
+    name: str
+    target_amount: Decimal
+    current_amount: Decimal
+    target_date: Optional[datetime]
+    linked_account_id: Optional[str]
+    icon: Optional[str]
+    color: Optional[str]
+    status: GoalStatus
+    ai_suggestion: Optional[str]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ─── Debt payoff ───────────────────────────────────────────────────────────
+
+class DebtPlanCreate(BaseModel):
+    strategy: DebtStrategy
+    monthly_extra_payment: Decimal = Field(ge=0)
+
+
+class DebtPlanRead(BaseModel):
+    id: str
+    user_id: str
+    strategy: DebtStrategy
+    monthly_extra_payment: Decimal
+    content: dict[str, Any]
+    generated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ─── Receipt OCR ───────────────────────────────────────────────────────────
+
+class ReceiptOcrResult(BaseModel):
+    merchant_name: Optional[str] = None
+    amount: Decimal
+    date: datetime
+    description: Optional[str] = None
+    transaction_id: str
+    category_name: Optional[str] = None
+    is_need: Optional[bool] = None
+    confidence: float = 0.0

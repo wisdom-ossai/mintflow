@@ -29,6 +29,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     'ai_nudge': 'AI nudge',
     'salary_detected': 'Salary detected',
     'card_payment_due': 'Card payment due',
+    'bill_due': 'Bill due soon',
     'subscription_renewal': 'Subscription renewal',
     'high_utilization': 'High utilization',
   };

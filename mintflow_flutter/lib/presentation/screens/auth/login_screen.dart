@@ -15,6 +15,7 @@ import '../../cubits/cubits.dart';
 import '../../../core/theme/mint_inputs.dart';
 import '../../widgets/brand_logo.dart';
 import '../../widgets/error_banner.dart';
+import '../../widgets/google_g_icon.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -284,37 +285,49 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     if (isAppleSignInPlatform) ...[
                       Expanded(
-                        child: SizedBox(
-                          height: 48,
-                          child: FilledButton.icon(
-                            onPressed: _loading ? null : _appleLogin,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: MintflowColors.cream,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                        child: FilledButton.icon(
+                          onPressed: _loading ? null : _appleLogin,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: MintflowColors.cream,
+                            minimumSize: const Size(48, 52),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
                             ),
-                            icon: const Icon(Icons.apple, size: 20),
-                            label: const Text('Apple'),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: MintflowRadius.lg_,
+                            ),
+                            textStyle: MintflowTextStyles.labelMedium.copyWith(
+                              height: 1.2,
+                            ),
                           ),
+                          icon: const Icon(Icons.apple, size: 20),
+                          label: const Text('Apple'),
                         ),
                       ),
                       const SizedBox(width: 12),
                     ],
                     Expanded(
-                      child: SizedBox(
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          onPressed: _loading ? null : _googleLogin,
-                          icon: const _GoogleIcon(),
-                          label: const Text('Google'),
+                      child: OutlinedButton.icon(
+                        onPressed: _loading ? null : _googleLogin,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(48, 52),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
+                          textStyle: MintflowTextStyles.labelMedium.copyWith(
+                            height: 1.2,
+                          ),
                         ),
+                        icon: const GoogleGIcon(size: 18),
+                        label: const Text('Google'),
                       ),
                     ),
                   ],
                 ),
-                  const SizedBox(height: 24),
+                const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -323,41 +336,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}
-
-class _GoogleIcon extends StatelessWidget {
-  const _GoogleIcon();
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 18,
-        height: 18,
-        child: CustomPaint(painter: _GooglePainter()),
-      );
-}
-
-class _GooglePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size s) {
-    final c = Offset(s.width / 2, s.height / 2);
-    final r = s.width / 2;
-    final colors = [
-      const Color(0xFF4285F4),
-      const Color(0xFF34A853),
-      const Color(0xFFFBBC05),
-      const Color(0xFFEA4335),
-    ];
-    for (var i = 0; i < 4; i++) {
-      canvas.drawArc(
-        Rect.fromCircle(center: c, radius: r),
-        (i * 90 - 45) * 3.14159 / 180,
-        90 * 3.14159 / 180,
-        true,
-        Paint()..color = colors[i],
-      );
-    }
-    canvas.drawCircle(c, r * 0.55, Paint()..color = Colors.white);
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }

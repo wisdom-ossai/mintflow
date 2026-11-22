@@ -4,20 +4,19 @@ import 'package:mintflow_flutter/data/datasources/local_cache.dart';
 import 'package:mintflow_flutter/data/models/models.dart';
 import 'package:mintflow_flutter/presentation/cubits/cubits.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/appearance_control.dart';
 import '../../../core/theme/breakpoints.dart';
-import '../../../core/theme/mint_inputs.dart';
 import '../../../core/auth/auth_gate.dart';
 import '../../../core/utils/auth_errors.dart';
 import '../../../data/datasources/service_locator.dart';
+import '../../widgets/amount_edit_sheet.dart';
 import '../../widgets/semantic_tap.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Profile + Settings Screen
+// Profile — identity, financial summary, deep links (prefs live in Settings)
 // ─────────────────────────────────────────────────────────────────────────────
 
 class ProfileScreen extends StatefulWidget {
@@ -38,12 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   late Animation<double> _sectionsFade;
   late Animation<Offset> _sectionsSlide;
 
-  // Settings state
-  bool _notificationsEnabled = true;
-  bool _weeklyReport = true;
-  bool _budgetAlerts = true;
-  String _selectedCurrency = 'USD';
-  String _selectedLanguage = 'English';
   int _linkedAccountCount = 0;
 
   // Financial profile
@@ -151,9 +144,6 @@ class _ProfileScreenState extends State<ProfileScreen>
         _monthlyBudget = budget;
         _monthlySavings = savings;
         _financialLoading = false;
-        if (userState is UserLoaded) {
-          _selectedCurrency = userState.user.currency;
-        }
       });
     } catch (_) {
       if (mounted) setState(() => _financialLoading = false);
@@ -174,111 +164,40 @@ class _ProfileScreenState extends State<ProfileScreen>
     final expanded = MintBreakpoints.isExpanded(context);
 
     final financialSection = <Widget>[
-      const _SectionLabel(label: 'Financial Profile'),
-      const SizedBox(height: 10),
+      const _SectionLabel(label: 'Financial profile'),
+      const SizedBox(height: MintflowSpacing.md),
       _FinancialProfileCard(
         monthlyBudget: _monthlyBudget,
         monthlySavings: _monthlySavings,
         budgetMethod: _budgetMethod,
         loading: _financialLoading,
-        onEditBudget: () => _editMonthlyBudget(context),
+        onEditBudget: () => context.go(MintflowRoutes.dashboard),
+        budgetHint: 'Edit from Home',
         onEditSavings: () => _editSavingsGoal(context),
         onEditMethod: () => _editBudgetMethod(context),
-      ),
-    ];
-
-    final notificationsSection = <Widget>[
-      const _SectionLabel(label: 'Notifications'),
-      const SizedBox(height: 8),
-      _SettingsCard(
-        children: [
-          _ToggleRow(
-            icon: Icons.notifications_outlined,
-            iconColor: MintflowColors.green500,
-            iconBg: MintflowColors.mintWash(context),
-            label: 'Push notifications',
-            subtitle: 'On this device · sync coming soon',
-            value: _notificationsEnabled,
-            onChanged: (v) => setState(() => _notificationsEnabled = v),
-          ),
-          _Divider(),
-          _ToggleRow(
-            icon: Icons.bar_chart_outlined,
-            iconColor: MintflowColors.blue,
-            iconBg: MintflowColors.blueWash(context),
-            label: 'Weekly report',
-            subtitle: 'On this device · sync coming soon',
-            value: _weeklyReport,
-            onChanged: (v) => setState(() => _weeklyReport = v),
-          ),
-          _Divider(),
-          _ToggleRow(
-            icon: Icons.warning_amber_rounded,
-            iconColor: MintflowColors.gold500,
-            iconBg: MintflowColors.goldWash(context),
-            label: 'Budget alerts',
-            subtitle: 'Notify when near limit',
-            value: _budgetAlerts,
-            onChanged: (v) => setState(() => _budgetAlerts = v),
-          ),
-        ],
-      ),
-    ];
-
-    final preferencesSection = <Widget>[
-      const _SectionLabel(label: 'Preferences'),
-      const SizedBox(height: 10),
-      _SettingsCard(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Appearance',
-                  style: MintflowTextStyles.labelMedium.copyWith(
-                    color: MintflowColors.textPrimary(context),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Light, dark, or match this device',
-                  style: MintflowTextStyles.overline.copyWith(
-                    color: MintflowColors.textSecondary(context),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const AppearanceControl(),
-              ],
-            ),
-          ),
-          _Divider(),
-          _SelectRow(
-            icon: Icons.language_outlined,
-            iconColor: MintflowColors.blue,
-            iconBg: MintflowColors.blueWash(context),
-            label: 'Language',
-            value: _selectedLanguage,
-            onTap: () => _showLanguagePicker(context),
-          ),
-          _Divider(),
-          _SelectRow(
-            icon: Icons.attach_money_rounded,
-            iconColor: MintflowColors.gold500,
-            iconBg: MintflowColors.goldWash(context),
-            label: 'Currency',
-            value: _selectedCurrency,
-            onTap: () => _showCurrencyPicker(context),
-          ),
-        ],
       ),
     ];
 
     final accountAndDanger = <Widget>[
       _SettingsCard(
         children: [
+          BlocBuilder<UserCubit, UserState>(
+            builder: (context, userState) {
+              final user = userState is UserLoaded ? userState.user : null;
+              final tier = user?.effectiveTier.name ?? 'seed';
+              final tierLabel =
+                  tier[0].toUpperCase() + tier.substring(1);
+              return _ActionRow(
+                icon: Icons.star_outline,
+                iconColor: MintflowColors.green600,
+                iconBg: MintflowColors.mintWash(context),
+                label: 'Manage plan',
+                subtitle: tierLabel,
+                onTap: () => openUpgradeFlow(context),
+              );
+            },
+          ),
+          _Divider(),
           _ActionRow(
             icon: Icons.account_balance_outlined,
             iconColor: MintflowColors.green500,
@@ -295,8 +214,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           _Divider(),
           _ActionRow(
             icon: Icons.subscriptions_outlined,
-            iconColor: MintflowColors.purple,
-            iconBg: MintflowColors.purpleWash(context),
+            iconColor: MintflowColors.blue,
+            iconBg: MintflowColors.blueWash(context),
             label: 'Subscriptions',
             subtitle: 'Detected from your banks',
             onTap: () =>
@@ -322,24 +241,34 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           _Divider(),
           _ActionRow(
-            icon: Icons.download_outlined,
-            iconColor: MintflowColors.blue,
-            iconBg: MintflowColors.blueWash(context),
-            label: 'Export data',
-            subtitle: 'CSV (Pro)',
-            onTap: () => context.push(MintflowRoutes.exportData),
+            icon: Icons.account_balance_outlined,
+            iconColor: MintflowColors.gold400,
+            iconBg: MintflowColors.goldWash(context),
+            label: 'Debt plan',
+            subtitle: 'Snowball or avalanche payoff',
+            onTap: () => context.push(MintflowRoutes.debtPlan),
           ),
           _Divider(),
           _ActionRow(
-            icon: Icons.security_outlined,
-            iconColor: MintflowColors.purple,
-            iconBg: MintflowColors.purpleWash(context),
-            label: 'Privacy & security',
-            onTap: () => context.push(MintflowRoutes.privacySecurity),
+            icon: Icons.document_scanner_outlined,
+            iconColor: MintflowColors.blue,
+            iconBg: MintflowColors.blueWash(context),
+            label: 'Scan receipt',
+            subtitle: 'OCR expense from a photo',
+            onTap: () => context.push(MintflowRoutes.receiptScan),
+          ),
+          _Divider(),
+          _ActionRow(
+            icon: Icons.settings_outlined,
+            iconColor: MintflowColors.green600,
+            iconBg: MintflowColors.mintWash(context),
+            label: 'Settings',
+            subtitle: 'Appearance, language, notifications',
+            onTap: () => context.push(MintflowRoutes.settings),
           ),
         ],
       ),
-      const SizedBox(height: 24),
+      const SizedBox(height: MintflowSpacing.xxl),
       _SettingsCard(
         children: [
           _DangerRow(
@@ -356,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ],
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: MintflowSpacing.lg),
       Center(
         child: Text(
           'Mintflow v1.0.0',
@@ -381,6 +310,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                 fade: _headerFade,
                 slide: _headerSlide,
                 user: user,
+                onOpenSettings: () =>
+                    context.push(MintflowRoutes.settings),
+                onManagePlan: () => openUpgradeFlow(context),
               );
             },
           ),
@@ -417,23 +349,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
-                                    children: [
-                                      ...financialSection,
-                                      const SizedBox(height: 24),
-                                      ...notificationsSection,
-                                    ],
+                                    children: financialSection,
                                   ),
                                 ),
-                                const SizedBox(width: 20),
+                                const SizedBox(width: MintflowSpacing.xl),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: [
-                                      ...preferencesSection,
-                                      const SizedBox(height: 24),
                                       const _SectionLabel(label: 'Account'),
-                                      const SizedBox(height: 10),
+                                      const SizedBox(
+                                          height: MintflowSpacing.md),
                                       ...accountAndDanger,
                                     ],
                                   ),
@@ -442,13 +369,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                             ),
                           ] else ...[
                             ...financialSection,
-                            const SizedBox(height: 24),
-                            ...notificationsSection,
-                            const SizedBox(height: 24),
-                            ...preferencesSection,
-                            const SizedBox(height: 24),
+                            const SizedBox(height: MintflowSpacing.xxl),
                             const _SectionLabel(label: 'Account'),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: MintflowSpacing.md),
                             ...accountAndDanger,
                           ],
                         ],
@@ -466,31 +389,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   // ── Pickers & dialogs ──────────────────────────────────────────────────────
-
-  void _showLanguagePicker(BuildContext context) {
-    final languages = ['English', 'French', 'Spanish', 'German', 'Arabic'];
-    _showOptionSheet(
-      context,
-      title: 'Language',
-      options: languages,
-      selected: _selectedLanguage,
-      onSelect: (v) => setState(() => _selectedLanguage = v),
-    );
-  }
-
-  void _showCurrencyPicker(BuildContext context) {
-    final currencies = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD'];
-    _showOptionSheet(
-      context,
-      title: 'Currency',
-      options: currencies,
-      selected: _selectedCurrency,
-      onSelect: (v) async {
-        setState(() => _selectedCurrency = v);
-        await context.read<UserCubit>().updateProfile({'currency': v});
-      },
-    );
-  }
 
   void _editBudgetMethod(BuildContext context) {
     const methods = [
@@ -511,69 +409,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Future<void> _editMonthlyBudget(BuildContext context) async {
-    final amount = await _showAmountSheet(
-      context,
-      title: 'Monthly budget',
-      subtitle: 'How much do you plan to spend each month?',
-      initial: _monthlyBudget,
-      confirmLabel: 'Save budget',
-    );
-    if (amount == null || !mounted) return;
-
-    setState(() => _financialLoading = true);
-    try {
-      await ServiceLocator.instance.api.createBudget({
-        'amount': amount,
-        'period': 'monthly',
-        'category_id': null,
-        'rollover': false,
-      });
-      await MintflowCache.invalidateDashboard();
-
-      final userState = context.read<UserCubit>().state;
-      final income =
-          userState is UserLoaded ? userState.user.monthlyIncome : null;
-      final savings = income != null
-          ? (income - amount).clamp(0, double.infinity).toDouble()
-          : _monthlySavings;
-
-      if (savings != null) {
-        await MintflowCache.setPrefDouble(
-            CacheKeys.monthlySavingsTarget, savings);
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _monthlyBudget = amount;
-        _monthlySavings = savings;
-        _financialLoading = false;
-      });
-      context.read<DashboardCubit>().refresh();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Monthly budget set to ${MintflowFormat.currency(amount)}'),
-          backgroundColor: MintflowColors.green900,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _financialLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(friendlyAuthError(e)),
-          backgroundColor: MintflowColors.red,
-        ),
-      );
-    }
-  }
-
   Future<void> _editSavingsGoal(BuildContext context) async {
-    final amount = await _showAmountSheet(
+    final amount = await AmountEditSheet.show(
       context,
       title: 'Monthly savings goal',
       subtitle: 'How much do you want to save each month?',
@@ -592,7 +429,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           userState is UserLoaded ? userState.user.monthlyIncome : null;
 
       double? budget = _monthlyBudget;
-      // If income is known, keep spend budget in sync: budget = income − savings
       if (income != null && income > 0) {
         budget = (income - amount).clamp(0, double.infinity).toDouble();
         await ServiceLocator.instance.api.createBudget({
@@ -618,7 +454,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           backgroundColor: MintflowColors.green900,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
-          margin: const EdgeInsets.all(16),
+          margin: const EdgeInsets.all(MintflowSpacing.lg),
         ),
       );
     } catch (e) {
@@ -631,27 +467,6 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
       );
     }
-  }
-
-  Future<double?> _showAmountSheet(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required double? initial,
-    required String confirmLabel,
-  }) {
-    return showModalBottomSheet<double>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      constraints: const BoxConstraints(maxWidth: MintBreakpoints.formMax),
-      builder: (_) => _AmountEditSheet(
-        title: title,
-        subtitle: subtitle,
-        initial: initial,
-        confirmLabel: confirmLabel,
-      ),
-    );
   }
 
   void _showOptionSheet(
@@ -790,12 +605,16 @@ class _ProfileHeader extends StatelessWidget {
   final Animation<double> fade;
   final Animation<Offset> slide;
   final UserModel? user;
+  final VoidCallback onOpenSettings;
+  final VoidCallback onManagePlan;
 
   const _ProfileHeader({
     required this.top,
     required this.avatarScale,
     required this.fade,
     required this.slide,
+    required this.onOpenSettings,
+    required this.onManagePlan,
     this.user,
   });
 
@@ -817,7 +636,7 @@ class _ProfileHeader extends StatelessWidget {
 
     return Container(
       color: MintflowColors.green900,
-      padding: EdgeInsets.fromLTRB(20, top + 20, 20, 28),
+      padding: EdgeInsets.fromLTRB(20, top + 8, 20, 28),
       child: Stack(
         children: [
           Positioned(
@@ -850,6 +669,17 @@ class _ProfileHeader extends StatelessWidget {
               position: slide,
               child: Column(
                 children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      tooltip: 'Settings',
+                      onPressed: onOpenSettings,
+                      icon: Icon(
+                        Icons.settings_outlined,
+                        color: MintflowColors.cream,
+                      ),
+                    ),
+                  ),
                   ScaleTransition(
                     scale: avatarScale,
                     child: Stack(
@@ -946,6 +776,7 @@ class _ProfileHeader extends StatelessWidget {
                         child: _HeaderStat(
                           value: tierLabel,
                           label: 'Plan',
+                          onTap: onManagePlan,
                         ),
                       ),
                       Container(
@@ -1009,12 +840,17 @@ class _HeaderBadge extends StatelessWidget {
 class _HeaderStat extends StatelessWidget {
   final String value;
   final String label;
+  final VoidCallback? onTap;
 
-  const _HeaderStat({required this.value, required this.label});
+  const _HeaderStat({
+    required this.value,
+    required this.label,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final column = Column(
       children: [
         Text(
           value,
@@ -1033,6 +869,12 @@ class _HeaderStat extends StatelessWidget {
         ),
       ],
     );
+    if (onTap == null) return column;
+    return SemanticTap(
+      label: '$label, $value',
+      onTap: onTap,
+      child: column,
+    );
   }
 }
 
@@ -1046,6 +888,7 @@ class _FinancialProfileCard extends StatelessWidget {
   final String budgetMethod;
   final bool loading;
   final VoidCallback onEditBudget;
+  final String budgetHint;
   final VoidCallback onEditSavings;
   final VoidCallback onEditMethod;
 
@@ -1055,6 +898,7 @@ class _FinancialProfileCard extends StatelessWidget {
     required this.budgetMethod,
     required this.loading,
     required this.onEditBudget,
+    required this.budgetHint,
     required this.onEditSavings,
     required this.onEditMethod,
   });
@@ -1076,13 +920,14 @@ class _FinancialProfileCard extends StatelessWidget {
           iconBg: MintflowColors.mintWash(context),
           label: 'Monthly budget',
           value: loading ? '…' : budgetValue,
+          subtitle: budgetHint,
           onTap: onEditBudget,
         ),
         _Divider(),
         _InfoRow(
           icon: Icons.savings_outlined,
-          iconColor: MintflowColors.gold500,
-          iconBg: MintflowColors.goldWash(context),
+          iconColor: MintflowColors.green600,
+          iconBg: MintflowColors.mintWash(context),
           label: 'Savings goal',
           value: loading ? '…' : savingsValue,
           onTap: onEditSavings,
@@ -1130,10 +975,9 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      label.toUpperCase(),
+      label,
       style: MintflowTextStyles.overline.copyWith(
         color: MintflowColors.textSecondary(context),
-        letterSpacing: 0.08,
       ),
     );
   }
@@ -1174,123 +1018,13 @@ class _RowIconBox extends StatelessWidget {
   }
 }
 
-class _ToggleRow extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final String label;
-  final String? subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _ToggleRow({
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-    required this.label,
-    this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          _RowIconBox(icon: icon, iconColor: iconColor, iconBg: iconBg),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: MintflowTextStyles.labelMedium.copyWith(
-                    color: MintflowColors.textPrimary(context),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle!,
-                    style: MintflowTextStyles.overline.copyWith(
-                      color: MintflowColors.textSecondary(context),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Switch.adaptive(
-            value: value,
-            onChanged: onChanged,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SelectRow extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final String label;
-  final String value;
-  final VoidCallback onTap;
-
-  const _SelectRow({
-    required this.icon,
-    required this.iconColor,
-    required this.iconBg,
-    required this.label,
-    required this.value,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SemanticTap(
-      label: '$label, $value',
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            _RowIconBox(icon: icon, iconColor: iconColor, iconBg: iconBg),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: MintflowTextStyles.labelMedium.copyWith(
-                  color: MintflowColors.textPrimary(context),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            Text(
-              value,
-              style: MintflowTextStyles.labelMedium.copyWith(
-                color: MintflowColors.textSecondary(context),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.textTertiary(context), size: 18),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _InfoRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final Color iconBg;
   final String label;
   final String value;
+  final String? subtitle;
   final VoidCallback onTap;
 
   const _InfoRow({
@@ -1299,27 +1033,46 @@ class _InfoRow extends StatelessWidget {
     required this.iconBg,
     required this.label,
     required this.value,
+    this.subtitle,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final semantic = subtitle == null
+        ? 'Edit $label, $value'
+        : '$label, $value. $subtitle';
     return SemanticTap(
-      label: 'Edit $label, $value',
+      label: semantic,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(
+          horizontal: MintflowSpacing.lg,
+          vertical: MintflowSpacing.md,
+        ),
         child: Row(
           children: [
             _RowIconBox(icon: icon, iconColor: iconColor, iconBg: iconBg),
-            const SizedBox(width: 12),
+            const SizedBox(width: MintflowSpacing.md),
             Expanded(
-              child: Text(
-                label,
-                style: MintflowTextStyles.labelMedium.copyWith(
-                  color: MintflowColors.textPrimary(context),
-                  fontWeight: FontWeight.w500,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: MintflowTextStyles.labelMedium.copyWith(
+                      color: MintflowColors.textPrimary(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle!,
+                      style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.textSecondary(context),
+                      ),
+                    ),
+                ],
               ),
             ),
             Text(
@@ -1329,9 +1082,14 @@ class _InfoRow extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 4),
-            Icon(Icons.edit_outlined,
-                color: MintflowColors.textTertiary(context), size: 15),
+            const SizedBox(width: MintflowSpacing.xs),
+            Icon(
+              subtitle != null
+                  ? Icons.chevron_right_rounded
+                  : Icons.edit_outlined,
+              color: MintflowColors.textTertiary(context),
+              size: 15,
+            ),
           ],
         ),
       ),
@@ -1559,133 +1317,3 @@ class _OptionSheet extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Amount edit bottom sheet (budget / savings)
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _AmountEditSheet extends StatefulWidget {
-  final String title;
-  final String subtitle;
-  final double? initial;
-  final String confirmLabel;
-
-  const _AmountEditSheet({
-    required this.title,
-    required this.subtitle,
-    required this.initial,
-    required this.confirmLabel,
-  });
-
-  @override
-  State<_AmountEditSheet> createState() => _AmountEditSheetState();
-}
-
-class _AmountEditSheetState extends State<_AmountEditSheet> {
-  late final TextEditingController _ctrl;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = TextEditingController(
-      text: widget.initial != null
-          ? widget.initial!.toStringAsFixed(
-              widget.initial! == widget.initial!.roundToDouble() ? 0 : 2)
-          : '',
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final raw = _ctrl.text.replaceAll(',', '').trim();
-    final amount = double.tryParse(raw);
-    if (amount == null || amount < 0) {
-      setState(() => _error = 'Enter an amount greater than zero');
-      return;
-    }
-    Navigator.pop(context, amount);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottom),
-      child: Container(
-        decoration: BoxDecoration(
-          color: MintflowColors.page(context),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: EdgeInsets.fromLTRB(
-          24,
-          20,
-          24,
-          24 + MediaQuery.of(context).padding.bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: MintflowColors.hairline(context),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              widget.title,
-              style: MintflowTextStyles.displaySmall
-                  .copyWith(color: MintflowColors.textPrimary(context)),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              widget.subtitle,
-              style: MintflowTextStyles.bodySmall
-                  .copyWith(color: MintflowColors.textSecondary(context)),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _ctrl,
-              autofocus: true,
-              maxLength: 14,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-              ],
-              style: MintflowTextStyles.amountSmall
-                  .copyWith(color: MintflowColors.textPrimary(context)),
-              decoration: mintInputDecoration(
-                context,
-                label: widget.title,
-                hint: '0',
-              ).copyWith(
-                prefixText: '\$ ',
-                errorText: _error,
-                counterText: '',
-              ),
-              onSubmitted: (_) => _submit(),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _submit,
-                child: Text(widget.confirmLabel),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -31,6 +31,10 @@ class MintBreakpoints {
 }
 
 /// Centers [child] and caps its width so tablet/desktop don't stretch phone UI.
+///
+/// Uses [Align.heightFactor] / [Align.widthFactor] of 1 so this never expands
+/// to fill a loose parent (e.g. Scaffold `bottomNavigationBar`) — that used to
+/// pin sticky CTAs under the status bar and collapse the scroll body.
 class MintAdaptiveWidth extends StatelessWidget {
   final Widget child;
   final double maxWidth;
@@ -47,6 +51,9 @@ class MintAdaptiveWidth extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: alignment,
+      // Shrink-wrap height so loose parents (Scaffold bottom bars) don't expand.
+      // Leave widthFactor null so we still fill and center horizontally.
+      heightFactor: 1,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: child,

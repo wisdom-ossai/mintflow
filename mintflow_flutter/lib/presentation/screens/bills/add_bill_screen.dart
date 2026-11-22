@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 class AddBillScreen extends StatefulWidget {
   const AddBillScreen({super.key});
@@ -67,8 +67,8 @@ class _AddBillScreenState extends State<AddBillScreen> {
           err.toLowerCase().contains('growth') ||
           err.toLowerCase().contains('limit');
       if (isUpgrade) {
-        context.push('${MintflowRoutes.paywall}?feature=unlimited_bills');
-        setState(() => _saving = false);
+        await openUpgradeFlow(context, feature: 'unlimited_bills');
+        if (mounted) setState(() => _saving = false);
         return;
       }
       setState(() {

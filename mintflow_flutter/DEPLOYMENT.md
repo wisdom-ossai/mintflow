@@ -264,6 +264,9 @@ Secret: (generate and add to Railway as REVENUECAT_WEBHOOK_SECRET)
 
 ## Part 5 — iOS App Store submission
 
+> Operator runbook (parity + ASC steps): [STORE_LAUNCH.md](STORE_LAUNCH.md).  
+> Legal static pages to host: [`../website/`](../website/).
+
 ### 5.1 Apple Developer account
 
 1. enroll.developer.apple.com → Individual ($99/year)
@@ -298,7 +301,7 @@ Track every dollar. Hit your savings goals. Pay off debt faster.
 
 Mintflow is the personal finance app that goes beyond tracking — it coaches you.
 
-WHAT FLOWRA DOES:
+WHAT MINTFLOW DOES:
 • Automatically imports transactions from 10,000+ US banks via Plaid
 • Categorizes every expense using AI — needs vs wants
 • Tracks your monthly spending against a budget

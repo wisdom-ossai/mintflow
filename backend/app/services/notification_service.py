@@ -191,6 +191,31 @@ async def send_card_payment_reminder(
     )
 
 
+async def send_bill_due_reminder(
+    db: AsyncSession,
+    user: User,
+    bill_name: str,
+    amount: Optional[Decimal],
+    due_date: str,
+) -> None:
+    """Remind ~3 days before a manual bill is due."""
+    if not user.firebase_token:
+        return
+    if not await _is_enabled(db, user.id, NotificationType.bill_due):
+        return
+
+    if amount is not None:
+        body = f"{bill_name} (${amount:.2f}) is due on {due_date}."
+    else:
+        body = f"{bill_name} is due on {due_date}."
+    await send_push(
+        firebase_token=user.firebase_token,
+        title="Bill due in 3 days",
+        body=body,
+        data={"type": "bill_due", "screen": "bills"},
+    )
+
+
 async def send_milestone(
     db: AsyncSession,
     user: User,

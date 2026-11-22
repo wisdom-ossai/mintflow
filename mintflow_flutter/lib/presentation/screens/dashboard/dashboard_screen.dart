@@ -4,9 +4,18 @@ import 'package:mintflow_flutter/core/theme/app_theme.dart';
 import 'package:mintflow_flutter/core/theme/breakpoints.dart';
 import 'package:mintflow_flutter/core/theme/motion.dart';
 import 'package:mintflow_flutter/core/utils/format.dart';
+import 'package:mintflow_flutter/core/utils/auth_errors.dart';
+import 'package:mintflow_flutter/data/datasources/local_cache.dart';
+import 'package:mintflow_flutter/data/datasources/service_locator.dart';
 import 'package:mintflow_flutter/data/models/models.dart';
 import 'package:mintflow_flutter/presentation/cubits/cubits.dart';
+import 'package:mintflow_flutter/presentation/widgets/amount_edit_sheet.dart';
+import 'package:mintflow_flutter/presentation/widgets/empty_state.dart';
+import 'package:mintflow_flutter/presentation/widgets/error_state.dart';
+import 'package:mintflow_flutter/presentation/widgets/mint_card.dart';
+import 'package:mintflow_flutter/presentation/widgets/mint_skeleton.dart';
 import 'package:mintflow_flutter/presentation/widgets/semantic_tap.dart';
+import 'package:mintflow_flutter/presentation/widgets/upgrade_soft_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -56,6 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       context.read<DashboardCubit>().load();
       context.read<UserCubit>().load();
       context.read<TransactionCubit>().load();
+      context.read<BillCubit>().load();
     });
   }
 
@@ -100,6 +110,47 @@ class _DashboardScreenState extends State<DashboardScreen>
     return 'Good evening,';
   }
 
+  Future<void> _editMonthlyBudget(double? currentBudget) async {
+    final amount = await AmountEditSheet.show(
+      context,
+      title: 'Monthly budget',
+      subtitle: 'How much do you plan to spend each month?',
+      initial: currentBudget,
+      confirmLabel: 'Save budget',
+    );
+    if (amount == null || !mounted) return;
+
+    try {
+      await ServiceLocator.instance.api.createBudget({
+        'amount': amount,
+        'period': 'monthly',
+        'category_id': null,
+        'rollover': false,
+      });
+      await MintflowCache.invalidateDashboard();
+      if (!mounted) return;
+      context.read<DashboardCubit>().refresh();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Monthly budget set to ${MintflowFormat.currency(amount)}'),
+          backgroundColor: MintflowColors.green900,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: MintflowRadius.md_),
+          margin: const EdgeInsets.all(MintflowSpacing.lg),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(friendlyAuthError(e)),
+          backgroundColor: MintflowColors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,14 +163,13 @@ class _DashboardScreenState extends State<DashboardScreen>
         },
         builder: (context, dashState) {
           if (dashState is DashboardLoading || dashState is DashboardInitial) {
-            return const Center(
-              child: CircularProgressIndicator(color: MintflowColors.green400),
-            );
+            return const DashboardSkeleton();
           }
           if (dashState is DashboardError) {
-            return _ErrorBody(
+            return ErrorState(
               message: dashState.message,
               onRetry: () => context.read<DashboardCubit>().refresh(),
+              foreground: MintflowColors.cream,
             );
           }
           final summary = (dashState as DashboardLoaded).summary;
@@ -144,6 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 budget: summary.budgetAmount,
                 daysRemaining: summary.daysRemaining,
                 remaining: summary.budgetRemaining,
+                onEditBudget: () => _editMonthlyBudget(summary.budgetAmount),
               ),
               Expanded(
                 child: Container(
@@ -154,7 +205,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                   child: AnimatedBuilder(
                     animation: Listenable.merge([_contentFade, _contentSlide]),
-                    // Child is built once — avoids rebuilding the feed every frame.
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(28),
@@ -165,35 +215,36 @@ class _DashboardScreenState extends State<DashboardScreen>
                           await Future.wait([
                             context.read<DashboardCubit>().refresh(),
                             context.read<TransactionCubit>().load(),
+                            context.read<BillCubit>().load(forceRefresh: true),
                           ]);
                         },
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             final expanded =
                                 MintBreakpoints.isExpanded(context);
-                            final feed = <Widget>[
-                              _SummaryRow(summary: summary),
-                              const SizedBox(height: 16),
-                              const _SubscriptionsTeaser(),
-                              const SizedBox(height: 8),
-                              const _BillsTeaser(),
-                              const SizedBox(height: 16),
-                              _InsightCard(
-                                insight: summary.topInsight,
-                                categories: summary.spendingByCategory,
-                                summary: summary,
-                              ),
+                            // Ring-first: quick actions + summaries + recent.
+                            final summaries = <Widget>[
+                              const _QuickActions(),
+                              const SizedBox(height: MintflowSpacing.lg),
+                              _MonthPulse(summary: summary),
+                              const SizedBox(height: MintflowSpacing.lg),
+                              _CoachingTeaser(summary: summary),
+                              const _BillsDueTeaser(),
                             ];
                             final recent = const [
                               _RecentTransactions(),
-                              SizedBox(height: 8),
+                              SizedBox(height: MintflowSpacing.sm),
                             ];
                             return SingleChildScrollView(
                               physics: const AlwaysScrollableScrollPhysics(
                                 parent: BouncingScrollPhysics(),
                               ),
                               padding: const EdgeInsets.fromLTRB(
-                                  20, 20, 20, 24),
+                                MintflowSpacing.xl,
+                                MintflowSpacing.xl,
+                                MintflowSpacing.xl,
+                                MintflowSpacing.xxl,
+                              ),
                               child: expanded
                                   ? Row(
                                       crossAxisAlignment:
@@ -204,10 +255,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
-                                            children: feed,
+                                            children: summaries,
                                           ),
                                         ),
-                                        const SizedBox(width: 20),
+                                        const SizedBox(
+                                            width: MintflowSpacing.xl),
                                         Expanded(
                                           flex: 4,
                                           child: Column(
@@ -221,7 +273,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   : Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      children: [...feed, ...recent],
+                                      children: [
+                                        ...summaries,
+                                        const SizedBox(
+                                            height: MintflowSpacing.lg),
+                                        ...recent,
+                                      ],
                                     ),
                             );
                           },
@@ -243,33 +300,6 @@ class _DashboardScreenState extends State<DashboardScreen>
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _ErrorBody extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorBody({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(message,
-                textAlign: TextAlign.center,
-                style: MintflowTextStyles.bodyMedium
-                    .copyWith(color: MintflowColors.cream)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-                onPressed: onRetry, child: const Text('Try again')),
-          ],
-        ),
       ),
     );
   }
@@ -314,27 +344,28 @@ class _DashHeader extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: MintflowSpacing.md),
           Material(
             color: Colors.transparent,
             child: Tooltip(
-              message: 'Notifications',
+              message: 'Notification settings',
               child: InkWell(
                 borderRadius: BorderRadius.circular(14),
-                onTap: () => context.push(MintflowRoutes.notifications),
+                onTap: () =>
+                    context.push(MintflowRoutes.notificationSettings),
                 child: Semantics(
                   button: true,
-                  label: 'Notifications',
+                  label: 'Notification settings',
                   child: Container(
                     width: 48,
                     height: 48,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: MintflowColors.green600,
+                      color: MintflowColors.brandOverlay(context, 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(
-                      Icons.notifications_none_rounded,
+                      Icons.tune_rounded,
                       color: MintflowColors.onBrand(context),
                       size: 22,
                     ),
@@ -358,6 +389,7 @@ class _RingSection extends StatelessWidget {
   final double? budget;
   final double? remaining;
   final int daysRemaining;
+  final VoidCallback onEditBudget;
 
   const _RingSection({
     required this.progressAnim,
@@ -366,6 +398,7 @@ class _RingSection extends StatelessWidget {
     required this.budget,
     required this.remaining,
     required this.daysRemaining,
+    required this.onEditBudget,
   });
 
   @override
@@ -380,67 +413,89 @@ class _RingSection extends StatelessWidget {
 
     return Container(
       color: MintflowColors.green900,
-      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+      padding: const EdgeInsets.fromLTRB(0, MintflowSpacing.xl, 0, 0),
       child: Column(
         children: [
-          AnimatedBuilder(
-            animation: progressAnim,
-            child: Text(
-              budgetLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: MintflowTextStyles.labelSmall.copyWith(
-                color: MintflowColors.onBrandMuted(context, 0.45),
-                fontWeight: FontWeight.w300,
+          SemanticTap(
+            label: budget == null
+                ? 'Set monthly budget'
+                : 'Edit monthly budget, ${MintflowFormat.currency(budget!)}',
+            onTap: onEditBudget,
+            child: AnimatedBuilder(
+              animation: progressAnim,
+              child: Text(
+                budgetLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: MintflowTextStyles.labelSmall.copyWith(
+                  color: MintflowColors.onBrandMuted(context, 0.45),
+                  fontWeight: FontWeight.w300,
+                ),
               ),
-            ),
-            builder: (_, labelChild) {
-              final t = progressAnim.value;
-              final p = t * targetProgress;
-              return SizedBox(
-                width: 160,
-                height: 160,
-                child: CustomPaint(
-                  painter: _BudgetRingPainter(progress: p),
-                  isComplex: true,
-                  willChange: true,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              MintflowFormat.currency(spent * t),
-                              maxLines: 1,
-                              style: MintflowTextStyles.amountMedium.copyWith(
-                                color: MintflowColors.cream,
+              builder: (_, labelChild) {
+                final t = progressAnim.value;
+                final p = t * targetProgress;
+                return SizedBox(
+                  width: 160,
+                  height: 160,
+                  child: CustomPaint(
+                    painter: _BudgetRingPainter(progress: p),
+                    isComplex: true,
+                    willChange: true,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: MintflowSpacing.xxl),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                MintflowFormat.currency(spent * t),
+                                maxLines: 1,
+                                style: MintflowTextStyles.amountMedium.copyWith(
+                                  color: MintflowColors.cream,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          labelChild!,
-                          const SizedBox(height: 4),
-                          Text(
-                            '${(pctLabel * t).round()}% used',
-                            style: MintflowTextStyles.labelMedium.copyWith(
-                              color: MintflowColors.green400,
+                            const SizedBox(height: 2),
+                            labelChild!,
+                            const SizedBox(height: MintflowSpacing.xs),
+                            Text(
+                              '${(pctLabel * t).round()}% used',
+                              style: MintflowTextStyles.labelMedium.copyWith(
+                                color: MintflowColors.green400,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: MintflowSpacing.sm),
+          TextButton(
+            onPressed: onEditBudget,
+            child: Text(
+              budget == null ? 'Set budget' : 'Edit budget',
+              style: MintflowTextStyles.labelMedium.copyWith(
+                color: MintflowColors.green400,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            padding: const EdgeInsets.fromLTRB(
+              MintflowSpacing.lg,
+              0,
+              MintflowSpacing.lg,
+              MintflowSpacing.xxl,
+            ),
             child: Row(
               children: [
                 const Expanded(
@@ -457,7 +512,7 @@ class _RingSection extends StatelessWidget {
                 ),
                 Expanded(
                   child: _RingLegendItem(
-                    color: MintflowColors.gold400,
+                    color: MintflowColors.green100,
                     label: '$daysRemaining days left',
                   ),
                 ),
@@ -519,7 +574,7 @@ class _BudgetRingPainter extends CustomPainter {
     ..strokeWidth = 10
     ..strokeCap = StrokeCap.round;
 
-  static final _tipFill = Paint()..color = MintflowColors.gold400;
+  static final _tipFill = Paint()..color = MintflowColors.green100;
   static final _tipStroke = Paint()
     ..color = MintflowColors.green900
     ..style = PaintingStyle.stroke
@@ -558,192 +613,199 @@ class _BudgetRingPainter extends CustomPainter {
       (old.progress - progress).abs() > 0.002;
 }
 
-// ── Summary ───────────────────────────────────────────────────────────────────
+// ── Quick actions ─────────────────────────────────────────────────────────────
 
-class _SummaryRow extends StatelessWidget {
-  final DashboardSummary summary;
-  const _SummaryRow({required this.summary});
+class _QuickActions extends StatelessWidget {
+  const _QuickActions();
 
   @override
   Widget build(BuildContext context) {
+    const items = <({IconData icon, String label, String route})>[
+      (icon: Icons.add_rounded, label: 'Add', route: MintflowRoutes.addTx),
+      (
+        icon: Icons.receipt_long_outlined,
+        label: 'Bills',
+        route: MintflowRoutes.bills
+      ),
+      (
+        icon: Icons.flag_outlined,
+        label: 'Goals',
+        route: MintflowRoutes.goals
+      ),
+      (
+        icon: Icons.auto_awesome_outlined,
+        label: 'Insights',
+        route: MintflowRoutes.insights
+      ),
+    ];
+
     return Row(
       children: [
-        Expanded(
-          child: _SummaryCard(
-            label: 'Income',
-            value: MintflowFormat.currencyCompact(summary.totalIncome),
-            change: 'this month',
-            isNegative: false,
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const SizedBox(width: MintflowSpacing.sm),
+          Expanded(
+            child: _QuickActionTile(
+              icon: items[i].icon,
+              label: items[i].label,
+              onTap: () {
+                final route = items[i].route;
+                if (route == MintflowRoutes.addTx) {
+                  context.push(route);
+                } else if (route == MintflowRoutes.insights) {
+                  final user = context.read<UserCubit>().state;
+                  final hasAi = user is UserLoaded &&
+                      user.user.hasFeature('ai_insights');
+                  if (!hasAi) {
+                    openUpgradeFlow(context, feature: 'ai_insights');
+                    return;
+                  }
+                  context.go(route);
+                } else {
+                  context.push(route);
+                }
+              },
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _SummaryCard(
-            label: 'Saved',
-            value: MintflowFormat.currencyCompact(summary.totalSaved),
-            change:
-                '${MintflowFormat.percentage(summary.savingsRatePct)} rate',
-            isNegative: summary.totalSaved < 0,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _SummaryCard(
-            label: 'Needs',
-            value: MintflowFormat.percentage(summary.needsPct),
-            change:
-                '${MintflowFormat.percentage(summary.wantsPct)} wants',
-            isNegative: summary.needsPct > 70,
-          ),
-        ),
+        ],
       ],
     );
   }
 }
 
-class _SubscriptionsTeaser extends StatelessWidget {
-  const _SubscriptionsTeaser();
+class _QuickActionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    return SemanticTap(
-      label: 'Subscriptions',
-      onTap: () => context.push(MintflowRoutes.recurringSubscriptions),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: MintflowColors.card(context),
-          borderRadius: MintflowRadius.xl_,
-          border: Border.all(color: MintflowColors.hairline(context)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: MintflowColors.purpleWash(context),
-                borderRadius: MintflowRadius.md_,
-              ),
-              child: const Icon(Icons.subscriptions_outlined,
-                  color: MintflowColors.purple, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Subscriptions', style: MintflowTextStyles.labelMedium),
-                  Text(
-                    'Auto-detected from your banks',
-                    style: MintflowTextStyles.overline
-                        .copyWith(color: MintflowColors.textSecondary(context)),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.textTertiary(context), size: 18),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BillsTeaser extends StatelessWidget {
-  const _BillsTeaser();
-
-  @override
-  Widget build(BuildContext context) {
-    return SemanticTap(
-      label: 'Bills',
-      onTap: () => context.push(MintflowRoutes.bills),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: MintflowColors.card(context),
-          borderRadius: MintflowRadius.xl_,
-          border: Border.all(color: MintflowColors.hairline(context)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: MintflowColors.blueWash(context),
-                borderRadius: MintflowRadius.md_,
-              ),
-              child: const Icon(Icons.receipt_long_outlined,
-                  color: MintflowColors.blue, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Bills', style: MintflowTextStyles.labelMedium),
-                  Text(
-                    'Rent, utilities, due dates',
-                    style: MintflowTextStyles.overline
-                        .copyWith(color: MintflowColors.textSecondary(context)),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded,
-                color: MintflowColors.textTertiary(context), size: 18),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String label, value, change;
-  final bool isNegative;
-  const _SummaryCard({
+  const _QuickActionTile({
+    required this.icon,
     required this.label,
-    required this.value,
-    required this.change,
-    required this.isNegative,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: MintflowColors.card(context),
-        borderRadius: MintflowRadius.lg_,
-        border: Border.all(color: MintflowColors.hairline(context)),
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: MintflowRadius.lg_,
+          child: Ink(
+            height: 72,
+            decoration: BoxDecoration(
+              color: MintflowColors.mintWash(context),
+              borderRadius: MintflowRadius.lg_,
+              border: Border.all(color: MintflowColors.hairline(context)),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ExcludeSemantics(
+                  child: Icon(icon, size: 22, color: MintflowColors.green600),
+                ),
+                const SizedBox(height: MintflowSpacing.xs),
+                Text(
+                  label,
+                  style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.textPrimary(context),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+}
+
+// ── Month pulse (income / saved / pace) ───────────────────────────────────────
+
+String? _paceLabel(DashboardSummary summary) {
+  final projected = summary.projectedSpend;
+  final budget = summary.budgetAmount;
+  if (projected == null || budget == null || budget <= 0) return null;
+  if (projected > budget * 1.02) return 'May overspend';
+  if (projected < budget * 0.9) return 'Under pace';
+  return 'On pace';
+}
+
+IconData _paceIcon(String? label) {
+  switch (label) {
+    case 'May overspend':
+      return Icons.trending_up_rounded;
+    case 'Under pace':
+      return Icons.trending_down_rounded;
+    case 'On pace':
+      return Icons.trending_flat_rounded;
+    default:
+      return Icons.timeline_rounded;
+  }
+}
+
+class _MonthPulse extends StatelessWidget {
+  final DashboardSummary summary;
+  const _MonthPulse({required this.summary});
+
+  void _openBreakdown(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DashboardBreakdownScreen(summary: summary),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pace = _paceLabel(summary);
+    final rate = summary.savingsRatePct;
+    final savedSubtitle = rate.abs() < 0.05
+        ? null
+        : '${rate.toStringAsFixed(0)}% rate';
+
+    return MintCard(
+      semanticLabel: 'Month summary. Tap for spending breakdown',
+      onTap: () => _openBreakdown(context),
+      borderRadius: MintflowRadius.xl_,
+      padding: const EdgeInsets.symmetric(
+        horizontal: MintflowSpacing.md,
+        vertical: MintflowSpacing.md,
+      ),
+      child: Row(
         children: [
-          Text(
-            label.toUpperCase(),
-            style: MintflowTextStyles.overline.copyWith(
-              color: MintflowColors.textSecondary(context),
-              letterSpacing: 0.06,
+          Expanded(
+            child: _PulseCell(
+              label: 'In',
+              value: MintflowFormat.currency(summary.totalIncome),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: MintflowTextStyles.amountSmall.copyWith(
-              color: MintflowColors.textPrimary(context),
-              fontSize: 18,
+          Container(
+            width: 1,
+            height: 36,
+            color: MintflowColors.hairline(context),
+          ),
+          Expanded(
+            child: _PulseCell(
+              label: 'Saved',
+              value: MintflowFormat.currency(summary.totalSaved),
+              subtitle: savedSubtitle,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            change,
-            style: MintflowTextStyles.labelSmall.copyWith(
-              color: isNegative ? MintflowColors.red : MintflowColors.green500,
-              fontWeight: FontWeight.w500,
+          Container(
+            width: 1,
+            height: 36,
+            color: MintflowColors.hairline(context),
+          ),
+          Expanded(
+            child: _PulseCell(
+              label: 'Pace',
+              value: pace ?? '—',
+              icon: _paceIcon(pace),
+              warn: pace == 'May overspend',
             ),
           ),
         ],
@@ -752,64 +814,110 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-// ── Insight ───────────────────────────────────────────────────────────────────
+class _PulseCell extends StatelessWidget {
+  final String label;
+  final String value;
+  final String? subtitle;
+  final IconData? icon;
+  final bool warn;
 
-class _InsightCard extends StatefulWidget {
-  final String? insight;
-  final List<SpendingByCategory> categories;
-  final DashboardSummary summary;
-  const _InsightCard({
-    required this.insight,
-    required this.categories,
-    required this.summary,
+  const _PulseCell({
+    required this.label,
+    required this.value,
+    this.subtitle,
+    this.icon,
+    this.warn = false,
   });
 
   @override
-  State<_InsightCard> createState() => _InsightCardState();
+  Widget build(BuildContext context) {
+    final valueColor = warn
+        ? MintflowColors.red
+        : MintflowColors.textPrimary(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: MintflowSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: MintflowTextStyles.overline.copyWith(
+              color: MintflowColors.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: valueColor),
+                const SizedBox(width: 4),
+              ],
+              Flexible(
+                child: Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: MintflowTextStyles.labelMedium.copyWith(
+                    color: valueColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (subtitle != null)
+            Text(
+              subtitle!,
+              style: MintflowTextStyles.overline.copyWith(
+                color: MintflowColors.textTertiary(context),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
-class _InsightCardState extends State<_InsightCard> {
+// ── Coaching teaser (insight / needs-wants / pace / add) ──────────────────────
+
+class _CoachingTeaser extends StatefulWidget {
+  final DashboardSummary summary;
+  const _CoachingTeaser({required this.summary});
+
+  @override
+  State<_CoachingTeaser> createState() => _CoachingTeaserState();
+}
+
+class _CoachingTeaserState extends State<_CoachingTeaser> {
   bool _dismissed = false;
+
+  void _openBreakdown() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            DashboardBreakdownScreen(summary: widget.summary),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final text = widget.insight?.trim();
-    if (_dismissed || text == null || text.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      decoration: BoxDecoration(
+    final text = widget.summary.topInsight?.trim();
+    if (!_dismissed && text != null && text.isNotEmpty) {
+      return MintCard(
         color: MintflowColors.green900,
         borderRadius: MintflowRadius.xl_,
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(MintflowSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: MintflowColors.gold400,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'FLOWRA INSIGHT',
-                  style: MintflowTextStyles.overline.copyWith(
-                    color: MintflowColors.gold400,
-                    letterSpacing: 0.08,
-                  ),
-                ),
-              ],
+            Text(
+              'Mintflow insight',
+              style: MintflowTextStyles.overline.copyWith(
+                color: MintflowColors.green400,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: MintflowSpacing.sm),
             Text(
               text,
               style: MintflowTextStyles.bodySmall.copyWith(
@@ -818,29 +926,34 @@ class _InsightCardState extends State<_InsightCard> {
                 height: 1.6,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: MintflowSpacing.md),
             Row(
               children: [
                 SemanticTap(
-                  label: 'See breakdown',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => DashboardBreakdownScreen(
-                        summary: widget.summary,
-                      ),
-                    ),
-                  ),
+                  label: 'Open insights',
+                  onTap: () {
+                    final user = context.read<UserCubit>().state;
+                    final hasAi = user is UserLoaded &&
+                        user.user.hasFeature('ai_insights');
+                    if (!hasAi) {
+                      openUpgradeFlow(context, feature: 'ai_insights');
+                      return;
+                    }
+                    context.go(MintflowRoutes.insights);
+                  },
                   child: Container(
                     constraints: const BoxConstraints(minHeight: 48),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: MintflowSpacing.md,
+                      vertical: MintflowSpacing.md,
+                    ),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: MintflowColors.green400,
                       borderRadius: MintflowRadius.sm_,
                     ),
                     child: Text(
-                      'See breakdown',
+                      'Open insights',
                       style: MintflowTextStyles.labelSmall.copyWith(
                         color: MintflowColors.onMint(context),
                         fontWeight: FontWeight.w500,
@@ -848,21 +961,23 @@ class _InsightCardState extends State<_InsightCard> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: MintflowSpacing.sm),
                 SemanticTap(
-                  label: 'Dismiss insight',
-                  onTap: () => setState(() => _dismissed = true),
+                  label: 'See breakdown',
+                  onTap: _openBreakdown,
                   child: Container(
                     constraints: const BoxConstraints(minHeight: 48),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: MintflowSpacing.md,
+                      vertical: MintflowSpacing.md,
+                    ),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: MintflowColors.brandOverlay(context, 0.1),
                       borderRadius: MintflowRadius.sm_,
                     ),
                     child: Text(
-                      'Dismiss',
+                      'Breakdown',
                       style: MintflowTextStyles.labelSmall.copyWith(
                         color: MintflowColors.onBrandMuted(context, 0.65),
                         fontWeight: FontWeight.w500,
@@ -870,11 +985,305 @@ class _InsightCardState extends State<_InsightCard> {
                     ),
                   ),
                 ),
+                const Spacer(),
+                SemanticTap(
+                  label: 'Dismiss insight',
+                  onTap: () => setState(() => _dismissed = true),
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minHeight: 48,
+                      minWidth: 48,
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: MintflowColors.onBrandMuted(context, 0.55),
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
         ),
+      );
+    }
+
+    final userState = context.watch<UserCubit>().state;
+    final hasNeedsWants = userState is UserLoaded &&
+        userState.user.hasFeature('needs_wants');
+    final spent = widget.summary.needsTotal + widget.summary.wantsTotal;
+    if (hasNeedsWants && spent > 0) {
+      return _NeedsWantsTeaser(
+        summary: widget.summary,
+        onTap: _openBreakdown,
+      );
+    }
+
+    final pace = _paceLabel(widget.summary);
+    if (pace != null && widget.summary.budgetAmount != null) {
+      final projected = widget.summary.projectedSpend!;
+      final budget = widget.summary.budgetAmount!;
+      return MintCard(
+        semanticLabel: '$pace. Projected ${MintflowFormat.currency(projected)}',
+        onTap: _openBreakdown,
+        borderRadius: MintflowRadius.xl_,
+        padding: const EdgeInsets.symmetric(
+          horizontal: MintflowSpacing.lg,
+          vertical: MintflowSpacing.md,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: pace == 'May overspend'
+                    ? MintflowColors.red.withValues(alpha: 0.12)
+                    : MintflowColors.mintWash(context),
+                borderRadius: MintflowRadius.md_,
+              ),
+              child: Icon(
+                _paceIcon(pace),
+                color: pace == 'May overspend'
+                    ? MintflowColors.red
+                    : MintflowColors.green600,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: MintflowSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(pace, style: MintflowTextStyles.labelMedium),
+                  Text(
+                    'Projected ${MintflowFormat.currency(projected)} of '
+                    '${MintflowFormat.currency(budget)}',
+                    style: MintflowTextStyles.overline.copyWith(
+                      color: MintflowColors.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: MintflowColors.textTertiary(context),
+              size: 18,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return MintCard(
+      semanticLabel: 'Add a transaction',
+      onTap: () => context.push(MintflowRoutes.addTx),
+      borderRadius: MintflowRadius.xl_,
+      padding: const EdgeInsets.symmetric(
+        horizontal: MintflowSpacing.lg,
+        vertical: MintflowSpacing.md,
       ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: MintflowColors.mintWash(context),
+              borderRadius: MintflowRadius.md_,
+            ),
+            child: const Icon(
+              Icons.add_rounded,
+              color: MintflowColors.green600,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: MintflowSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Add a transaction', style: MintflowTextStyles.labelMedium),
+                Text(
+                  'Keep your budget ring honest',
+                  style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.textSecondary(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right_rounded,
+            color: MintflowColors.textTertiary(context),
+            size: 18,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NeedsWantsTeaser extends StatelessWidget {
+  final DashboardSummary summary;
+  final VoidCallback onTap;
+
+  const _NeedsWantsTeaser({required this.summary, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final needs = summary.needsPct.clamp(0, 100);
+    final wants = summary.wantsPct.clamp(0, 100);
+    return MintCard(
+      semanticLabel:
+          'Needs ${needs.toStringAsFixed(0)} percent, wants ${wants.toStringAsFixed(0)} percent',
+      onTap: onTap,
+      borderRadius: MintflowRadius.xl_,
+      padding: const EdgeInsets.all(MintflowSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Needs vs wants',
+                  style: MintflowTextStyles.labelMedium,
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: MintflowColors.textTertiary(context),
+                size: 18,
+              ),
+            ],
+          ),
+          const SizedBox(height: MintflowSpacing.sm),
+          ClipRRect(
+            borderRadius: MintflowRadius.pill_,
+            child: SizedBox(
+              height: 8,
+              child: Row(
+                children: [
+                  Flexible(
+                    flex: (needs * 10).round().clamp(1, 1000),
+                    child: ColoredBox(color: MintflowColors.green500),
+                  ),
+                  Flexible(
+                    flex: (wants * 10).round().clamp(1, 1000),
+                    child: ColoredBox(color: MintflowColors.blue),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: MintflowSpacing.sm),
+          Row(
+            children: [
+              Text(
+                'Needs ${needs.toStringAsFixed(0)}%',
+                style: MintflowTextStyles.overline.copyWith(
+                  color: MintflowColors.textSecondary(context),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'Wants ${wants.toStringAsFixed(0)}%',
+                style: MintflowTextStyles.overline.copyWith(
+                  color: MintflowColors.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Bills due teaser (conditional) ────────────────────────────────────────────
+
+class _BillsDueTeaser extends StatelessWidget {
+  const _BillsDueTeaser();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<BillCubit, BillState>(
+      buildWhen: (prev, next) => prev != next,
+      builder: (context, state) {
+        if (state is! BillLoaded) return const SizedBox.shrink();
+        final attention = state.billsWithStatus
+            .where((b) =>
+                b.status == BillStatus.overdue ||
+                b.status == BillStatus.unpaid)
+            .length;
+        final overdue = state.overdueCount;
+        if (attention == 0) return const SizedBox.shrink();
+
+        final label = overdue > 0
+            ? (overdue == 1
+                ? '1 bill is overdue'
+                : '$overdue bills are overdue')
+            : (attention == 1
+                ? '1 bill needs attention'
+                : '$attention bills need attention');
+
+        return Padding(
+          padding: const EdgeInsets.only(top: MintflowSpacing.lg),
+          child: MintCard(
+            semanticLabel: label,
+            onTap: () => context.push(MintflowRoutes.bills),
+            borderRadius: MintflowRadius.xl_,
+            padding: const EdgeInsets.symmetric(
+              horizontal: MintflowSpacing.lg,
+              vertical: MintflowSpacing.md,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: overdue > 0
+                        ? MintflowColors.red.withValues(alpha: 0.12)
+                        : MintflowColors.mintWash(context),
+                    borderRadius: MintflowRadius.md_,
+                  ),
+                  child: Icon(
+                    Icons.receipt_long_outlined,
+                    color: overdue > 0
+                        ? MintflowColors.red
+                        : MintflowColors.green600,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: MintflowSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: MintflowTextStyles.labelMedium),
+                      Text(
+                        'Review bills',
+                        style: MintflowTextStyles.overline.copyWith(
+                          color: MintflowColors.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: MintflowColors.textTertiary(context),
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -925,17 +1334,24 @@ class _RecentTransactions extends StatelessWidget {
             const SizedBox(height: 4),
             if (state is TransactionLoading)
               const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
+                padding: EdgeInsets.symmetric(vertical: MintflowSpacing.lg),
+                child: Column(
+                  children: [
+                    MintSkeleton(height: 56),
+                    SizedBox(height: MintflowSpacing.sm),
+                    MintSkeleton(height: 56),
+                    SizedBox(height: MintflowSpacing.sm),
+                    MintSkeleton(height: 56),
+                  ],
+                ),
               )
             else if (items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  'No transactions yet. Tap + to add one.',
-                  style: MintflowTextStyles.bodySmall
-                      .copyWith(color: MintflowColors.textSecondary(context)),
-                ),
+              EmptyState(
+                icon: Icons.receipt_long_outlined,
+                title: 'No transactions yet',
+                message: 'Tap + to add one, or link a bank from Profile.',
+                actionLabel: 'Add transaction',
+                onAction: () => context.push(MintflowRoutes.addTx),
               )
             else
               ...List.generate(items.length, (i) {

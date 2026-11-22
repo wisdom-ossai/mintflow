@@ -10,9 +10,11 @@ import '../../../core/theme/breakpoints.dart';
 import '../../../core/theme/mint_inputs.dart';
 import '../../../core/theme/motion.dart';
 import '../../../core/utils/auth_errors.dart';
+import '../../../core/utils/revenuecat.dart';
 import '../../../data/datasources/service_locator.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Onboarding Screen — 3-step wizard
@@ -162,7 +164,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             current?.hasCompletedOnboarding ??
                 _nameCtrl.text.trim().isNotEmpty);
         if (mounted) setState(() => _loading = false);
-        context.go('${MintflowRoutes.paywall}?feature=bank_sync');
+        if (!revenueCatConfigured) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Bank sync needs Growth. Upgrades aren’t available in this build yet — you can link a bank later from Profile.',
+                ),
+                backgroundColor: MintflowColors.green900,
+              ),
+            );
+            context.go(MintflowRoutes.dashboard);
+          }
+          return;
+        }
+        await openUpgradeFlow(
+          context,
+          feature: 'bank_sync',
+          replaceRoute: true,
+        );
         return;
       }
 
@@ -389,7 +409,7 @@ class _NextButton extends StatelessWidget {
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      color: MintflowColors.cream, strokeWidth: 2))
+                      color: MintflowColors.green900, strokeWidth: 2))
               : Text(label),
         ),
       );
@@ -652,7 +672,7 @@ class _Step3Connect extends StatelessWidget {
                     borderRadius: MintflowRadius.md_,
                   ),
                   child: Icon(Icons.account_balance_outlined,
-                      color: MintflowColors.onBrand(context), size: 22),
+                      color: MintflowColors.onMint(context), size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

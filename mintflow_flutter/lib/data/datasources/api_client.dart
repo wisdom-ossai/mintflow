@@ -455,6 +455,25 @@ class MintflowApiClient {
     return DebtPlanModel.fromJson(res.data);
   }
 
+  // ── Receipt OCR ───────────────────────────────────────────────────────────
+
+  Future<ReceiptOcrResult> scanReceipt({
+    required List<int> bytes,
+    required String filename,
+    String? accountId,
+  }) async {
+    final form = FormData.fromMap({
+      'file': MultipartFile.fromBytes(bytes, filename: filename),
+      if (accountId != null) 'account_id': accountId,
+    });
+    final res = await _dio.post(
+      '/receipts/ocr',
+      data: form,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    return ReceiptOcrResult.fromJson(Map<String, dynamic>.from(res.data as Map));
+  }
+
   // ── Recurring subscriptions (merchant tracker) ────────────────────────────
 
   Future<RecurringSubscriptionList> getRecurringSubscriptions({

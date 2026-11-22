@@ -69,6 +69,7 @@ class _MintflowAppState extends State<MintflowApp> {
   late final UserCubit _userCubit;
   late final GoalCubit _goalCubit;
   late final BillCubit _billCubit;
+  late final DebtCubit _debtCubit;
   bool _deferredStarted = false;
 
   @override
@@ -81,6 +82,7 @@ class _MintflowAppState extends State<MintflowApp> {
     _userCubit = UserCubit();
     _goalCubit = GoalCubit();
     _billCubit = BillCubit();
+    _debtCubit = DebtCubit();
     _router = buildRouter();
 
     // 401 from API (failed refresh) → login
@@ -133,6 +135,7 @@ class _MintflowAppState extends State<MintflowApp> {
     _userCubit.close();
     _goalCubit.close();
     _billCubit.close();
+    _debtCubit.close();
     _router.dispose();
     super.dispose();
   }
@@ -148,6 +151,7 @@ class _MintflowAppState extends State<MintflowApp> {
         BlocProvider.value(value: _userCubit),
         BlocProvider.value(value: _goalCubit),
         BlocProvider.value(value: _billCubit),
+        BlocProvider.value(value: _debtCubit),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, mode) {

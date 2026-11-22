@@ -49,4 +49,8 @@ app.*.map.json
 .env.local
 .env.production
 
+# Firebase (download from console — see GoogleService-Info.plist.example)
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
+
 artifact

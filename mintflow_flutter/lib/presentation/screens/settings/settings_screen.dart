@@ -1,216 +1,267 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/appearance_control.dart';
 import '../../../core/theme/breakpoints.dart';
-import '../../../core/router/app_router.dart';
-import '../../../core/auth/auth_gate.dart';
-import '../../../data/datasources/service_locator.dart';
+import '../../../data/datasources/local_cache.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/mint_card.dart';
 
-class SettingsScreen extends StatelessWidget {
+/// Preferences-only surface. Identity, money links, and danger live on Profile.
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<UserCubit, UserState>(
-      builder: (context, state) {
-        final user = state is UserLoaded ? state.user : null;
-        final name = user?.displayName ?? 'User';
-        final email = user?.email ?? '';
-        final tierLabel = user?.effectiveTier.name ?? 'seed';
-        return Scaffold(
-          backgroundColor: MintflowColors.page(context),
-          appBar: AppBar(
-            backgroundColor: MintflowColors.green900,
-            title: Text('Settings',
-                style: MintflowTextStyles.displaySmall
-                    .copyWith(color: MintflowColors.cream)),
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String _selectedCurrency = 'USD';
+  String _selectedLanguage = 'English';
+
+  static const _currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'];
+  static const _languages = ['English', 'Español', 'Français'];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCurrency =
+        MintflowCache.getPref(CacheKeys.displayCurrency) ?? 'USD';
+    _selectedLanguage =
+        MintflowCache.getPref(CacheKeys.displayLanguage) ?? 'English';
+  }
+
+  Future<void> _pick({
+    required String title,
+    required List<String> options,
+    required String selected,
+    required ValueChanged<String> onSelect,
+  }) async {
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: MintBreakpoints.formMax),
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: MintflowColors.page(ctx),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(28)),
           ),
-          body: ListView(
-            padding: EdgeInsets.symmetric(
-              vertical: 20,
-              horizontal: MintBreakpoints.pageGutter(context),
-            ),
+          padding: EdgeInsets.fromLTRB(
+            MintflowSpacing.xxl,
+            MintflowSpacing.xl,
+            MintflowSpacing.xxl,
+            MintflowSpacing.xxl + MediaQuery.of(ctx).padding.bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-            MintAdaptiveWidth(
-              maxWidth: MintBreakpoints.formMax,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-            // Profile card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: MintflowColors.card(context),
-                borderRadius: MintflowRadius.xl_,
-                border: Border.all(color: MintflowColors.hairline(context)),
-              ),
-              child: Row(children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: MintflowColors.green400,
-                    borderRadius: MintflowRadius.lg_,
-                  ),
-                  child: Center(
-                      child: Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                    style: MintflowTextStyles.displaySmall.copyWith(
-                        color: MintflowColors.onMint(context), fontSize: 20),
-                  )),
+              Text(title, style: MintflowTextStyles.displaySmall),
+              const SizedBox(height: MintflowSpacing.lg),
+              ...options.map(
+                (opt) => ListTile(
+                  title: Text(opt),
+                  trailing: opt == selected
+                      ? const Icon(Icons.check_rounded,
+                          color: MintflowColors.green500)
+                      : null,
+                  onTap: () => Navigator.pop(ctx, opt),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                    child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(name, style: MintflowTextStyles.labelLarge),
-                    Text(email,
-                        style: MintflowTextStyles.bodySmall
-                            .copyWith(color: MintflowColors.textSecondary(context))),
-                  ],
-                )),
-                Text(
-                  tierLabel[0].toUpperCase() + tierLabel.substring(1),
-                  style: MintflowTextStyles.overline.copyWith(
-                      color: MintflowColors.textSecondary(context),
-                      fontWeight: FontWeight.w500),
-                ),
-              ]),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'APPEARANCE',
-                    style: MintflowTextStyles.overline
-                        .copyWith(color: MintflowColors.textSecondary(context)),
-                  ),
-                  const SizedBox(height: 8),
-                  const AppearanceControl(),
-                ],
               ),
-            ),
-            _Section('Account', [
-              _Tile(Icons.person_outline, 'Edit profile',
-                  () => context.push(MintflowRoutes.profile)),
-              _Tile(Icons.lock_outline, 'Change password',
-                  () => context.push(MintflowRoutes.privacySecurity)),
-              _Tile(Icons.notifications_outlined, 'Notifications',
-                  () => context.push(MintflowRoutes.notificationSettings)),
-            ]),
-            _Section('Subscription', [
-              _Tile(Icons.star_outline, 'Manage plan',
-                  () => context.push(MintflowRoutes.paywall),
-                  trailing: tierLabel[0].toUpperCase() + tierLabel.substring(1)),
-              _Tile(Icons.download_outlined, 'Export data (CSV)',
-                  () => context.push(MintflowRoutes.exportData)),
-            ]),
-            _Section('About', [
-              _Tile(Icons.privacy_tip_outlined, 'Privacy & security',
-                  () => context.push(MintflowRoutes.privacySecurity)),
-              _Tile(Icons.info_outline, 'App version', null, trailing: '1.0.0'),
-            ]),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(48, 48),
-                  foregroundColor: MintflowColors.red,
-                  side: BorderSide(
-                      color: MintflowColors.red.withValues(alpha: 0.5)),
-                ),
-                onPressed: () async {
-                  try {
-                    await ServiceLocator.instance.api.logout();
-                  } catch (_) {
-                    await ServiceLocator.instance.tokens.clear();
-                  }
-                  AuthGate.onboardingComplete.value = null;
-                  if (context.mounted) context.go(MintflowRoutes.login);
-                },
-                child: const Text('Sign out'),
-              ),
-            ),
-            const SizedBox(height: 40),
-                ],
-              ),
-            ),
-          ],
+            ],
           ),
         );
       },
     );
+    if (chosen != null) onSelect(chosen);
   }
-}
 
-class _Section extends StatelessWidget {
-  final String title;
-  final List<Widget> tiles;
-  const _Section(this.title, this.tiles);
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: MintflowColors.page(context),
+      appBar: AppBar(
+        backgroundColor: MintflowColors.green900,
+        foregroundColor: MintflowColors.cream,
+        title: Text(
+          'Settings',
+          style: MintflowTextStyles.displaySmall
+              .copyWith(color: MintflowColors.cream),
+        ),
+      ),
+      body: ListView(
+        padding: EdgeInsets.symmetric(
+          vertical: MintflowSpacing.xl,
+          horizontal: MintBreakpoints.pageGutter(context),
+        ),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(0, 4, 0, 8),
-            child: Text(title.toUpperCase(),
-                style: MintflowTextStyles.overline
-                    .copyWith(color: MintflowColors.textSecondary(context))),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: MintflowColors.card(context),
-              borderRadius: MintflowRadius.xl_,
-              border: Border.all(color: MintflowColors.hairline(context)),
-            ),
+          MintAdaptiveWidth(
+            maxWidth: MintBreakpoints.formMax,
             child: Column(
-              children: tiles
-                  .asMap()
-                  .entries
-                  .map((e) => Column(children: [
-                        e.value,
-                        if (e.key < tiles.length - 1)
-                          Divider(
-                              height: 1,
-                              color: MintflowColors.hairline(context)),
-                      ]))
-                  .toList(),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Appearance',
+                  style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.textSecondary(context),
+                  ),
+                ),
+                const SizedBox(height: MintflowSpacing.sm),
+                const MintCard(child: AppearanceControl()),
+                const SizedBox(height: MintflowSpacing.xxl),
+                Text(
+                  'Preferences',
+                  style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.textSecondary(context),
+                  ),
+                ),
+                const SizedBox(height: MintflowSpacing.sm),
+                MintCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: MintflowSpacing.lg,
+                          vertical: MintflowSpacing.xs,
+                        ),
+                        leading: Icon(Icons.language_outlined,
+                            color: MintflowColors.textSecondary(context)),
+                        title: const Text('Language'),
+                        trailing: Text(
+                          _selectedLanguage,
+                          style: MintflowTextStyles.labelMedium.copyWith(
+                            color: MintflowColors.textSecondary(context),
+                          ),
+                        ),
+                        onTap: () => _pick(
+                          title: 'Language',
+                          options: _languages,
+                          selected: _selectedLanguage,
+                          onSelect: (v) async {
+                            setState(() => _selectedLanguage = v);
+                            await MintflowCache.setPref(
+                                CacheKeys.displayLanguage, v);
+                          },
+                        ),
+                      ),
+                      Divider(
+                          height: 1,
+                          color: MintflowColors.hairline(context)),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: MintflowSpacing.lg,
+                          vertical: MintflowSpacing.xs,
+                        ),
+                        leading: Icon(Icons.attach_money_rounded,
+                            color: MintflowColors.textSecondary(context)),
+                        title: const Text('Currency'),
+                        trailing: Text(
+                          _selectedCurrency,
+                          style: MintflowTextStyles.labelMedium.copyWith(
+                            color: MintflowColors.textSecondary(context),
+                          ),
+                        ),
+                        onTap: () => _pick(
+                          title: 'Currency',
+                          options: _currencies,
+                          selected: _selectedCurrency,
+                          onSelect: (v) async {
+                            setState(() => _selectedCurrency = v);
+                            await MintflowCache.setPref(
+                                CacheKeys.displayCurrency, v);
+                          },
+                        ),
+                      ),
+                      Divider(
+                          height: 1,
+                          color: MintflowColors.hairline(context)),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: MintflowSpacing.lg,
+                          vertical: MintflowSpacing.xs,
+                        ),
+                        leading: Icon(Icons.notifications_outlined,
+                            color: MintflowColors.textSecondary(context)),
+                        title: const Text('Notifications'),
+                        subtitle: const Text('Push, reports, and alerts'),
+                        trailing: Icon(Icons.chevron_right_rounded,
+                            color: MintflowColors.textTertiary(context)),
+                        onTap: () => context
+                            .push(MintflowRoutes.notificationSettings),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: MintflowSpacing.xxl),
+                Text(
+                  'Account',
+                  style: MintflowTextStyles.overline.copyWith(
+                    color: MintflowColors.textSecondary(context),
+                  ),
+                ),
+                const SizedBox(height: MintflowSpacing.sm),
+                MintCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: MintflowSpacing.lg,
+                          vertical: MintflowSpacing.xs,
+                        ),
+                        leading: Icon(Icons.security_outlined,
+                            color: MintflowColors.textSecondary(context)),
+                        title: const Text('Privacy & security'),
+                        trailing: Icon(Icons.chevron_right_rounded,
+                            color: MintflowColors.textTertiary(context)),
+                        onTap: () =>
+                            context.push(MintflowRoutes.privacySecurity),
+                      ),
+                      Divider(
+                          height: 1,
+                          color: MintflowColors.hairline(context)),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: MintflowSpacing.lg,
+                          vertical: MintflowSpacing.xs,
+                        ),
+                        leading: Icon(Icons.download_outlined,
+                            color: MintflowColors.textSecondary(context)),
+                        title: const Text('Export data'),
+                        trailing: Icon(Icons.chevron_right_rounded,
+                            color: MintflowColors.textTertiary(context)),
+                        onTap: () =>
+                            context.push(MintflowRoutes.exportData),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: MintflowSpacing.xxl),
+                BlocBuilder<UserCubit, UserState>(
+                  builder: (context, state) {
+                    final tier = state is UserLoaded
+                        ? state.user.effectiveTier.name
+                        : 'seed';
+                    final label = tier[0].toUpperCase() + tier.substring(1);
+                    return Text(
+                      'Mintflow · $label · v1.0.0',
+                      textAlign: TextAlign.center,
+                      style: MintflowTextStyles.overline.copyWith(
+                        color: MintflowColors.textTertiary(context),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
         ],
-      );
-}
-
-class _Tile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final String? trailing;
-  const _Tile(this.icon, this.label, this.onTap, {this.trailing});
-  @override
-  Widget build(BuildContext context) => ListTile(
-        dense: true,
-        leading: Icon(icon, size: 20, color: MintflowColors.textSecondary(context)),
-        title: Text(label,
-            style: MintflowTextStyles.bodySmall.copyWith(
-                fontWeight: FontWeight.w500,
-                color: MintflowColors.textPrimary(context))),
-        trailing: trailing != null
-            ? Text(trailing!,
-                style: MintflowTextStyles.labelSmall
-                    .copyWith(color: MintflowColors.textSecondary(context)))
-            : (onTap == null
-                ? null
-                : Icon(Icons.chevron_right,
-                    size: 18, color: MintflowColors.textTertiary(context))),
-        onTap: onTap,
-      );
+      ),
+    );
+  }
 }

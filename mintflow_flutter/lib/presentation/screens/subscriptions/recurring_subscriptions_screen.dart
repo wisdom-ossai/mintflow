@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 class RecurringSubscriptionsScreen extends StatelessWidget {
   const RecurringSubscriptionsScreen({super.key});
@@ -54,8 +52,10 @@ class _RecurringBody extends StatelessWidget {
           }
           if (state is RecurringUpgradeRequired) {
             return _UpgradeState(
-              onUpgrade: () => context
-                  .push('${MintflowRoutes.paywall}?feature=subscription_tracker'),
+              onUpgrade: () => openUpgradeFlow(
+                context,
+                feature: 'subscription_tracker',
+              ),
             );
           }
           if (state is RecurringError) {

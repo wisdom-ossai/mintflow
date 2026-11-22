@@ -8,6 +8,9 @@ import '../../../core/theme/breakpoints.dart';
 import '../../../core/utils/format.dart';
 import '../../../data/models/models.dart';
 import '../../cubits/cubits.dart';
+import '../../widgets/empty_state.dart';
+import '../../widgets/error_state.dart';
+import '../../widgets/upgrade_soft_gate.dart';
 
 class BillsScreen extends StatefulWidget {
   const BillsScreen({super.key});
@@ -467,36 +470,15 @@ class _EmptyBills extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: MintflowColors.card(context),
-        borderRadius: MintflowRadius.xl_,
-        border: Border.all(color: MintflowColors.hairline(context)),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.receipt_long_outlined,
-              size: 40, color: MintflowColors.green500),
-          const SizedBox(height: 12),
-          Text('No bills yet', style: MintflowTextStyles.labelLarge),
-          const SizedBox(height: 6),
-          Text(
-            'Rent, utilities, insurance — with a due day. Seed includes 3.',
-            textAlign: TextAlign.center,
-            style: MintflowTextStyles.bodySmall
-                .copyWith(color: MintflowColors.textSecondary(context)),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onAdd,
-              child: const Text('Add your first bill'),
-            ),
-          ),
-        ],
-      ),
+    return EmptyState(
+      icon: Icons.receipt_long_outlined,
+      title: 'No bills yet',
+      message:
+          'Rent, utilities, insurance — with a due day. Seed includes 3.',
+      iconColor: MintflowColors.green500,
+      iconBg: MintflowColors.mintWash(context),
+      actionLabel: 'Add your first bill',
+      onAction: onAdd,
     );
   }
 }
@@ -510,35 +492,32 @@ class _ErrorBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUpgrade = message.toLowerCase().contains('upgrade') ||
         message.toLowerCase().contains('growth');
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: MintflowTextStyles.bodyMedium
-                  .copyWith(color: MintflowColors.textSecondary(context)),
-            ),
-            const SizedBox(height: 16),
-            if (isUpgrade)
+    if (isUpgrade) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(MintflowSpacing.xxl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: MintflowTextStyles.bodyMedium
+                    .copyWith(color: MintflowColors.textSecondary(context)),
+              ),
+              const SizedBox(height: MintflowSpacing.lg),
               ElevatedButton(
-                onPressed: () => context
-                    .push('${MintflowRoutes.paywall}?feature=unlimited_bills'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: MintflowColors.purple,
-                  foregroundColor: MintflowColors.cream,
+                onPressed: () => openUpgradeFlow(
+                  context,
+                  feature: 'unlimited_bills',
                 ),
                 child: const Text('See Growth plans'),
-              )
-            else
-              TextButton(
-                  onPressed: onRetry, child: const Text('Try again')),
-          ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
+    return ErrorState(message: message, onRetry: onRetry);
   }
 }

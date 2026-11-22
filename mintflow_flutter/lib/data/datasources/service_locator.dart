@@ -27,6 +27,7 @@ class ServiceLocator {
   late final TransactionRepository transactions;
   late final GoalRepository goals;
   late final BillRepository bills;
+  late final DebtRepository debt;
   late final InsightRepository insights;
 
   static Future<void> init() async {
@@ -44,6 +45,7 @@ class ServiceLocator {
     sl.transactions = TransactionRepository(sl.api);
     sl.goals = GoalRepository(sl.api);
     sl.bills = BillRepository(sl.api);
+    sl.debt = DebtRepository(sl.api);
     sl.insights = InsightRepository(sl.api);
 
     _instance = sl;

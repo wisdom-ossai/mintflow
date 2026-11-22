@@ -120,6 +120,8 @@ async def create_manual_account(
         outstanding_balance=payload.outstanding_balance,
         statement_day=payload.statement_day,
         due_day=payload.due_day,
+        apr=payload.apr,
+        minimum_payment=payload.minimum_payment,
     )
     db.add(account)
     await db.flush()

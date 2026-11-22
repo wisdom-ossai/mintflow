@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
@@ -610,12 +611,47 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           const SizedBox(height: 4),
                           Text(
                             'Billed ${_annual ? "annually" : "monthly"}. '
-                            'Apple/Google manage payments. No hidden fees.',
+                            'Payment is charged to your Apple ID or Google Play '
+                            'account. Subscription renews automatically unless '
+                            'cancelled at least 24 hours before the period ends. '
+                            'Manage or cancel in Account Settings. '
+                            'New accounts include a 7-day Pro trial with no card.',
                             textAlign: TextAlign.center,
                             style: MintflowTextStyles.overline.copyWith(
                               color: MintflowColors.textTertiary(context),
                               fontWeight: FontWeight.w400,
                             ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 12,
+                            children: [
+                              TextButton(
+                                onPressed: () => launchUrl(
+                                  Uri.parse('https://mintflow.app/privacy'),
+                                  mode: LaunchMode.externalApplication,
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      MintflowColors.textSecondary(context),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                child: const Text('Privacy Policy'),
+                              ),
+                              TextButton(
+                                onPressed: () => launchUrl(
+                                  Uri.parse('https://mintflow.app/terms'),
+                                  mode: LaunchMode.externalApplication,
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor:
+                                      MintflowColors.textSecondary(context),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                child: const Text('Terms of Use'),
+                              ),
+                            ],
                           ),
                         ],
                       ),

@@ -659,6 +659,43 @@ class BillPaymentModel extends Equatable {
 
 // ── Debt Plan ─────────────────────────────────────────────────────────────────
 
+class ReceiptOcrResult extends Equatable {
+  final String? merchantName;
+  final double amount;
+  final DateTime date;
+  final String? description;
+  final String transactionId;
+  final String? categoryName;
+  final bool? isNeed;
+  final double confidence;
+
+  const ReceiptOcrResult({
+    this.merchantName,
+    required this.amount,
+    required this.date,
+    this.description,
+    required this.transactionId,
+    this.categoryName,
+    this.isNeed,
+    required this.confidence,
+  });
+
+  factory ReceiptOcrResult.fromJson(Map<String, dynamic> json) =>
+      ReceiptOcrResult(
+        merchantName: json['merchant_name'] as String?,
+        amount: double.parse(json['amount'].toString()),
+        date: DateTime.parse(json['date'].toString()),
+        description: json['description'] as String?,
+        transactionId: json['transaction_id'] as String,
+        categoryName: json['category_name'] as String?,
+        isNeed: json['is_need'] as bool?,
+        confidence: double.parse((json['confidence'] ?? 0).toString()),
+      );
+
+  @override
+  List<Object?> get props => [transactionId, amount];
+}
+
 class DebtAllocation extends Equatable {
   final String accountId;
   final String accountName;

@@ -4,10 +4,12 @@ Mintflow API — main application entry point with full Swagger/OpenAPI document
 import logging
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.exceptions import RequestValidationError
 
 from app.core.config import get_settings
@@ -19,6 +21,9 @@ from app.api.v1.endpoints.recurring_subscriptions import (
     router as recurring_subscriptions_router,
 )
 from app.api.v1.endpoints.bills import router as bills_router
+from app.api.v1.endpoints.goals import router as goals_router
+from app.api.v1.endpoints.debt import router as debt_router
+from app.api.v1.endpoints.receipts import router as receipts_router
 from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.misc import (
     users_router, dashboard_router, insights_router,
@@ -276,6 +281,9 @@ app.include_router(accounts_router,       prefix=API_PREFIX)
 app.include_router(subscriptions_router,  prefix=API_PREFIX)
 app.include_router(recurring_subscriptions_router, prefix=API_PREFIX)
 app.include_router(bills_router,          prefix=API_PREFIX)
+app.include_router(goals_router,          prefix=API_PREFIX)
+app.include_router(debt_router,           prefix=API_PREFIX)
+app.include_router(receipts_router,       prefix=API_PREFIX)
 
 
 # ─── Health + root ─────────────────────────────────────────────────────────
@@ -306,4 +314,36 @@ async def root():
         "docs": "/docs",
         "redoc": "/redoc",
         "openapi": "/openapi.json",
+        "privacy": "/privacy",
+        "terms": "/terms",
+        "support": "/support",
     }
+
+
+# ─── Public legal pages (App Store / Play required URLs) ───────────────────
+# Served from the API host until mintflow.app DNS is attached. Prefer custom
+# domain paths when APP_PUBLIC_URL points at mintflow.app.
+
+_LEGAL_DIR = Path(__file__).resolve().parents[1] / "static" / "legal"
+
+
+def _legal_page(name: str) -> FileResponse:
+    path = _LEGAL_DIR / f"{name}.html"
+    if not path.is_file():
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+    return FileResponse(path, media_type="text/html; charset=utf-8")
+
+
+@app.get("/privacy", include_in_schema=False)
+async def privacy_policy():
+    return _legal_page("privacy")
+
+
+@app.get("/terms", include_in_schema=False)
+async def terms_of_use():
+    return _legal_page("terms")
+
+
+@app.get("/support", include_in_schema=False)
+async def support_page():
+    return _legal_page("support")

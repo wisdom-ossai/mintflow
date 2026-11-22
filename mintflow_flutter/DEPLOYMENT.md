@@ -264,6 +264,9 @@ Secret: (generate and add to Railway as REVENUECAT_WEBHOOK_SECRET)
 
 ## Part 5 — iOS App Store submission
 
+> Operator runbook (parity + ASC steps): [STORE_LAUNCH.md](STORE_LAUNCH.md).  
+> Legal static pages to host: [`../website/`](../website/).
+
 ### 5.1 Apple Developer account
 
 1. enroll.developer.apple.com → Individual ($99/year)

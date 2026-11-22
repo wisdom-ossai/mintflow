@@ -146,7 +146,7 @@ open ios/Runner.xcworkspace
 
 Required in Xcode:
 
-- Set Bundle ID: `app.mintflowow.ios`
+- Set Bundle ID: `app.mintflow.ios`
 - Set Team to your Apple Developer account
 - Enable Push Notifications capability
 - Enable Associated Domains: `applinks:mintflowow.app`
@@ -268,7 +268,7 @@ All design decisions are in `lib/core/theme/app_theme.dart`:
 - [ ] Fonts in `assets/fonts/`
 - [ ] `dart run build_runner build` completed
 - [ ] Android keystore configured in `key.properties`
-- [ ] iOS bundle ID set to `app.mintflowow.ios`
+- [ ] iOS bundle ID set to `app.mintflow.ios`
 - [ ] Push Notifications capability enabled in Xcode
 - [ ] RevenueCat products created and keys configured
 - [ ] `API_BASE_URL` set to production Railway URL

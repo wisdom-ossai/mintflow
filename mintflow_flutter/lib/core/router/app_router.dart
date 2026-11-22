@@ -22,6 +22,8 @@ import '../../presentation/screens/transactions/transaction_list_screen.dart';
 import '../../presentation/screens/transactions/add_transaction_screen.dart';
 import '../../presentation/screens/goals/goals_screen.dart';
 import '../../presentation/screens/goals/add_goal_screen.dart';
+import '../../presentation/screens/debt/debt_plan_screen.dart';
+import '../../presentation/screens/receipts/receipt_scan_screen.dart';
 import '../../presentation/screens/bills/bills_screen.dart';
 import '../../presentation/screens/bills/add_bill_screen.dart';
 import '../../presentation/screens/insights/insights_screen.dart';
@@ -53,6 +55,8 @@ class MintflowRoutes {
   static const linkedAccounts = '/profile/linked-accounts';
   static const exportData = '/profile/export-data';
   static const privacySecurity = '/profile/privacy-security';
+  static const debtPlan = '/debt/plan';
+  static const receiptScan = '/receipts/scan';
   static const recurringSubscriptions = '/subscriptions/tracked';
   static const forgotPassword = '/forgot-password';
   static const checkEmail = '/check-email';
@@ -226,6 +230,16 @@ GoRouter buildRouter() {
       GoRoute(
         path: MintflowRoutes.privacySecurity,
         builder: (_, __) => const PrivacySecurityScreen(),
+      ),
+      GoRoute(
+        path: MintflowRoutes.debtPlan,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (_, __) => const DebtPlanScreen(),
+      ),
+      GoRoute(
+        path: MintflowRoutes.receiptScan,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (_, __) => const ReceiptScanScreen(),
       ),
       GoRoute(
         path: MintflowRoutes.recurringSubscriptions,

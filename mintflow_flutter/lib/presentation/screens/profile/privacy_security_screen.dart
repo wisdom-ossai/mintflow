@@ -24,6 +24,8 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool _busy = false;
 
   static final _privacyUri = Uri.parse('https://mintflow.app/privacy');
+  static final _termsUri = Uri.parse('https://mintflow.app/terms');
+  static final _supportUri = Uri.parse('https://mintflow.app/support');
 
   @override
   void initState() {
@@ -40,12 +42,12 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
     );
   }
 
-  Future<void> _openPrivacyPolicy() async {
-    final ok = await launchUrl(_privacyUri, mode: LaunchMode.externalApplication);
+  Future<void> _openExternal(Uri uri, String label) async {
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Couldn’t open the privacy policy. Try again.'),
+        SnackBar(
+          content: Text('Couldn’t open $label. Try again.'),
           backgroundColor: MintflowColors.red,
         ),
       );
@@ -234,7 +236,23 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
                   iconColor: MintflowColors.textSecondary(context),
                   iconBg: MintflowColors.softFill(context),
                   label: 'Privacy policy',
-                  onTap: _openPrivacyPolicy,
+                  onTap: () => _openExternal(_privacyUri, 'the privacy policy'),
+                ),
+                const _Hairline(),
+                _NavRow(
+                  icon: Icons.gavel_outlined,
+                  iconColor: MintflowColors.textSecondary(context),
+                  iconBg: MintflowColors.softFill(context),
+                  label: 'Terms of use',
+                  onTap: () => _openExternal(_termsUri, 'the terms'),
+                ),
+                const _Hairline(),
+                _NavRow(
+                  icon: Icons.support_agent_outlined,
+                  iconColor: MintflowColors.textSecondary(context),
+                  iconBg: MintflowColors.softFill(context),
+                  label: 'Support',
+                  onTap: () => _openExternal(_supportUri, 'support'),
                 ),
               ],
             ),

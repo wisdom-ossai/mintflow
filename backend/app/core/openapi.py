@@ -80,6 +80,27 @@ TAGS_METADATA = [
         ),
     },
     {
+        "name": "goals",
+        "description": (
+            "Named savings goals with contribution progress. Seed allows 1 "
+            "active goal; Growth/Pro unlock unlimited goals."
+        ),
+    },
+    {
+        "name": "debt",
+        "description": (
+            "Pro debt payoff plans using snowball or avalanche amortization "
+            "over credit card balances."
+        ),
+    },
+    {
+        "name": "receipts",
+        "description": (
+            "Pro receipt OCR. Images are processed in memory and discarded; "
+            "only extracted transaction fields are stored."
+        ),
+    },
+    {
         "name": "health",
         "description": "Health check and readiness probe endpoints. No auth required.",
     },

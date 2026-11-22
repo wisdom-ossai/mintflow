@@ -15,12 +15,17 @@ from app.db.session import AsyncSessionLocal
 from app.models.models import (
     Account,
     AccountType,
+    Bill,
     NotificationPreference,
     NotificationType,
     SubscriptionTier,
     User,
 )
-from app.services.notification_service import send_card_payment_reminder, send_daily_summary
+from app.services.notification_service import (
+    send_bill_due_reminder,
+    send_card_payment_reminder,
+    send_daily_summary,
+)
 from app.services.transaction_service import get_dashboard_summary
 
 logger = logging.getLogger(__name__)
@@ -72,10 +77,18 @@ async def _run_daily_summaries():
             await db.rollback()
 
 
+def _due_day_in_three_days(now: datetime) -> int:
+    """Day-of-month that is ~3 calendar days ahead (clamped 1–31)."""
+    from datetime import timedelta
+
+    target = now + timedelta(days=3)
+    return target.day
+
+
 async def _run_card_payment_reminders():
     logger.info("Running card payment reminder job")
     now = datetime.now(timezone.utc)
-    target_day = (now.day + 3) % 31 or 31
+    target_day = _due_day_in_three_days(now)
 
     async with AsyncSessionLocal() as db:
         try:
@@ -106,6 +119,44 @@ async def _run_card_payment_reminders():
             await db.commit()
         except Exception as e:
             logger.error("Card reminder job error: %s", e)
+            await db.rollback()
+
+
+async def _run_bill_due_reminders():
+    """Push ~3 days before each active bill's due_day."""
+    logger.info("Running bill due reminder job")
+    now = datetime.now(timezone.utc)
+    target_day = _due_day_in_three_days(now)
+
+    async with AsyncSessionLocal() as db:
+        try:
+            result = await db.execute(
+                select(Bill)
+                .options(selectinload(Bill.user))
+                .where(
+                    Bill.due_day == target_day,
+                    Bill.is_active == True,  # noqa: E712
+                )
+            )
+            bills = result.scalars().all()
+            from datetime import timedelta
+
+            due_dt = now + timedelta(days=3)
+            due_date = f"{due_dt.strftime('%B')} {due_dt.day}"
+            for bill in bills:
+                user = bill.user
+                if not user or not user.firebase_token:
+                    continue
+                await send_bill_due_reminder(
+                    db=db,
+                    user=user,
+                    bill_name=bill.name,
+                    amount=bill.amount,
+                    due_date=due_date,
+                )
+            await db.commit()
+        except Exception as e:
+            logger.error("Bill reminder job error: %s", e)
             await db.rollback()
 
 
@@ -227,6 +278,12 @@ def setup_scheduler():
         _run_card_payment_reminders,
         CronTrigger(hour=9, minute=0),
         id="card_reminders",
+        replace_existing=True,
+    )
+    scheduler.add_job(
+        _run_bill_due_reminders,
+        CronTrigger(hour=9, minute=15),
+        id="bill_reminders",
         replace_existing=True,
     )
     scheduler.add_job(

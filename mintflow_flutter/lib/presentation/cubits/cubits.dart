@@ -847,6 +847,91 @@ class RecurringCubit extends Cubit<RecurringState> {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Debt payoff (Pro)
+// ═══════════════════════════════════════════════════════════════════════════
+
+abstract class DebtState extends Equatable {
+  const DebtState();
+}
+
+class DebtInitial extends DebtState {
+  const DebtInitial();
+  @override
+  List get props => [];
+}
+
+class DebtLoading extends DebtState {
+  const DebtLoading();
+  @override
+  List get props => [];
+}
+
+class DebtLoaded extends DebtState {
+  final DebtPlanModel? plan;
+  const DebtLoaded(this.plan);
+  @override
+  List get props => [plan];
+}
+
+class DebtError extends DebtState {
+  final String message;
+  const DebtError(this.message);
+  @override
+  List get props => [message];
+}
+
+class DebtCubit extends Cubit<DebtState> {
+  final DebtRepository _repo;
+
+  DebtCubit()
+      : _repo = ServiceLocator.instance.debt,
+        super(const DebtInitial());
+
+  Future<void> load({bool forceRefresh = false}) async {
+    emit(const DebtLoading());
+    try {
+      final plan = await _repo.getPlan(forceRefresh: forceRefresh);
+      if (!isClosed) emit(DebtLoaded(plan));
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 403) {
+        if (!isClosed) {
+          emit(const DebtError('Debt payoff plans require Pro.'));
+        }
+        return;
+      }
+      if (!isClosed) emit(DebtError(_msg(e)));
+    } catch (e) {
+      if (!isClosed) emit(DebtError(_msg(e)));
+    }
+  }
+
+  Future<String?> generate({
+    required String strategy,
+    required double monthlyExtraPayment,
+  }) async {
+    try {
+      final plan = await _repo.generate(
+        strategy: strategy,
+        monthlyExtraPayment: monthlyExtraPayment,
+      );
+      if (!isClosed) emit(DebtLoaded(plan));
+      return null;
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map && data['detail'] != null) {
+        return data['detail'].toString();
+      }
+      if (e.response?.statusCode == 403) {
+        return 'Debt payoff plans require Pro.';
+      }
+      return _msg(e);
+    } catch (e) {
+      return _msg(e);
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper — extract a readable message from any error
 // ─────────────────────────────────────────────────────────────────────────────

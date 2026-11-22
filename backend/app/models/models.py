@@ -75,8 +75,20 @@ class NotificationType(str, PyEnum):
     ai_nudge             = "ai_nudge"
     salary_detected      = "salary_detected"
     card_payment_due     = "card_payment_due"
+    bill_due             = "bill_due"
     subscription_renewal = "subscription_renewal"
     high_utilization     = "high_utilization"
+
+
+class GoalStatus(str, PyEnum):
+    active    = "active"
+    completed = "completed"
+    paused    = "paused"
+
+
+class DebtStrategy(str, PyEnum):
+    snowball  = "snowball"
+    avalanche = "avalanche"
 
 
 class RecurringFrequency(str, PyEnum):
@@ -136,6 +148,12 @@ class User(Base):
     bills = relationship("Bill", back_populates="user", cascade="all, delete-orphan")
     bill_payments = relationship(
         "BillPayment", back_populates="user", cascade="all, delete-orphan"
+    )
+    savings_goals = relationship(
+        "SavingsGoal", back_populates="user", cascade="all, delete-orphan"
+    )
+    debt_plans = relationship(
+        "DebtPlan", back_populates="user", cascade="all, delete-orphan"
     )
 
     @property
@@ -209,6 +227,9 @@ class Account(Base):
     outstanding_balance = Column(Numeric(14, 2), nullable=True)
     statement_day     = Column(Integer, nullable=True)  # day of month
     due_day           = Column(Integer, nullable=True)   # day of month
+    # Debt-plan inputs (credit cards). Nullable — defaults used when absent.
+    apr               = Column(Numeric(5, 2), nullable=True)  # annual % e.g. 22.99
+    minimum_payment   = Column(Numeric(12, 2), nullable=True)
     is_active         = Column(Boolean, default=True)
     last_synced_at    = Column(DateTime(timezone=True), nullable=True)
     created_at        = Column(DateTime(timezone=True), server_default=func.now())
@@ -476,6 +497,49 @@ class Bill(Base):
 
     __table_args__ = (
         Index("ix_bills_user_active", "user_id", "is_active"),
+    )
+
+
+class SavingsGoal(Base):
+    """Named savings target with contribution progress (Seed: 1, Growth+: unlimited)."""
+    __tablename__ = "savings_goals"
+
+    id                = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id           = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name              = Column(String(255), nullable=False)
+    target_amount     = Column(Numeric(12, 2), nullable=False)
+    current_amount    = Column(Numeric(12, 2), nullable=False, default=Decimal("0"))
+    target_date       = Column(DateTime(timezone=True), nullable=True)
+    linked_account_id = Column(UUID(as_uuid=False), ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)
+    icon              = Column(String(50), nullable=True)
+    color             = Column(String(7), nullable=True)
+    status            = Column(Enum(GoalStatus), nullable=False, default=GoalStatus.active)
+    ai_suggestion     = Column(Text, nullable=True)
+    created_at        = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at        = Column(DateTime(timezone=True), onupdate=func.now())
+
+    user = relationship("User", back_populates="savings_goals")
+
+    __table_args__ = (
+        Index("ix_savings_goals_user_status", "user_id", "status"),
+    )
+
+
+class DebtPlan(Base):
+    """Cached snowball/avalanche payoff plan. One active plan per user (latest wins)."""
+    __tablename__ = "debt_plans"
+
+    id                     = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id                = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    strategy               = Column(Enum(DebtStrategy), nullable=False)
+    monthly_extra_payment  = Column(Numeric(12, 2), nullable=False, default=Decimal("0"))
+    content                = Column(JSON, nullable=False)  # freedom_date, interest, allocations, narrative
+    generated_at           = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="debt_plans")
+
+    __table_args__ = (
+        Index("ix_debt_plans_user_generated", "user_id", "generated_at"),
     )
 
 

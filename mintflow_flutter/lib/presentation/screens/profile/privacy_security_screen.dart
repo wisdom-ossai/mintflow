@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/auth/auth_gate.dart';
+import '../../../core/constants/legal_urls.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
@@ -23,9 +24,9 @@ class _PrivacySecurityScreenState extends State<PrivacySecurityScreen> {
   bool _biometricEnabled = false;
   bool _busy = false;
 
-  static final _privacyUri = Uri.parse('https://mintflow.app/privacy');
-  static final _termsUri = Uri.parse('https://mintflow.app/terms');
-  static final _supportUri = Uri.parse('https://mintflow.app/support');
+  static final _privacyUri = MintflowLegalUrls.privacy;
+  static final _termsUri = MintflowLegalUrls.terms;
+  static final _supportUri = MintflowLegalUrls.support;
 
   @override
   void initState() {

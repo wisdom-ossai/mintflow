@@ -27,9 +27,11 @@ Trial accounts unlock Pro for 7 days with no card.
 
 ## Privacy / legal URLs
 
-- Privacy: https://mintflow.app/privacy
-- Terms: https://mintflow.app/terms
-- Support: https://mintflow.app/support
+- Privacy: https://mintflow-api.up.railway.app/privacy
+- Terms: https://mintflow-api.up.railway.app/terms
+- Support: https://mintflow-api.up.railway.app/support
+
+(Custom domain `mintflow.app` can replace these once DNS is attached.)
 
 ## Encryption
 

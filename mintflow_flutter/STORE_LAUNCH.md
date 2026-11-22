@@ -4,11 +4,14 @@ Code parity for marketed features (goals, debt, OCR, bill reminders, paywall leg
 
 ## 1. Legal URLs (must return 200)
 
-Deploy [website/](../website/) to `mintflow.app`:
+Legal pages are served by the production API (and mirrored under `website/`):
 
-- https://mintflow.app/privacy
-- https://mintflow.app/terms
-- https://mintflow.app/support
+- https://mintflow-api.up.railway.app/privacy
+- https://mintflow-api.up.railway.app/terms
+- https://mintflow-api.up.railway.app/support
+
+When `mintflow.app` DNS is live, point it at the same content and update
+`MintflowLegalUrls.base` in `lib/core/constants/legal_urls.dart`.
 
 ## 2. Production API
 

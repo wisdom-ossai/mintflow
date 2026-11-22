@@ -327,7 +327,7 @@ async def root():
 _LEGAL_DIR = Path(__file__).resolve().parents[1] / "static" / "legal"
 
 
-def _legal_page(name: str) -> FileResponse:
+def _legal_page(name: str) -> FileResponse | JSONResponse:
     path = _LEGAL_DIR / f"{name}.html"
     if not path.is_file():
         return JSONResponse(status_code=404, content={"detail": "Not found"})

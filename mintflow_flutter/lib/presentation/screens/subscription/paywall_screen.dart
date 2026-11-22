@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/constants/legal_urls.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/breakpoints.dart';
@@ -629,7 +630,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                             children: [
                               TextButton(
                                 onPressed: () => launchUrl(
-                                  Uri.parse('https://mintflow.app/privacy'),
+                                  MintflowLegalUrls.privacy,
                                   mode: LaunchMode.externalApplication,
                                 ),
                                 style: TextButton.styleFrom(
@@ -641,7 +642,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                               ),
                               TextButton(
                                 onPressed: () => launchUrl(
-                                  Uri.parse('https://mintflow.app/terms'),
+                                  MintflowLegalUrls.terms,
                                   mode: LaunchMode.externalApplication,
                                 ),
                                 style: TextButton.styleFrom(
